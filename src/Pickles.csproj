@@ -1,0 +1,134 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PlatformTarget>x64</PlatformTarget>
+		<Prefer32Bit>false</Prefer32Bit>
+		<RevitInstallPath>C:\Program Files\Autodesk\Revit 2027</RevitInstallPath>
+		<DynamoRevitPath>$(RevitInstallPath)\AddIns\DynamoForRevit\Revit</DynamoRevitPath>
+		<Configurations>
+			Debug R27;
+			Release R27
+		</Configurations>
+		<PackageName>Pickles</PackageName>
+		<PackageVersion>0.0.1</PackageVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug R27'">
+		<DynamoVersion>4.0</DynamoVersion>
+		<DynRevitVersion>27.0</DynRevitVersion>
+		<DynamoOutput>27.0</DynamoOutput>
+		<RevitVersion>2027</RevitVersion>
+		<DefineConstants>$(DefineConstants);REVIT27</DefineConstants>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Release R27'">
+		<DynamoVersion>4.0</DynamoVersion>
+		<DynRevitVersion>27.0</DynRevitVersion>
+		<DynamoOutput>27.0</DynamoOutput>
+		<RevitVersion>2027</RevitVersion>
+		<DefineConstants>$(DefineConstants);REVIT27</DefineConstants>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DynVersion>$(DynamoVersion)</DynVersion>
+		<DynRevitVersion Condition="'$(DynRevitVersion)' == ''">$(DynamoVersion)</DynRevitVersion>
+		<BuildOutput>$(DynamoOutput)</BuildOutput>
+		<PublishSingleFile>true</PublishSingleFile>
+		<Copyright>MIT</Copyright>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>dynamo</PackageTags>
+		<FolderPackages>$(AppData)\Dynamo\Dynamo Revit\$(BuildOutput)\packages\$(PackageName)\</FolderPackages>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<Version>$(RevitVersion).$(PackageVersion)</Version>
+		<FileVersion>$(RevitVersion).$(PackageVersion)</FileVersion>
+		<AssemblyVersion>$(RevitVersion).$(PackageVersion)</AssemblyVersion>
+		<Description>$(PackageName) for Dynamo|Revit $(RevitVersion)</Description>
+		<Title>$(PackageName) for Dynamo|Revit $(RevitVersion)</Title>
+		<Product>$(PackageName) for Dynamo|Revit $(RevitVersion)</Product>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DynamoVisualProgramming.Core" Version="$(DynVersion).*" />
+		<PackageReference Include="DynamoVisualProgramming.DynamoCoreNodes" Version="$(DynVersion).*" />
+		<PackageReference Include="DynamoVisualProgramming.ZeroTouchLibrary" Version="$(DynVersion).*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Revit API -->
+		<Reference Include="RevitAPI">
+			<HintPath>$(RevitInstallPath)\RevitAPI.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="RevitAPIUI">
+			<HintPath>$(RevitInstallPath)\RevitAPIUI.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<!-- DynamoRevit (Revit.Elements, RevitServices etc.) -->
+		<Reference Include="RevitNodes">
+			<HintPath>$(DynamoRevitPath)\RevitNodes.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="RevitServices">
+			<HintPath>$(DynamoRevitPath)\RevitServices.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="DynamoRevitDS">
+			<HintPath>$(DynamoRevitPath)\DynamoRevitDS.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Extensions\" />
+	  <Folder Include="Resources\" />
+	</ItemGroup>
+
+	<Target Name="CopyToDynamoPackage" AfterTargets="Build">
+		<PropertyGroup>
+			<DynamoBin>$(FolderPackages)bin\</DynamoBin>
+		</PropertyGroup>
+		
+		<ItemGroup>
+			<AssemblyFiles Include="$(TargetDir)$(AssemblyName).dll" />
+			<AssemblyFiles Include="$(TargetDir)$(AssemblyName).xml" />
+		</ItemGroup>
+		
+		<MakeDir Directories="$(DynamoBin)" />
+		<Copy SourceFiles="@(AssemblyFiles)" DestinationFolder="$(DynamoBin)" />
+	</Target>
+
+	<Target Name="WritePkgJson" AfterTargets="Build">
+		<PropertyGroup>
+			<PkgJsonPath>$(FolderPackages)pkg.json</PkgJsonPath>
+			<PkgJsonContent>
+				{
+				"name": "$(PackageName)",
+				"version": "$(RevitVersion).$(PackageVersion)",
+				"description": "$(PackageName) for Dynamo Revit $(RevitVersion)",
+				"group": "",
+				"engine": "Dynamo",
+				"engine_version": "$(DynVersion).0",
+				"engine_version2": "$(DynVersion).0",
+				"contents": "nodes",
+				"license": "MIT",
+				"dependencies": [],
+				"keywords": [ "dynamo", "revit" ],
+				"site_url": ""
+				}
+			</PkgJsonContent>
+		</PropertyGroup>
+
+		<MakeDir Directories="$(FolderPackages)" />
+		<WriteLinesToFile File="$(PkgJsonPath)" Lines="$(PkgJsonContent)" Overwrite="true" Encoding="UTF-8" />
+	</Target>
+
+</Project>

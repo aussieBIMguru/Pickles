@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pickles", "Pickles.csproj", "{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug R27|Any CPU = Debug R27|Any CPU
+		Release R27|Any CPU = Release R27|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.ActiveCfg = Debug R27|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.Build.0 = Debug R27|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.ActiveCfg = Release R27|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.Build.0 = Release R27|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {155E2FF9-0D5D-45A0-8EFC-B5FA0F9988BB}
+	EndGlobalSection
+EndGlobal
