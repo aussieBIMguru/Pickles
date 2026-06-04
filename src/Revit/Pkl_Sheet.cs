@@ -1,22 +1,16 @@
 ﻿// Autodesk
 using Autodesk.DesignScript.Runtime;
-using Autodesk.Revit.DB;
 using DynamoServices;
-using Revit.Elements;
-using RevitServices.Persistence;
 using RevitServices.Transactions;
-using DB = Autodesk.Revit.DB;
-// Pickle
-using pklGen = Pkl_Utilities.Pkl_General;
 
 namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Sheets.
     /// </summary>
-    public class Pkl_Sheets
+    public class Pkl_Sheet
     {
-        internal Pkl_Sheets() { }
+        internal Pkl_Sheet() { }
 
         /// <summary>
         /// Creates Revit sheets if they do not exist by number in the project.
@@ -26,28 +20,29 @@ namespace Pkl_Revit
         /// <param name="names">A list of names (strings).</param>
         /// <param name="asPlaceholder">Create sheets as placeholders.</param>
         /// <returns>A list of sheets and outcomes.</returns>
+        /// <search>sheet, viewsheet, create</search>
         [MultiReturn("sheets", "success")]
-        public static Dictionary<string, object> Create(global::Revit.Elements.FamilyType titleBlockType,
+        public static Dictionary<string, object> Create(DynFamilySymbol titleBlockType,
             List<string> numbers, List<string> names, bool asPlaceholder = false)
         {
             // Current document
-            var doc = DocumentManager.Instance.CurrentDBDocument;
-            
-            // Inputs for node
-            var outputName1 = "sheets";
-            var outputName2 = "success";
+            DB.Document doc = pklGen.GetDocumentRoutine(null);
+
+            // Final outputs
+            var outSheets = new List<DynElement>();
+            var outSuccess = new List<bool>();
 
             // Output dictionary default values
             var output = new Dictionary<string, object>
             {
-                { outputName1, new List<global::Revit.Elements.Element>() },
-                { outputName2, new List<bool>() }
+                { "sheets", outSheets },
+                { "success", outSuccess }
             };
             
             // Null validation routine, ensure equal name/number count
-            if (titleBlockType is null
-                || pklGen.NullOrEmpty(numbers, ensureNoNulls: true)
-                || pklGen.NullOrEmpty(names, ensureNoNulls: true)
+            if (titleBlockType == null
+                || numbers.Ext_ListIsValid(ensureNoNulls: true)
+                || names.Ext_ListIsValid(ensureNoNulls: true)
                 || numbers.Count != names.Count)
             {
                 LogWarningMessageEvents.OnLogWarningMessage("Invalid inputs were provided.");
@@ -55,33 +50,29 @@ namespace Pkl_Revit
             }
 
             // Ensure family type is a title block
-            if (titleBlockType.InternalElement is FamilySymbol symbol
-                && symbol.Family.FamilyCategory.Id.Value != (int)BuiltInCategory.OST_TitleBlocks)
+            if (titleBlockType.InternalElement is DB.FamilySymbol symbol
+                && symbol.Family.FamilyCategory.Id.Value != (int)DB.BuiltInCategory.OST_TitleBlocks)
             {
                 LogWarningMessageEvents.OnLogWarningMessage("Titleblock family type was not provided.");
                 return output;
             }
 
             // Get existing sheet numbers in the document
-            var exSheetNumbers = new DB.FilteredElementCollector(doc)
+            HashSet<string> exSheetNumbers = new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.ViewSheet))
                 .Cast<DB.ViewSheet>()
                 .Select(s => s.SheetNumber)
                 .Distinct()
-                .ToHashSet<string>();
+                .ToHashSet();
 
             // Titleblock family type Id
-            var ttbTypeId = titleBlockType.InternalElement.Id;
+            DB.ElementId ttbTypeId = titleBlockType.InternalElement.Id;
 
             // Close any active transactions
             TransactionManager.Instance.ForceCloseTransaction();
 
-            // Final outputs
-            var sheets = new List<global::Revit.Elements.Element>();
-            var success = new List<bool>();
-
             // Using a transaction...
-            using (DB.Transaction transaction = new DB.Transaction(doc, "Pickle: Sheets.Create"))
+            using (var transaction = new DB.Transaction(doc, "Pickle: Sheets.Create"))
             {
                 transaction.Start();
 
@@ -92,7 +83,7 @@ namespace Pkl_Revit
                     if (!exSheetNumbers.Contains(numbers[i]))
                     {
                         // Create the sheet, add to number set
-                        var sheet = pklGen.CreateSheet(doc,
+                        DB.ViewSheet sheet = pklGen.CreateSheet(doc,
                                 numbers[i],
                                 names[i],
                                 asPlaceholder,
@@ -100,14 +91,14 @@ namespace Pkl_Revit
                         exSheetNumbers.Add(numbers[i]);
 
                         // Add to outputs
-                        success.Add(true);
-                        sheets.Add(sheet.ToDSType(true));
+                        outSuccess.Add(true);
+                        outSheets.Add(sheet.Ext_ToDynElement(true));
                     }
                     else
                     {
                         // Add error to outputs
-                        sheets.Add(null);
-                        success.Add(false);
+                        outSheets.Add(null);
+                        outSuccess.Add(false);
                     }
                 }
 
@@ -116,9 +107,7 @@ namespace Pkl_Revit
 
             TransactionManager.Instance.TransactionTaskDone();
 
-            // Store and return outputs
-            output[outputName1] = sheets;
-            output[outputName2] = success;
+            // Return outputs
             return output;
         }
     }

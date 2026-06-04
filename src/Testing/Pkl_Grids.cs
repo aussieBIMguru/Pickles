@@ -2,7 +2,7 @@
 using Autodesk.DesignScript.Runtime;
 using DynamoServices;
 
-namespace Pkl_Testing
+namespace Pkl_Learning
 {
     /// <summary>
     /// Test tooltip.
