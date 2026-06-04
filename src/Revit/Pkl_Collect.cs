@@ -15,33 +15,22 @@ namespace Pkl_Revit
         /// Collects all BaseExportOption names in the provided Document.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns>A list of BaseExportOption names.</returns>
+        /// <returns name="optionNames">A list of BaseExportOption names.</returns>
         /// <search>collect, export, options</search>
-        [MultiReturn("optionNames")]
-        public static Dictionary<string, object> BaseExportOptionNames([DefaultArgument("null")] object? docOrLinkInstance = null)
+        public static IList<string> BaseExportOptionNames([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
             DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
-
-            // Output name
-            string outputName1 = "optionNames";
-
-            // Default output dictionary
-            var output = new Dictionary<string, object>
-            {
-                { outputName1, new List<DynElement>() }
-            };
 
             // Early return/warning if no document
             if (doc == null)
             {
                 LogWarningMessageEvents.OnLogWarningMessage("Document/RevitLinkInstance input was not valid.");
-                return output;
+                return new List<string>();
             }
 
             // Collect elements and return as output
-            output[outputName1] = DB.BaseExportOptions.GetPredefinedSetupNames(doc);
-            return output;
+            return DB.BaseExportOptions.GetPredefinedSetupNames(doc);
         }
 
         /// <summary>
