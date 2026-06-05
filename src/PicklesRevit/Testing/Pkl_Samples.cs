@@ -5,11 +5,20 @@ using DynamoServices;
 namespace Pkl_Learning
 {
     /// <summary>
-    /// Test tooltip.
+    /// 
     /// </summary>
-    public class Pkl_Grids
+    public class Pkl_Samples
     {
-        internal Pkl_Grids() { }
+        //The empty private constructor.
+        //This will be not imported into Dynamo.
+        private Pkl_Samples() { }
+
+        //The public multiplication method. 
+        //This will be imported into Dynamo.
+        public static double MultiplyByTwo(double inputNumber)
+        {
+            return inputNumber * 2.0;
+        }
 
         /// <summary>
         /// This method creates a rectangular grid from an X and Y count.

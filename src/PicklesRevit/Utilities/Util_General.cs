@@ -1,7 +1,7 @@
 ﻿// Autodesk
 using RevitServices.Persistence;
 
-namespace Pkl_Utilities
+namespace Pickle.Utilities
 {
     /// <summary>
     /// General utility methods.

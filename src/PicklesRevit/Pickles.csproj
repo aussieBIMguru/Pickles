@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
+		<RootNamespace>Pickles</RootNamespace>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -46,7 +47,7 @@
 		<Copyright>MIT</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>dynamo</PackageTags>
-		<FolderPackages>$(AppData)\Dynamo\Dynamo Revit\$(BuildOutput)\packages\$(PackageName)\</FolderPackages>
+		<FolderPackages>$(AppData)\Dynamo\Dynamo Revit\$(BuildOutput)\packages\$(RootNamespace)\</FolderPackages>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Version>$(RevitVersion).$(PackageVersion)</Version>
 		<FileVersion>$(RevitVersion).$(PackageVersion)</FileVersion>

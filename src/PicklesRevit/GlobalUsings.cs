@@ -8,7 +8,7 @@ global using DynFamilySymbol = global::Revit.Elements.FamilyType;
 global using DB = Autodesk.Revit.DB;
 
 // Pickle class alias'
-global using pklGen = Pkl_Utilities.Util_General;
+global using pklGen = Pickle.Utilities.Util_General;
 
 // Pickle extension methods
-global using Pkl_Extensions;
+global using Pickle.Extensions;

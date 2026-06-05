@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{741A5824-1E57-44E4-88D7-BD904A8F48DC}") = "PicklesUI", "PicklesUI.csproj", "{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug R27|Any CPU = Debug R27|Any CPU
+		Release R27|Any CPU = Release R27|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.ActiveCfg = Debug R27|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.Build.0 = Debug R27|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.ActiveCfg = Release R27|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.Build.0 = Release R27|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD9703C7-2E06-4269-9DBF-050FC58D7AAB}
+	EndGlobalSection
+EndGlobal
