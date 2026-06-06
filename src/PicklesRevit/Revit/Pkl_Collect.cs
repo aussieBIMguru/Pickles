@@ -1,6 +1,5 @@
 ﻿// Autodesk
 using Autodesk.DesignScript.Runtime;
-using Autodesk.Revit.DB;
 
 namespace Pkl_Revit
 {
@@ -216,6 +215,28 @@ namespace Pkl_Revit
 
             // Set and return the outputs
             return doc.Ext_CollectSheets(sheetCollectionId, includePlaceholders).Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all Warnings as DB.FailureMessages.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="warnings">A list of DB.FailureMessages.</returns>
+        /// <search>collect, warning, failure</search>
+        public static IList<DB.FailureMessage> Warnings([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (doc == null)
+            {
+                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                return new List<DB.FailureMessage>();
+            }
+
+            // Return warnings
+            return doc.GetWarnings();
         }
     }
 }

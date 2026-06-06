@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pickles
+namespace Pickles.Enums
 {
     internal enum PKL_WARNING
     {

@@ -11,6 +11,6 @@ global using DynFamilySymbol = global::Revit.Elements.FamilyType;
 global using DB = Autodesk.Revit.DB;
 
 // Pickle usings
-global using Pickles;
+global using Pickles.Enums;
 global using Pickles.Extensions;
 global using pklGen = Pickle.Utilities.Util_General;

@@ -1,7 +1,9 @@
 ﻿// Autodesk
 using Autodesk.DesignScript.Runtime;
+using Autodesk.Revit.DB;
 using DynamoServices;
 using RevitServices.Transactions;
+using System.Text;
 
 namespace Pkl_Revit
 {
@@ -257,8 +259,9 @@ namespace Pkl_Revit
                 return output;
             }
 
-            // Get sheet collection Id, if any
-            DB.ElementId sheetCollectionId = sheetCollection.InternalElement.Ext_ToSheetCollectionId();
+            // Get sheet collection Id
+            DB.Element internalSheetCollection = sheetCollection?.InternalElement;
+            DB.ElementId sheetCollectionId = internalSheetCollection.Ext_ToSheetCollectionId();
 
             // Sheet dictionary by number
             var sheetDict = doc.Ext_CollectSheetsByNumber(sheetCollectionId);
@@ -280,6 +283,135 @@ namespace Pkl_Revit
 
             // Return outputs
             return output;
+        }
+
+        /// <summary>
+        /// Processes sheet properties into formatted Document titles based on rule parts.
+        /// 
+        /// Rule logic:
+        /// XxxParam|Err|ParamName
+        /// - Xxx = Prj, Source value from Project Information
+        /// - Xxx = Sht, Source value from Sheet
+        /// - Err = Value to insert if error occurs
+        /// 
+        /// Any parts that do not have two | characters will be fixed text.
+        /// </summary>
+        /// <param name="sheets">Sheets to generate titles for.</param>
+        /// <param name="ruleParts">Sheet/Project parmeter references or separators.</param>
+        /// <returns name="titles">The formatted document titles.</returns>
+        /// <search>sheet, title, format</search>
+        public static List<string> FormattedTitle(List<DynSheet> sheets, [DefaultArgument("null")] List<string> ruleParts = null)
+        {
+            // Final outputs
+            var titles = new List<string>();
+
+            // Default rules
+            ruleParts ??= new List<string>()
+            {
+                "PrjParam|ERR|Project Number",
+                "-",
+                "ShtParam|ERR|Sheet Number",
+                "_[",
+                "ShtParam|-|Current Revision",
+                "] - ",
+                "ShtParam|ERR|Sheet Name"
+            };
+
+            // For each sheet...
+            foreach (DynSheet sheet in sheets)
+            {
+                // Make sure we have a valid sheet
+                if (sheet.InternalElement == null)
+                {
+                    titles.Add(null);
+                    continue;
+                }
+
+                // Internal sheet, begin stringbuilder
+                DB.ViewSheet internalSheet = sheet.InternalElement as DB.ViewSheet;
+                StringBuilder sb = new StringBuilder();
+                
+                // For each part of the rule system...
+                foreach (string rulePart in ruleParts)
+                {
+                    // Split it by the separator
+                    string[] subParts = rulePart.Split("|");
+
+                    // 3 parts = parameter based approach
+                    if (subParts.Length == 3)
+                    {
+                        // Get parameter name and default parameter/value
+                        string parameterName = subParts[2];
+                        string value = "";
+
+                        // Get sheet or project parameter
+                        if (subParts[0].StartsWith("ShtParam"))
+                        {
+                            value = internalSheet.Ext_GetParameterValue<string>(parameterName);
+                        }
+                        else if (subParts[0].StartsWith("PrjParam"))
+                        {
+                            value = internalSheet?.Document.ProjectInformation.Ext_GetParameterValue<string>(parameterName);
+                        }
+
+                        // Catch error case, append to builder
+                        value = value.Ext_DeNull(ifNull: subParts[1], replaceEmpty: true);
+                        sb.Append(value);
+                    }
+                    // Otherwise, fixed text case
+                    else 
+                    {
+                        sb.Append(rulePart ?? "");
+                    }
+                }
+
+                titles.Add(sb.ToString());
+            }
+
+            // Return outputs
+            return titles;
+        }
+
+        /// <summary>
+        /// Returns if a sheet is a placeholder.
+        /// </summary>
+        /// <param name="sheet">Sheets to check.</param>
+        /// <returns name="isPlaceholder">If the sheet is a placeholder.</returns>
+        /// <search>sheet, placeholder</search>
+        public static bool? IsPlaceholder(DynSheet sheet)
+        {
+            // Final outputs
+            if (sheet.InternalElement is DB.ViewSheet internalSheet)
+            {
+                return internalSheet.IsPlaceholder;
+            }
+
+            // Return outputs
+            return null;
+        }
+
+        /// <summary>
+        /// Returns all Revisions on the sheet, sorted by sequence Id.
+        /// </summary>
+        /// <param name="sheet">Sheets to get revisions of.</param>
+        /// <returns name="revisions">Revisions on the Sheet.</returns>
+        /// <search>sheet, revision</search>
+        public static List<DynElement> Revisions(DynSheet sheet)
+        {
+            // Final outputs
+            var revisions = new List<DynElement>();
+
+            if (sheet.InternalElement is ViewSheet internalSheet)
+            {
+                revisions = internalSheet.GetAllRevisionIds()
+                    .Select(i => i.Ext_GetElement<DB.Revision>(internalSheet.Document))
+                    .OrderBy(r => r.SequenceNumber)
+                    .Ext_ToDynamoElements(true)
+                    .ToList();
+            }
+
+            // Return outputs
+            return revisions;
         }
     }
 }

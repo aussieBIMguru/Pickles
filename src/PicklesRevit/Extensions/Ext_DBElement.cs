@@ -1,4 +1,5 @@
-﻿using Pickles.Extensions;
+﻿using Autodesk.Revit.DB;
+using Pickles.Extensions;
 using Revit.Elements;
 
 namespace Pickles.Extensions
@@ -50,6 +51,33 @@ namespace Pickles.Extensions
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Gets the value of parameter by name, given a specified storage type.
+        /// </summary>
+        /// <typeparam name="T">The parameter storage type.</typeparam>
+        /// <param name="element">The element to get the value from.</param>
+        /// <param name="parameterName">The parameter name to get the value of.</param>
+        /// <returns>The value of the parameter.</returns>
+        public static T? Ext_GetParameterValue<T>(this DB.Element element, string parameterName)
+        {
+            // Default value for type if no element
+            if (element is null) { return default; }
+
+            // Get parameter, default value for type if no parameter
+            var parameter = element.LookupParameter(parameterName);
+            if (parameter is null) { return default; }
+
+            // Return the value based on storage type
+            return parameter.StorageType switch
+            {
+                DB.StorageType.String => (T)(object)parameter.AsString(),
+                DB.StorageType.Integer => (T)(object)parameter.AsInteger(),
+                DB.StorageType.Double => (T)(object)parameter.AsDouble(),
+                DB.StorageType.ElementId => (T)(object)parameter.AsElementId(),
+                _ => default
+            };
         }
     }
 }
