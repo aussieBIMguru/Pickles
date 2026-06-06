@@ -1,4 +1,4 @@
-﻿namespace Pickle.Extensions
+﻿namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB DesignOptions.

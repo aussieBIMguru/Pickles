@@ -1,4 +1,4 @@
-﻿namespace Pickle.Extensions
+﻿namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for IEnumerable objects.
@@ -11,7 +11,7 @@
         /// <param name="revitElements">Elements to convert.</param>
         /// <param name="revitOwned">Does Revit own the Elements.</param>
         /// <returns>A list of Dynamo Elements.</returns>
-        internal static IList<DynElement?> Ext_ToDynamoElements(this IEnumerable<DB.Element> revitElements, bool revitOwned = false)
+        internal static IList<DynElement?> Ext_ToDynamoElements(this IEnumerable<DB.Element> revitElements, bool revitOwned)
         {
             return revitElements
                 .Select(e => e.Ext_ToDynElement(revitOwned))

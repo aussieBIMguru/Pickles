@@ -1,4 +1,6 @@
-﻿namespace Pickle.Extensions
+﻿using Autodesk.Revit.DB;
+
+namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Documents.
@@ -109,6 +111,58 @@
                 .OfType<DB.Element>()
                 .Select(e => e.Ext_ToDynElement(revitOwned))
                 .ToList();
+        }
+
+        /// <summary>
+        /// Collects DB ViewSheets, with an optional Sheet Collection Id.
+        /// </summary>
+        /// <param name="doc">The DB Document.</param>
+        /// <param name="sheetCollectionId">The Id of the colletion. Null = all sheets, Invalid = no collection.</param>
+        /// <param name="includePlaceholders">Include placeholder Sheets.</param>
+        /// <returns>An IList of DB ViewSheets.</returns>
+        internal static IList<ViewSheet> Ext_CollectSheets(this DB.Document doc,
+            DB.ElementId sheetCollectionId = null, bool includePlaceholders = true)
+        {
+            var sheets = new List<ViewSheet>();
+
+            IEnumerable<ViewSheet> allSheets = doc.Ext_CollectByClass<DB.ViewSheet>();
+
+            if (!includePlaceholders)
+            {
+                allSheets = allSheets.Where(s => !s.IsPlaceholder);
+            }
+
+            foreach (DB.ViewSheet sheet in doc.Ext_CollectByClass<DB.ViewSheet>())
+            {
+                if (sheetCollectionId == null
+                    || sheet.SheetCollectionId == sheetCollectionId)
+                {
+                    sheets.Add(sheet);
+                }
+            }
+
+            return sheets;
+        }
+
+        /// <summary>
+        /// Collects DB ViewSheets into a dictionary keyed by their number, with an optional Sheet Collection Id.
+        /// </summary>
+        /// <param name="doc">The DB Document.</param>
+        /// <param name="sheetCollectionId">The Id of the colletion. Null = all sheets, Invalid = no collection.</param>
+        /// <param name="includePlaceholders">Include placeholder Sheets.</param>
+        /// <returns>An IDictionary of DB ViewSheets keyed by SheetNumber.</returns>
+        internal static IDictionary<string, DB.ViewSheet> Ext_CollectSheetsByNumber(this DB.Document doc,
+            DB.ElementId sheetCollectionId = null, bool includePlaceholders = true)
+        {
+            var outDictionary = new Dictionary<string, DB.ViewSheet>();
+
+            foreach (DB.ViewSheet sheet in doc.Ext_CollectSheets(sheetCollectionId, includePlaceholders))
+            {
+                // NB if all sheets, will always be last sheet of that number
+                outDictionary[sheet.SheetNumber] = sheet;
+            }
+
+            return outDictionary;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Pickle.Extensions
+﻿namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB ElementIds.
@@ -10,7 +10,7 @@
         /// </summary>
         /// <param name="id">The ElementId to check.</param>
         /// <returns>A Boolean.</returns>
-        public static bool Ext_IsValid(this DB.ElementId id)
+        internal static bool Ext_IsValid(this DB.ElementId id)
         {
             return id != null && id != DB.ElementId.InvalidElementId;
         }
@@ -20,7 +20,7 @@
         /// </summary>
         /// <param name="id">The ElementId to check.</param>
         /// <returns>A Boolean.</returns>
-        public static bool Ext_IsInValid(this DB.ElementId id)
+        internal static bool Ext_IsInValid(this DB.ElementId id)
         {
             return id == null || id == DB.ElementId.InvalidElementId;
         }
@@ -32,7 +32,7 @@
         /// <param name="id">The ElementId to convert to an Element.</param>
         /// <param name="doc">The Document to get the Element from.</param>
         /// <returns>A DB Element.</returns>
-        public static T? Ext_GetElement<T>(this DB.ElementId id, DB.Document doc) where T: DB.Element
+        internal static T? Ext_GetElement<T>(this DB.ElementId id, DB.Document doc) where T: DB.Element
         {
             if (id.Ext_IsValid() && doc != null
                 && doc.GetElement(id) is T t)
@@ -52,7 +52,7 @@
         /// <param name="doc">The Document to get the Element from.</param>
         /// <param name="revitOwned">If the Element is Revit owned.</param>
         /// <returns>A Dynamo Element.</returns>
-        public static DynElement? Ext_GetDynamoElement(this DB.ElementId id, DB.Document doc, bool revitOwned)
+        internal static DynElement? Ext_GetDynamoElement(this DB.ElementId id, DB.Document doc, bool revitOwned)
         {
             return id.Ext_GetElement<DB.Element>(doc).Ext_ToDynElement(revitOwned);
         }

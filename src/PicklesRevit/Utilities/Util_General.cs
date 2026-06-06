@@ -1,4 +1,6 @@
 ﻿// Autodesk
+using DynamoServices;
+using Pickles;
 using RevitServices.Persistence;
 
 namespace Pickle.Utilities
@@ -74,6 +76,11 @@ namespace Pickle.Utilities
             sheet.Name = name;
 
             return sheet;
+        }
+
+        internal static void LogWarning(PKL_WARNING warning)
+        {
+            LogWarningMessageEvents.OnLogWarningMessage(warning.Ext_ToMessage());
         }
     }
 }

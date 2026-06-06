@@ -1,6 +1,6 @@
 ﻿// Autodesk
 using Autodesk.DesignScript.Runtime;
-using DynamoServices;
+using Autodesk.Revit.DB;
 
 namespace Pkl_Revit
 {
@@ -25,7 +25,7 @@ namespace Pkl_Revit
             // Early return/warning if no document
             if (doc == null)
             {
-                LogWarningMessageEvents.OnLogWarningMessage("Document/RevitLinkInstance input was not valid.");
+                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
                 return new List<string>();
             }
 
@@ -66,7 +66,7 @@ namespace Pkl_Revit
             // Early return/warning if no document
             if (doc == null)
             {
-                LogWarningMessageEvents.OnLogWarningMessage("Document/RevitLinkInstance input was not valid.");
+                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
                 return output;
             }
 
@@ -97,33 +97,22 @@ namespace Pkl_Revit
         /// Collects all DesignOptions in a Document.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns>A list of DesignOptions.</returns>
+        /// <returns name="options">A list of DesignOptions.</returns>
         /// <search>collect, design, option, designoption</search>
-        [MultiReturn("designOptions")]
-        public static Dictionary<string, object> DesignOptions([DefaultArgument("null")] object? docOrLinkInstance = null)
+        public static IList<DynElement?> DesignOptions([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
             DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
 
-            // Output name
-            string outputName1 = "designOptions";
-
-            // Default output dictionary
-            var output = new Dictionary<string, object>
-            {
-                { outputName1, new List<DynElement>() },
-            };
-
             // Early return/warning if no document
             if (doc == null)
             {
-                LogWarningMessageEvents.OnLogWarningMessage("Document/RevitLinkInstance input was not valid.");
-                return output;
+                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                return new List<DynElement?>();
             }
 
             // Set and return the outputs
-            output[outputName1] = doc.Ext_CollectByClassToDyn<DB.DesignOption>();
-            return output;
+            return doc.Ext_CollectByClassToDyn<DB.DesignOption>();
         }
 
         /// <summary>
@@ -159,7 +148,7 @@ namespace Pkl_Revit
             // Early return/warning if no document
             if (doc == null)
             {
-                LogWarningMessageEvents.OnLogWarningMessage("Document/RevitLinkInstance input was not valid.");
+                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
                 return output;
             }
 
@@ -198,6 +187,35 @@ namespace Pkl_Revit
 
             // Return the output
             return output;
+        }
+
+        /// <summary>
+        /// Collects all Sheets in a Document, with optional SheetCollection and placeholder filters.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <param name="sheetCollection">Optional SheetCollection to filter sheets by.</param>
+        /// <param name="includePlaceholders">Include placeholder sheets.</param>
+        /// <returns name="sheets">A list of Sheets.</returns>
+        /// <search>collect, sheet, sheets</search>
+        public static IList<DynElement?> Sheets([DefaultArgument("null")] DynElement? sheetCollection = null, bool includePlaceholders = true,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (doc == null)
+            {
+                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                return new List<DynElement?>();
+            }
+
+            // Get sheet collection Id
+            DB.Element internalSheetCollection = sheetCollection?.InternalElement;
+            DB.ElementId sheetCollectionId = internalSheetCollection.Ext_ToSheetCollectionId();
+
+            // Set and return the outputs
+            return doc.Ext_CollectSheets(sheetCollectionId, includePlaceholders).Ext_ToDynamoElements(true);
         }
     }
 }

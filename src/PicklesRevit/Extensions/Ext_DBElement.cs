@@ -1,6 +1,7 @@
-﻿using Revit.Elements;
+﻿using Pickles.Extensions;
+using Revit.Elements;
 
-namespace Pickle.Extensions
+namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Elements.
@@ -30,6 +31,25 @@ namespace Pickle.Extensions
 
             DB.ForgeTypeId ftid = DB.ParameterUtils.GetParameterTypeId(builtInParameter);
             return element.GetParameter(ftid);
+        }
+
+        internal static DB.ElementId? Ext_ToSheetCollectionId(this DB.Element element)
+        {
+            // Case 1 - Actual sheet collection
+            if (element is DB.SheetCollection internalSheetCollection)
+            {
+                return internalSheetCollection.Id;
+            }
+            // Case 2 - Flag no collection
+            else if (element != null)
+            {
+                return DB.ElementId.InvalidElementId;
+            }
+            // Case 3 - Flag all sheets (element is null)
+            else
+            {
+                return null;
+            }
         }
     }
 }
