@@ -5,6 +5,8 @@
 		<OutputType>Library</OutputType>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<PlatformTarget>x64</PlatformTarget>
@@ -92,7 +94,7 @@
 			<Private>False</Private>
 		</Reference>
 	</ItemGroup>
-
+	
 	<ItemGroup>
 	  <Folder Include="Resources\" />
 	</ItemGroup>

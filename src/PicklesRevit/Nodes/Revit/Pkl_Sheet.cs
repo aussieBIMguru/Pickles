@@ -54,7 +54,7 @@ namespace Pkl_Revit
                 || names.Ext_ListIsValid(ensureNoNulls: true)
                 || numbers.Count != names.Count)
             {
-                LogWarningMessageEvents.OnLogWarningMessage("Invalid inputs were provided.");
+                pklGen.LogWarning(PKL_WARNING.INVALID_INPUTS);
                 return output;
             }
 

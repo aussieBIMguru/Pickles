@@ -1,9 +1,8 @@
 ﻿// Autodesk
 using DynamoServices;
-using Pickles;
 using RevitServices.Persistence;
 
-namespace Pickle.Utilities
+namespace Pickles.Utilities
 {
     /// <summary>
     /// General utility methods.

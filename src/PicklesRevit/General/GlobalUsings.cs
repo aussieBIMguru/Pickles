@@ -13,4 +13,5 @@ global using DB = Autodesk.Revit.DB;
 // Pickle usings
 global using Pickles.Enums;
 global using Pickles.Extensions;
-global using pklGen = Pickle.Utilities.Util_General;
+global using pklGen = Pickles.Utilities.Util_General;
+global using pklFrm = Pickles.Utilities.Utils_Forms;

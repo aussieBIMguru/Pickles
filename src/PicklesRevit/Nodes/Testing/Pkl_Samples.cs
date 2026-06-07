@@ -7,7 +7,7 @@ namespace Pkl_Learning
     /// <summary>
     /// 
     /// </summary>
-    public class Pkl_Samples
+    internal class Pkl_Samples
     {
         //The empty private constructor.
         //This will be not imported into Dynamo.
@@ -41,7 +41,7 @@ namespace Pkl_Learning
             double x = cellSize;
             double y = cellSize;
 
-            var pList = new List<Rectangle>();
+            var pList = new List<Autodesk.DesignScript.Geometry.Rectangle>();
 
             for (int i = 0; i < xCount; i++)
             {
@@ -50,12 +50,12 @@ namespace Pkl_Learning
                 for (int j = 0; j < yCount; j++)
                 {
                     x++;
-                    Point pt = Point.ByCoordinates(x, y);
+                    Autodesk.DesignScript.Geometry.Point pt = Autodesk.DesignScript.Geometry.Point.ByCoordinates(x, y);
                     Vector vec = Vector.ZAxis();
                     Plane bP = Plane.ByOriginNormal(pt, vec);
-                    Rectangle rect = Rectangle.ByWidthLength(bP, 1, 1);
+                    Autodesk.DesignScript.Geometry.Rectangle rect = Autodesk.DesignScript.Geometry.Rectangle.ByWidthLength(bP, 1, 1);
                     pList.Add(rect);
-                    Point cPt = rect.Center();
+                    Autodesk.DesignScript.Geometry.Point cPt = rect.Center();
                 }
             }
 

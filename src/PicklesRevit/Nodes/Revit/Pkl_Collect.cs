@@ -78,6 +78,7 @@ namespace Pkl_Revit
             foreach (DB.ImportInstance importInstance in importInstances)
             {
                 // Get and append the type and owner View
+                outInstances.Add(importInstance.Ext_ToDynElement(true));
                 outLinked.Add(importInstance.IsLinked);
                 DynElement linkType = importInstance.GetTypeId()
                     .Ext_GetDynamoElement(doc, true);
@@ -87,8 +88,7 @@ namespace Pkl_Revit
                 outOwnerViews.Add(ownerView);
             }
 
-            // Set and return the outputs
-            outInstances = importInstances.Ext_ToDynamoElements(true).ToList();
+            // Return the outputs
             return output;
         }
 
