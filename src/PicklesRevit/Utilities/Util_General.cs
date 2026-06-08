@@ -77,9 +77,41 @@ namespace Pickles.Utilities
             return sheet;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="warning"></param>
         internal static void LogWarning(PKL_WARNING warning)
         {
             LogWarningMessageEvents.OnLogWarningMessage(warning.Ext_ToMessage());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="showMessage"></param>
+        [STAThread]
+        public static void SendText(string text, bool showMessage = false)
+        {
+            // Copy the text to the clipboard
+            try
+            {
+                System.Windows.Clipboard.SetText(text);
+
+                if (showMessage)
+                {
+                    pklCal.Completed("Text sent to clipboard.");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (showMessage)
+                {
+                    pklCal.Error("Text could not be sent to clipboard.",
+                        exception: ex);
+                }
+            }
         }
     }
 }

@@ -3,8 +3,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-// geeWiz
-using KeyedObject = Pickles.Forms.KeyedValue<object>;
 
 // Associated to form bases namespace
 namespace Pickles.Forms
@@ -41,6 +39,16 @@ namespace Pickles.Forms
         /// </summary>
         private bool _bulkUpdating = false;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private MATCH_MODE _mode = MATCH_MODE.SUBSTRING_INSENSITIVE;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private System.Windows.Threading.DispatcherTimer _okButtonUpdateTimer;
+
         #endregion
 
         #region Constructor
@@ -66,18 +74,65 @@ namespace Pickles.Forms
             if (title.Ext_HasChars()) { this.Title = title; }
 
             // Set the view for the objects to allow text filtering
-            this.ListBox.ItemsSource = this._objects;
             this._view = CollectionViewSource.GetDefaultView(this._objects);
             this._view.Filter = FilterByText;
+            this.ListBox.ItemsSource = this._objects;
 
             // Configure the behavior for multi or single select
-            var templateName = pklFrm.Wpf_SetListBoxMode(this._multiSelect, this.ListBox, this.CheckAllButton, this.UncheckAllButton);
+            var templateName = pklFrm.Wpf_SetListBoxMode(this._multiSelect,
+                this.ListBox, this.CheckAllButton, this.UncheckAllButton);
 
             // Apply the related item template from shared styles
             if ((DataTemplate)FindResource(templateName) is DataTemplate template)
             {
                 this.ListBox.ItemTemplate = template;
             }
+
+            // Debounced export button updater
+            this._okButtonUpdateTimer = new System.Windows.Threading.DispatcherTimer();
+            this._okButtonUpdateTimer.Interval = TimeSpan.FromMilliseconds(150);
+            this._okButtonUpdateTimer.Tick += (s, e) =>
+            {
+                this._okButtonUpdateTimer.Stop();
+                this.UpdateOkButtonContent();
+            };
+
+            if (!this._multiSelect)
+            {
+                this.ListBox.SelectionChanged += SelectionChanged;
+            }
+
+            this.UpdateOkButtonContent();
+        }
+
+        private void UpdateOkButtonContent()
+        {
+            if (this.OkButton is null) { return; }
+
+            if (this._multiSelect)
+            {
+                // Count checked sheets in the backing collection
+                int checkedCount = this._objects.Count(i => i.Checked);
+
+                if (checkedCount > 0)
+                {
+                    this.OkButton.Content = $"OK ({checkedCount})";
+                    this.OkButton.IsEnabled = true;
+                    return;
+                }
+            }
+            else
+            {
+                if (this.ListBox.SelectedIndex > -1)
+                {
+                    this.OkButton.Content = $"OK (1)";
+                    this.OkButton.IsEnabled = true;
+                    return;
+                }
+            }
+
+            this.OkButton.Content = "NO OBJECT(S) CHOSEN";
+            this.OkButton.IsEnabled = this._allowNoSelection;
         }
 
         #endregion
@@ -96,6 +151,17 @@ namespace Pickles.Forms
 
             // Run a shift click check
             pklFrm.Wpf_ShiftClickProcess<object>(sender, this._multiSelect, this.ListBox);
+
+            // Debounce export button update
+            this._okButtonUpdateTimer?.Stop();
+            this._okButtonUpdateTimer?.Start();
+        }
+
+        private void SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Debounce export button update
+            this._okButtonUpdateTimer?.Stop();
+            this._okButtonUpdateTimer?.Start();
         }
 
         /// <summary>
@@ -105,23 +171,7 @@ namespace Pickles.Forms
         /// <returns>A Boolean.</returns>
         private bool FilterByText(object obj)
         {
-            // Get the filter value
-            string filter = this.FilterTextBox.Text;
-
-            // Empty filter = passes
-            if (filter.Ext_HasNoChars())
-            {
-                return true;
-            }
-
-            // If there is a valid object, check it against the filter
-            if (obj is KeyedObject keyedObject && keyedObject.ItemKey is not null)
-            {
-                return keyedObject.ItemKey.Contains(filter, StringComparison.OrdinalIgnoreCase);
-            }
-
-            // It fails if it can't be compared
-            return false;
+            return pklFrm.FilterByText<object>(obj, this.FilterTextBox, this._mode);
         }
 
         /// <summary>
@@ -133,6 +183,29 @@ namespace Pickles.Forms
         {
             // Refresh the view (applies the filter)
             this._view?.Refresh();
+        }
+
+        /// <summary>
+        /// Toggles filter mode.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TextFilterModeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this._mode = pklFrm.NextTextFilterMode(this.TextFilterModeButton, this._mode);
+            this._view?.Refresh();
+        }
+
+        /// <summary>
+        /// Copies contents to clipboard.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CopyVisible_Click(object sender, RoutedEventArgs e)
+        {
+            var items = this._view.Cast<KeyedObject>().ToList();
+            var copyString = pklFrm.FormItemsToString(items, multiSelect: this._multiSelect);
+            pklGen.SendText(copyString, true);
         }
 
         #endregion
@@ -161,6 +234,7 @@ namespace Pickles.Forms
             // Refresh items and flag that bulk update is finished
             this.ListBox.Items.Refresh();
             this._bulkUpdating = false;
+            this.UpdateOkButtonContent();
         }
 
         /// <summary>
@@ -185,6 +259,7 @@ namespace Pickles.Forms
             // Refresh items and flag that bulk update is finished
             this.ListBox.Items.Refresh();
             this._bulkUpdating = false;
+            this.UpdateOkButtonContent();
         }
 
         #endregion
@@ -223,13 +298,6 @@ namespace Pickles.Forms
         /// <param name="e">Related event arguments.</param>
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            // Ensure we have required output before finishing
-            if (!this._allowNoSelection && GetChosenItems().Count == 0)
-            {
-                this.OkButton.Content = "NO ITEM(S) CHOSEN";
-                return;
-            }
-
             // Close the form with a true outcome
             this.DialogResult = true;
             this.Close();

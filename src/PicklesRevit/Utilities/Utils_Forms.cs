@@ -1,4 +1,5 @@
 ﻿using Pickles.Forms;
+using System.Text;
 
 namespace Pickles.Utilities
 {
@@ -12,7 +13,7 @@ namespace Pickles.Utilities
         /// <param name="checkAllButton">Optional button for check all.</param>
         /// <param name="uncheckAllButton">Optional button for uncheck all.</param>
         /// <returns>The name of the item template to use.</returns>
-        public static string Wpf_SetListBoxMode(bool multiSelect, System.Windows.Controls.ListBox listBox,
+        internal static string Wpf_SetListBoxMode(bool multiSelect, System.Windows.Controls.ListBox listBox,
             System.Windows.Controls.Button checkAllButton = null, System.Windows.Controls.Button uncheckAllButton = null)
         {
             // Set state of check all buttons (single select = off)
@@ -39,7 +40,7 @@ namespace Pickles.Utilities
         /// <param name="sender">The </param>
         /// <param name="multiSelect"></param>
         /// <param name="listBox"></param>
-        public static void Wpf_ShiftClickProcess<T>(object sender, bool multiSelect, System.Windows.Controls.ListBox listBox)
+        internal static void Wpf_ShiftClickProcess<T>(object sender, bool multiSelect, System.Windows.Controls.ListBox listBox)
         {
             // Stop here if we are single selecting
             if (!multiSelect) { return; }
@@ -79,28 +80,120 @@ namespace Pickles.Utilities
         /// <param name="keys">The keys to connect to the FormPair.</param>
         /// <param name="showMessages">Show error messages.</param>
         /// <returns>A list of KeyedValues of the Object type.</returns>
-        internal static List<KeyedValue<object>> CombineAsKeyedObjects<T>(List<string> keys, List<T> values, bool showMessages = false)
+        internal static List<KeyedObject>? CombineAsKeyedObjects<T>(List<string> keys, List<T> values, bool showMessages = false)
         {
             // Catch if invalid outcomes
             if (keys is null || values is null
                 || keys.Count != values.Count || keys.Count == 0)
             {
-                // ADD ERROR WPF FORM LATER
+                pklCal.Error("Invalid key/value pairing provided for list form.");
                 return null;
             }
 
             // Empty list of form pairs
-            var formPairs = new List<KeyedValue<object>>();
+            var formPairs = new List<KeyedObject>();
 
             // Construct the form pairs with indices
             for (int i = 0; i < keys.Count; i++)
             {
-                formPairs.Add(new KeyedValue<object>(values[i] as object, keys[i], i));
+                formPairs.Add(new KeyedObject(values[i] as object, keys[i], i));
             }
 
             // Return the formpairs
             return formPairs;
         }
 
+        /// <summary>
+        /// Run a value filtering routine.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="filterBox"></param>
+        /// <param name="matchMode"></param>
+        /// <returns></returns>
+        public static bool FilterByText<T>(object obj, System.Windows.Controls.TextBox filterBox,
+            MATCH_MODE matchMode, string bypassString = null)
+        {
+            string filterText = null;
+
+            // Catch if item is not valid
+            if (obj is not KeyedValue<T> item)
+            {
+                if (bypassString.Ext_HasChars())
+                {
+                    filterText = bypassString;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                filterText = item.ItemKey;
+            }
+
+
+            // Get the text filter
+            var filter = filterBox?.Text;
+
+            // Check if it passes
+            return filterText.Ext_MatchAsWords(filter, mode: matchMode);
+        }
+
+        public static string FormItemsToString<T>(List<KeyedValue<T>> items, string separator = "\t", bool multiSelect = true)
+        {
+            if (items.Count == 0) { return ""; }
+
+            var stringBuilder = new StringBuilder();
+
+            foreach (var item in items)
+            {
+                if (multiSelect)
+                {
+                    var checkStr = item.Checked ? "[X]" : "[-]";
+                    stringBuilder.Append($"{checkStr}{separator}{item.ItemKey}\n");
+                }
+                else
+                {
+                    stringBuilder.Append($"{item.ItemKey}\n");
+                }
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Toggles filter mode.
+        /// </summary>
+        public static MATCH_MODE NextTextFilterMode(System.Windows.Controls.Button button = null,
+            MATCH_MODE currentMode = MATCH_MODE.SUBSTRING_INSENSITIVE)
+        {
+            string nextName;
+            MATCH_MODE nextMode;
+
+            if (currentMode == MATCH_MODE.SUBSTRING_INSENSITIVE)
+            {
+                nextName = "ANY WORD";
+                nextMode = MATCH_MODE.ANY_WORD;
+            }
+            else if (currentMode == MATCH_MODE.ANY_WORD)
+            {
+                nextName = "ALL WORDS";
+                nextMode = MATCH_MODE.ALL_WORDS;
+            }
+            else
+            {
+                nextName = "INCLUDES";
+                nextMode = MATCH_MODE.SUBSTRING_INSENSITIVE;
+            }
+
+            if (button is not null)
+            {
+                button.Content = nextName;
+            }
+
+            return nextMode;
+        }
     }
 }

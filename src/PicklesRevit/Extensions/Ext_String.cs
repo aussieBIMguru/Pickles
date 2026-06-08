@@ -44,5 +44,59 @@ namespace Pickles.Extensions
                 return str ?? ifNull;
             }
         }
+
+        /// <summary>
+        /// Searches a string more extensively.
+        /// </summary>
+        /// <param name="searchString">A string to search.</param>
+        /// <param name="matchPhrase">The phrase to search for.</param>
+        /// <param name="splitChar">Character to split the phrase into.</param>
+        /// <param name="mode">The mode by which to match against.</param>
+        /// <returns>A boolean.</returns>
+        public static bool Ext_MatchAsWords(this string searchString, string matchPhrase, char splitChar = ' ', MATCH_MODE mode = MATCH_MODE.SUBSTRING_INSENSITIVE)
+        {
+            // Normalise nulls
+            searchString ??= string.Empty;
+            matchPhrase ??= string.Empty;
+
+            // No filter text -> everything passes
+            if (matchPhrase.Ext_HasNoChars()) { return true; }
+
+            // Whole phrase (default)
+            if (mode == MATCH_MODE.SUBSTRING_INSENSITIVE)
+            {
+                return searchString?.IndexOf(matchPhrase, StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            else if (mode == MATCH_MODE.SUBSTRING_SENSITIVE)
+            {
+                return searchString?.IndexOf(matchPhrase, StringComparison.Ordinal) >= 0;
+            }
+
+            // Split the parts, track matches
+            var matchParts = matchPhrase.Split(splitChar);
+            if (matchParts.Length == 0) { return true; }
+
+            // For each match, check if it is contained
+            int matches = 0;
+
+            foreach (var matchPart in matchParts)
+            {
+                if (searchString.IndexOf(matchPart, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    matches++;
+                }
+            }
+
+            // If match all, must be equal, otherwise any match
+            if (mode == MATCH_MODE.ALL_WORDS)
+            {
+                return matches == matchParts.Length;
+            }
+            // Otherwise 1 or more matches suffices
+            else
+            {
+                return matches > 0;
+            }
+        }
     }
 }

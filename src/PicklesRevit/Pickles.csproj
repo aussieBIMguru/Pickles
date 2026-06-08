@@ -90,10 +90,6 @@
 		</Reference>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Resources\" />
-	</ItemGroup>
-
 	<Target Name="CopyToDynamoPackage" AfterTargets="Build">
 		<PropertyGroup>
 			<DynamoBin>$(FolderPackages)bin\</DynamoBin>

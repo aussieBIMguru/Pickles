@@ -5,6 +5,49 @@ namespace Pickles.Forms
     internal static class Callers
     {
         /// <summary>
+        /// Processes a generic alert to the user with an image.
+        /// </summary>
+        /// <param name="title">An optional title to display.</param>
+        /// <param name="message">An optional message to display.</param>
+        /// <param name="yesNo">Show Yes and No instead (if you cancel).</param>
+        /// <returns>A true/false outcome if the selection was OK/yes.</returns>
+        internal static FormResult<bool> MessagePlus(string title = null, string message = null,
+            bool yesNo = false, bool noCancel = false, string resourcePath = "", string resourceText = "", string showMore = "")
+        {
+            // Final result
+            var formResults = new FormResult<bool>(valid: false);
+
+            // Set default values
+            title ??= "Message";
+            title = "🛈 PICKLES FOR DYNAMO: " + title;
+            message ??= "No description provided.";
+
+            // Process yes/no or ok/cancel
+            var leftButtonText = yesNo ? "YES" : "OK";
+            var rightButtonText = yesNo ? "NO" : "CANCEL";
+
+            // Run the form
+            var dlg = new WpfMessage(title: title,
+                message: message,
+                showLeftButton: !noCancel,
+                leftButtonText: leftButtonText,
+                rightButtonText: rightButtonText,
+                yesNo: yesNo,
+                resourcePath: resourcePath,
+                resourceText: resourceText,
+                showMore: showMore);
+
+            if (dlg.ShowDialog() == true)
+            {
+                formResults.Validate(obj: true);
+                formResults.Affirmative = dlg.Affirmative;
+            }
+
+            // Collect objects, return result
+            return formResults;
+        }
+
+        /// <summary>
         /// Processes a generic message to the user.
         /// </summary>
         /// <param name="title">An optional title to display.</param>
@@ -21,6 +64,7 @@ namespace Pickles.Forms
 
             // Default values if not provided
             title ??= "Message";
+            title = "PICKLES FOR DYNAMO: " + title;
             message ??= "No description provided.";
 
             // Set the question icon
@@ -52,64 +96,70 @@ namespace Pickles.Forms
             return formResult;
         }
 
-        /// <summary>
-        /// Displays a generic completed message.
-        /// </summary>
-        /// <param name="message">An optional message to display.</param>
-        /// <returns>Result.Succeeded.</returns>
-        internal static Result Completed(string message = null)
+        internal static Result Completed(string message = null, string showMore = null)
         {
-            // Default message
-            message ??= "Task completed.";
+            if (message.Ext_HasNoChars())
+            {
+                message = "The task was completed successfully.";
+            }
+            else
+            {
+                message = $"The task was completed successfully.\n\n{message}";
+            }
 
-            // Show form to user
-            Message(message: message,
-                title: "Task completed",
+            MessagePlus(title: "✅ Task Completed",
+                message: message,
                 noCancel: true,
-                icon: MessageBoxIcon.Information);
+                showMore: showMore);
 
-            // Return a succeeded result
             return Result.Succeeded;
         }
 
-        /// <summary>
-        /// Displays a generic cancelled message.
-        /// </summary>
-        /// <param name="message">An optional message to display.</param>
-        /// <returns>Result.Cancelled.</returns>
-        internal static Result Cancelled(string message = null)
+        internal static Result Cancelled(string message = null, string showMore = null)
         {
-            // Default message
-            message ??= "Task cancelled.";
+            if (message.Ext_HasNoChars())
+            {
+                message = "The task has been cancelled.";
+            }
+            else
+            {
+                message = $"The task has been cancelled.\n\n{message}";
+            }
 
-            // Show form to user
-            Message(message: message,
-                title: "Task cancelled",
+            MessagePlus(title: "❌ Task Cancelled",
+                message: message,
                 noCancel: true,
-                icon: MessageBoxIcon.Warning);
+                showMore: showMore);
 
-            // Return a cancelled result
             return Result.Cancelled;
         }
 
-        /// <summary>
-        /// Displays a generic error message.
-        /// </summary>
-        /// <param name="message">An optional message to display.</param>
-        /// <returns>Result.Failed.</returns>
-        internal static Result Error(string message = null)
+        internal static Result Error(string message = null, string showMore = null, Exception exception = null)
         {
-            // Default message
-            message ??= "Error encountered.";
+            if (message.Ext_HasNoChars())
+            {
+                message = "A handled error was encountered.";
+            }
+            else
+            {
+                message = $"A handled error was encountered.\n\n{message}";
+            }
 
-            // Show form to user
-            Message(message: message,
-                title: "Error",
+            if (exception != null)
+            {
+                if (showMore.Ext_HasChars())
+                {
+                    showMore += "\n\n";
+                }
+                showMore += $"Exception: {exception.Message}";
+            }
+
+            MessagePlus(title: "❗ Error Encountered",
+                message: message,
                 noCancel: true,
-                icon: MessageBoxIcon.Error);
+                showMore: showMore);
 
-            // Return a cancelled result
-            return Result.Failed;
+            return Result.Cancelled;
         }
 
         /// <summary>
@@ -129,6 +179,7 @@ namespace Pickles.Forms
             {
                 // Default title and filter
                 title ??= multiSelect ? "Select file(s)" : "Select a file";
+                title = "PICKLES FOR DYNAMO: " + title;
                 if (filter is not null) { openFileDialog.Filter = filter; }
 
                 // Set the typical settings
@@ -162,6 +213,7 @@ namespace Pickles.Forms
 
             // Default title
             title ??= "Select folder";
+            title = "PICKLES FOR DYNAMO: " + title;
 
             // Using a dialog object
             using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog() { Description = title })
@@ -195,6 +247,7 @@ namespace Pickles.Forms
 
             // Default title
             title ??= multiSelect ? "Select object(s) from list:" : "Select object from list:";
+            title = "PICKLES FOR DYNAMO: " + title;
 
             // Keyed object process
             var keyedObjects = pklFrm.CombineAsKeyedObjects(keys, values, showMessages: true);

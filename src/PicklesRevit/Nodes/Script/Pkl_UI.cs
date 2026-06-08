@@ -28,15 +28,55 @@ namespace Pkl_Script
             bool outAffirmative = false;
             object? outpassThrough = null;
 
-            // Default values if null
-            title ??= "Default title";
-            message ??= "Default message.";
-
             // Set the question icon
             MessageBoxIcon icon = yesNo ? MessageBoxIcon.Question : MessageBoxIcon.None;
 
             // Run the form
-            var formResult = Pickles.Forms.Callers.Message(title, message, yesNo, noCancel, icon);
+            var formResult = pklCal.Message(title, message, yesNo, noCancel, icon);
+            if (formResult.Affirmative)
+            {
+                outAffirmative = true;
+                outpassThrough = passThrough;
+            }
+
+            // Default output dictionary
+            return new Dictionary<string, object>
+            {
+                { "affirmative", outAffirmative },
+                { "passThrough", outpassThrough }
+            };
+        }
+
+        /// <summary>
+        /// Processes a MessageBox form with additional controls.
+        /// </summary>
+        /// <param name="title">The title of the form.</param>
+        /// <param name="message">The message of the form.</param>
+        /// <param name="passThrough">An optional object to pass through if the user chooses OK/Yes.</param>
+        /// <param name="yesNo">Show Yes/No instead of OK/Cancel.</param>
+        /// <param name="noCancel">Hide the Cancel/No button.</param>
+        /// <param name="resourcePath">Optional directory/file/URL path to include in the form.</param>
+        /// <param name="resourceText">Optional text override for the link path.</param>
+        /// <param name="showMore">Optional text to include in a Show More section.</param>
+        /// <returns>If the user chose Yes/OK and the passthrough value.</returns>
+        /// <search>ui, form, message</search>
+        [MultiReturn("affirmative", "passThrough")]
+        public static Dictionary<string, object> MessagePlus(string title, string message,
+            [DefaultArgument("null")] object? passThrough = null, bool yesNo = false, bool noCancel = false,
+            string resourcePath = "", string resourceText = "", string showMore = "")
+        {
+            // Output variables
+            bool outAffirmative = false;
+            object? outpassThrough = null;
+
+            // Run the form
+            var formResult = pklCal.MessagePlus(
+                title: title,
+                message: message,
+                yesNo: yesNo,
+                resourcePath: resourcePath,
+                resourceText: resourceText,
+                showMore: showMore);
             if (formResult.Affirmative)
             {
                 outAffirmative = true;
@@ -65,7 +105,7 @@ namespace Pkl_Script
             title ??= "Select a file";
 
             // Run the form
-            var formResult = Pickles.Forms.Callers.SelectFilePaths(title, filter, multiSelect: false);
+            var formResult = pklCal.SelectFilePaths(title, filter, multiSelect: false);
 
             // Return the file path
             return formResult.Object;
@@ -85,7 +125,7 @@ namespace Pkl_Script
             title ??= "Select file(s)";
 
             // Run the form
-            var formResult = Pickles.Forms.Callers.SelectFilePaths(title, filter, multiSelect: true);
+            var formResult = pklCal.SelectFilePaths(title, filter, multiSelect: true);
 
             // Return the file path
             return formResult.Objects;
@@ -103,7 +143,7 @@ namespace Pkl_Script
             title ??= "Select folder";
 
             // Run the form
-            var formResult = Pickles.Forms.Callers.SelectDirectory(title);
+            var formResult = pklCal.SelectDirectory(title);
 
             // Return the file path
             return formResult.Object;
@@ -151,7 +191,7 @@ namespace Pkl_Script
             title ??= "Select object(s)";
 
             // Call the form
-            var formResult = Pickles.Forms.Callers.SelectFromList(keys, values, title,
+            var formResult = pklCal.SelectFromList(keys, values, title,
                 multiSelect: true, allowNoSelection: allowNoSelection);
 
             // Collect outputs if not cancelled
@@ -207,7 +247,7 @@ namespace Pkl_Script
             title ??= "Select object";
 
             // Call the form
-            var formResult = Pickles.Forms.Callers.SelectFromList(keys, values, title,
+            var formResult = pklCal.SelectFromList(keys, values, title,
                 multiSelect: false, allowNoSelection: allowNoSelection);
             
             // Collect outputs if not cancelled
