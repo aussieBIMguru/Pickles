@@ -79,7 +79,7 @@ namespace Pickles.Forms
             this.ListBox.ItemsSource = this._objects;
 
             // Configure the behavior for multi or single select
-            var templateName = pklFrm.Wpf_SetListBoxMode(this._multiSelect,
+            var templateName = pklFrm.SetListBoxMode(this._multiSelect,
                 this.ListBox, this.CheckAllButton, this.UncheckAllButton);
 
             // Apply the related item template from shared styles
@@ -150,7 +150,7 @@ namespace Pickles.Forms
             if (this._bulkUpdating) { return; }
 
             // Run a shift click check
-            pklFrm.Wpf_ShiftClickProcess<object>(sender, this._multiSelect, this.ListBox);
+            pklFrm.ShiftClickProcess<object>(sender, this._multiSelect, this.ListBox);
 
             // Debounce export button update
             this._okButtonUpdateTimer?.Stop();
@@ -204,7 +204,7 @@ namespace Pickles.Forms
         private void CopyVisible_Click(object sender, RoutedEventArgs e)
         {
             var items = this._view.Cast<KeyedObject>().ToList();
-            var copyString = pklFrm.FormItemsToString(items, multiSelect: this._multiSelect);
+            var copyString = pklFrm.ListViewToString(items, multiSelect: this._multiSelect);
             pklGen.SendText(copyString, true);
         }
 

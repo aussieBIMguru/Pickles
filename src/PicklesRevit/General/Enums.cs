@@ -19,4 +19,9 @@ namespace Pickles.Enums
         ANY_WORD = 2,
         ALL_WORDS = 3,
     }
+
+    internal enum REGEX
+    {
+        DIGITS = 0
+    }
 }

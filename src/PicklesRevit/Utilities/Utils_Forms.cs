@@ -1,5 +1,8 @@
 ﻿using Pickles.Forms;
 using System.Text;
+using System.Windows.Input;
+using System.Text.RegularExpressions;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace Pickles.Utilities
 {
@@ -13,7 +16,7 @@ namespace Pickles.Utilities
         /// <param name="checkAllButton">Optional button for check all.</param>
         /// <param name="uncheckAllButton">Optional button for uncheck all.</param>
         /// <returns>The name of the item template to use.</returns>
-        internal static string Wpf_SetListBoxMode(bool multiSelect, System.Windows.Controls.ListBox listBox,
+        internal static string SetListBoxMode(bool multiSelect, System.Windows.Controls.ListBox listBox,
             System.Windows.Controls.Button checkAllButton = null, System.Windows.Controls.Button uncheckAllButton = null)
         {
             // Set state of check all buttons (single select = off)
@@ -40,7 +43,7 @@ namespace Pickles.Utilities
         /// <param name="sender">The </param>
         /// <param name="multiSelect"></param>
         /// <param name="listBox"></param>
-        internal static void Wpf_ShiftClickProcess<T>(object sender, bool multiSelect, System.Windows.Controls.ListBox listBox)
+        internal static void ShiftClickProcess<T>(object sender, bool multiSelect, System.Windows.Controls.ListBox listBox)
         {
             // Stop here if we are single selecting
             if (!multiSelect) { return; }
@@ -106,11 +109,12 @@ namespace Pickles.Utilities
         /// <summary>
         /// Run a value filtering routine.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="filterBox"></param>
-        /// <param name="matchMode"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">The object type stored in the KeyedValues.</typeparam>
+        /// <param name="obj">The object to check.</param>
+        /// <param name="filterBox">The related TextBox to the filter.</param>
+        /// <param name="matchMode">The mode of match to verify.</param>
+        /// <param name="bypassString">Alternative filter to check.</param>
+        /// <returns>If the text passes.</returns>
         public static bool FilterByText<T>(object obj, System.Windows.Controls.TextBox filterBox,
             MATCH_MODE matchMode, string bypassString = null)
         {
@@ -141,7 +145,7 @@ namespace Pickles.Utilities
             return filterText.Ext_MatchAsWords(filter, mode: matchMode);
         }
 
-        public static string FormItemsToString<T>(List<KeyedValue<T>> items, string separator = "\t", bool multiSelect = true)
+        public static string ListViewToString<T>(List<KeyedValue<T>> items, string separator = "\t", bool multiSelect = true)
         {
             if (items.Count == 0) { return ""; }
 
@@ -163,9 +167,6 @@ namespace Pickles.Utilities
             return stringBuilder.ToString();
         }
 
-        /// <summary>
-        /// Toggles filter mode.
-        /// </summary>
         public static MATCH_MODE NextTextFilterMode(System.Windows.Controls.Button button = null,
             MATCH_MODE currentMode = MATCH_MODE.SUBSTRING_INSENSITIVE)
         {
@@ -194,6 +195,73 @@ namespace Pickles.Utilities
             }
 
             return nextMode;
+        }
+
+        internal static void HandleNonNumericTextInput(object sender, TextCompositionEventArgs e, bool allowDecimal = true)
+        {
+            var tb = (System.Windows.Controls.TextBox)sender;
+            string text = tb.Text ?? string.Empty;
+
+            string input = e.Text;
+
+            if (REGEX.DIGITS.Ext_ToRegex() is Regex regex
+                && !regex.IsMatch(input)
+                && input != ".")
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (input == ".")
+            {
+                if (!allowDecimal)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                if (text.Ext_HasNoChars())
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                if (text.Contains('.'))
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            // If we got here, allow the input
+            e.Handled = false;
+        }
+
+        public static void HandleKeyDownControlKeys(object sender, KeyEventArgs e)
+        {
+            // Allow basic editing/navigation keys
+            if (e.Key == Key.Back ||
+                e.Key == Key.Delete ||
+                e.Key == Key.Left ||
+                e.Key == Key.Right)
+            {
+                return;
+            }
+
+            // Block Enter explicitly if you want
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            // Suppress other control/functional keys (Ctrl+something, F-keys, etc.)
+            if (Keyboard.Modifiers != ModifierKeys.None ||
+                (e.Key >= Key.F1 && e.Key <= Key.F24))
+            {
+                e.Handled = true;
+                return;
+            }
         }
     }
 }

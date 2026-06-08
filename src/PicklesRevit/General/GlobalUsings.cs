@@ -9,10 +9,12 @@ global using DynFamilySymbol = global::Revit.Elements.FamilyType;
 
 // Revit database alias
 global using DB = Autodesk.Revit.DB;
+global using RvtUI = Autodesk.Revit.UI;
 
 // Pickle usings
 global using Pickles.Enums;
 global using Pickles.Extensions;
+global using pklCnv = Pickles.Utilities.Util_Convert;
 global using pklGen = Pickles.Utilities.Util_General;
 global using pklFil = Pickles.Utilities.Util_Files;
 global using pklFrm = Pickles.Utilities.Utils_Forms;

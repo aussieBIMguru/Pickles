@@ -96,14 +96,13 @@ namespace Pkl_Script
         /// </summary>
         /// <param name="title">The title of the form.</param>
         /// <param name="filter">Optional file filter string.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
         /// <returns name="filePath">Ths selected file path.</returns>
         /// <search>form, file, select, filepath</search>
         public static string? SelectFile([DefaultArgument("null")] string? title = null,
-            [DefaultArgument("null")] string? filter = null)
+            [DefaultArgument("null")] string? filter = null,
+            [DefaultArgument("null")] object waitFor = null)
         {
-            // Default title and path
-            title ??= "Select a file";
-
             // Run the form
             var formResult = pklCal.SelectFilePaths(title, filter, multiSelect: false);
 
@@ -116,14 +115,13 @@ namespace Pkl_Script
         /// </summary>
         /// <param name="title">The title of the form.</param>
         /// <param name="filter">Optional file filter string.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
         /// <returns name="filePaths">Ths selected file paths.</returns>
         /// <search>form, file, select, filepath</search>
         public static List<string>? SelectFiles([DefaultArgument("null")] string? title = null,
-            [DefaultArgument("null")] string? filter = null)
+            [DefaultArgument("null")] string? filter = null,
+            [DefaultArgument("null")] object waitFor = null)
         {
-            // Default title and path
-            title ??= "Select file(s)";
-
             // Run the form
             var formResult = pklCal.SelectFilePaths(title, filter, multiSelect: true);
 
@@ -135,13 +133,12 @@ namespace Pkl_Script
         /// Select a directory from a browser window.
         /// </summary>
         /// <param name="title">The title of the form.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
         /// <returns name="directoryPath">The selected directory path.</returns>
         /// <search>form, directory, folder, select, folder, folderpath</search>
-        public static string? SelectDirectory([DefaultArgument("null")] string? title = null)
+        public static string? SelectDirectory([DefaultArgument("null")] string? title = null,
+            [DefaultArgument("null")] object waitFor = null)
         {
-            // Default title and path
-            title ??= "Select folder";
-
             // Run the form
             var formResult = pklCal.SelectDirectory(title);
 
@@ -156,11 +153,13 @@ namespace Pkl_Script
         /// <param name="values">Objects to pass through for each selected key.</param>
         /// <param name="title">The title of the form.</param>
         /// <param name="allowNoSelection">Permits the form to finish if no objects are chosen.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
         /// <returns>The selected objects, and if the user cancelled the form.</returns>
         /// <search>ui, form, list, select, listview</search>
         [MultiReturn("objects", "cancelled")]
         public static Dictionary<string, object> SelectObjectsFromList(List<string> keys, List<object> values,
-            [DefaultArgument("null")] string? title = null, bool allowNoSelection = false)
+            [DefaultArgument("null")] string? title = null, bool allowNoSelection = false,
+            [DefaultArgument("null")] object waitFor = null)
         {
             // Final outputs
             var outObjects = new List<object>();
@@ -187,9 +186,6 @@ namespace Pkl_Script
                 return output;
             }
 
-            // Default title and path
-            title ??= "Select object(s)";
-
             // Call the form
             var formResult = pklCal.SelectFromList(keys, values, title,
                 multiSelect: true, allowNoSelection: allowNoSelection);
@@ -212,11 +208,13 @@ namespace Pkl_Script
         /// <param name="values">Objects to pass through for each selected key.</param>
         /// <param name="title">The title of the form.</param>
         /// <param name="allowNoSelection">Permits the form to finish if no object is chosen.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
         /// <returns>The selected object, and if the user cancelled the form.</returns>
         /// <search>ui, form, list, select, listview</search>
         [MultiReturn("object", "cancelled")]
         public static Dictionary<string, object> SelectObjectFromList(List<string> keys, List<object> values,
-            [DefaultArgument("null")] string? title = null, bool allowNoSelection = false)
+            [DefaultArgument("null")] string? title = null, bool allowNoSelection = false,
+            [DefaultArgument("null")] object waitFor = null)
         {
             // Final outputs
             object outObject = null;
@@ -225,7 +223,7 @@ namespace Pkl_Script
             // Output dictionary default values
             var output = new Dictionary<string, object>
             {
-                { "objects", outObject },
+                { "object", outObject },
                 { "cancelled", outCancelled }
             };
 
@@ -243,9 +241,6 @@ namespace Pkl_Script
                 return output;
             }
 
-            // Default title and path
-            title ??= "Select object";
-
             // Call the form
             var formResult = pklCal.SelectFromList(keys, values, title,
                 multiSelect: false, allowNoSelection: allowNoSelection);
@@ -254,6 +249,137 @@ namespace Pkl_Script
             if (!formResult.Cancelled)
             {
                 output["object"] = formResult.Object;
+                output["cancelled"] = false;
+            }
+
+            // Return output
+            return output;
+        }
+
+        /// <summary>
+        /// Allows you to select a keyed object from a dropdown.
+        /// </summary>
+        /// <param name="keys">Keys to show in the dropdown per object.</param>
+        /// <param name="values">Objects to pass through for each selected key.</param>
+        /// <param name="title">The title of the form.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
+        /// <returns>The selected object, and if the user cancelled the form.</returns>
+        /// <search>ui, form, select, dropdown, combobox</search>
+        [MultiReturn("object", "cancelled")]
+        public static Dictionary<string, object> SelectObjectFromDropdown(List<string> keys, List<object> values,
+            [DefaultArgument("null")] string? title = null, [DefaultArgument("null")] object waitFor = null)
+        {
+            // Final outputs
+            object outObject = null;
+            var outCancelled = true;
+
+            // Output dictionary default values
+            var output = new Dictionary<string, object>
+            {
+                { "object", outObject },
+                { "cancelled", outCancelled }
+            };
+
+            // Early return/warning if null values
+            if (keys is null || values is null)
+            {
+                pklGen.LogWarning(PKL_WARNING.INVALID_INPUTS);
+                return output;
+            }
+
+            // Early return/warning if unequal keys/values
+            if (keys.Count != values.Count)
+            {
+                pklGen.LogWarning(PKL_WARNING.KEY_VALUE_MISMATCH);
+                return output;
+            }
+
+            // Call the form
+            var formResult = pklCal.SelectFromDropdown(keys, values, title);
+
+            // Collect outputs if not cancelled
+            if (!formResult.Cancelled)
+            {
+                output["object"] = formResult.Object;
+                output["cancelled"] = false;
+            }
+
+            // Return output
+            return output;
+        }
+
+        /// <summary>
+        /// Allows you to enter text in a form.
+        /// </summary>
+        /// <param name="title">The title of the form.</param>
+        /// <param name="tooltip">The tooltip of the form.</param>
+        /// <param name="defaultValue">Optional default value to provide.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
+        /// <returns>The entered text, and if the user cancelled the form.</returns>
+        /// <search>ui, form, text, enter</search>
+        [MultiReturn("value", "cancelled")]
+        public static Dictionary<string, object> EnterText([DefaultArgument("null")] string? title = null,
+            [DefaultArgument("null")] string? tooltip = null, string defaultValue = "",
+            [DefaultArgument("null")] object waitFor = null)
+        {
+            // Final outputs
+            object outValue = null;
+            var outCancelled = true;
+
+            // Output dictionary default values
+            var output = new Dictionary<string, object>
+            {
+                { "value", outValue },
+                { "cancelled", outCancelled }
+            };
+
+            // Call the form
+            var formResult = pklCal.EnterText(title, tooltip, defaultValue);
+
+            // Collect outputs if not cancelled
+            if (!formResult.Cancelled)
+            {
+                output["value"] = formResult.Object;
+                output["cancelled"] = false;
+            }
+
+            // Return output
+            return output;
+        }
+
+        /// <summary>
+        /// Allows you to enter a number in a form.
+        /// </summary>
+        /// <param name="title">The title of the form.</param>
+        /// <param name="tooltip">The tooltip of the form.</param>
+        /// <param name="defaultValue">Optional default value to provide.</param>
+        /// <param name="allowDecimal">If a decimal can be entered.</param>
+        /// <param name="waitFor">Use this input to delay the form.</param>
+        /// <returns>The entered number, and if the user cancelled the form.</returns>
+        /// <search>ui, form, select, number, enter</search>
+        [MultiReturn("value", "cancelled")]
+        public static Dictionary<string, object> EnterNumber([DefaultArgument("null")] string? title = null,
+            [DefaultArgument("null")] string? tooltip = null, double defaultValue = 0, bool allowDecimal = true,
+            [DefaultArgument("null")] object waitFor = null)
+        {
+            // Final outputs
+            double? outValue = null;
+            var outCancelled = true;
+
+            // Output dictionary default values
+            var output = new Dictionary<string, object>
+            {
+                { "value", outValue },
+                { "cancelled", outCancelled }
+            };
+
+            // Call the form
+            var formResult = pklCal.EnterNumber(title, tooltip, defaultValue, allowDecimal);
+
+            // Collect outputs if not cancelled
+            if (!formResult.Cancelled)
+            {
+                output["value"] = formResult.Object;
                 output["cancelled"] = false;
             }
 

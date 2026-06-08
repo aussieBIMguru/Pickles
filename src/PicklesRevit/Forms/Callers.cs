@@ -10,6 +10,10 @@ namespace Pickles.Forms
         /// <param name="title">An optional title to display.</param>
         /// <param name="message">An optional message to display.</param>
         /// <param name="yesNo">Show Yes and No instead (if you cancel).</param>
+        /// <param name="noCancel">Hide the cancel button.</param>
+        /// <param name="resourcePath">Optional link/file/folder path.</param>
+        /// <param name="resourceText">Text to show on resource button.</param>
+        /// <param name="showMore">Optional text to put in a show more section.</param>
         /// <returns>A true/false outcome if the selection was OK/yes.</returns>
         internal static FormResult<bool> MessagePlus(string title = null, string message = null,
             bool yesNo = false, bool noCancel = false, string resourcePath = "", string resourceText = "", string showMore = "")
@@ -18,8 +22,8 @@ namespace Pickles.Forms
             var formResults = new FormResult<bool>(valid: false);
 
             // Set default values
-            title ??= "Message";
-            title = "🛈 PICKLES FOR DYNAMO: " + title;
+            title ??= "MESSAGE";
+            title = "PICKLES: " + title;
             message ??= "No description provided.";
 
             // Process yes/no or ok/cancel
@@ -63,8 +67,8 @@ namespace Pickles.Forms
             var formResult = new FormResult<bool>(valid: false);
 
             // Default values if not provided
-            title ??= "Message";
-            title = "PICKLES FOR DYNAMO: " + title;
+            title ??= "MESSAGE";
+            title = "PICKLES: " + title;
             message ??= "No description provided.";
 
             // Set the question icon
@@ -107,7 +111,7 @@ namespace Pickles.Forms
                 message = $"The task was completed successfully.\n\n{message}";
             }
 
-            MessagePlus(title: "✅ Task Completed",
+            MessagePlus(title: "✅ PICKLES: COMPLETED",
                 message: message,
                 noCancel: true,
                 showMore: showMore);
@@ -126,7 +130,7 @@ namespace Pickles.Forms
                 message = $"The task has been cancelled.\n\n{message}";
             }
 
-            MessagePlus(title: "❌ Task Cancelled",
+            MessagePlus(title: "❌ PICKLES: CANCELLED",
                 message: message,
                 noCancel: true,
                 showMore: showMore);
@@ -154,7 +158,7 @@ namespace Pickles.Forms
                 showMore += $"Exception: {exception.Message}";
             }
 
-            MessagePlus(title: "❗ Error Encountered",
+            MessagePlus(title: "⚠️ PICKLES: ERROR",
                 message: message,
                 noCancel: true,
                 showMore: showMore);
@@ -178,8 +182,8 @@ namespace Pickles.Forms
             using (var openFileDialog = new OpenFileDialog())
             {
                 // Default title and filter
-                title ??= multiSelect ? "Select file(s)" : "Select a file";
-                title = "PICKLES FOR DYNAMO: " + title;
+                title ??= multiSelect ? "SELECT FILE(S)" : "SELECT FILE";
+                title = "PICKLES: " + title;
                 if (filter is not null) { openFileDialog.Filter = filter; }
 
                 // Set the typical settings
@@ -212,8 +216,8 @@ namespace Pickles.Forms
             var formResult = new FormResult<string>(valid: false);
 
             // Default title
-            title ??= "Select folder";
-            title = "PICKLES FOR DYNAMO: " + title;
+            title ??= "SELECT DIRECTORY";
+            title = "PICKLES: " + title;
 
             // Using a dialog object
             using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog() { Description = title })
@@ -246,8 +250,8 @@ namespace Pickles.Forms
             var formResult = new FormResult<T>(valid: false);
 
             // Default title
-            title ??= multiSelect ? "Select object(s) from list:" : "Select object from list:";
-            title = "PICKLES FOR DYNAMO: " + title;
+            title ??= multiSelect ? "SELECT OBJECT(S)" : "SELECT AN OBJECT:";
+            title = "PICKLES: " + title;
 
             // Keyed object process
             var keyedObjects = pklFrm.CombineAsKeyedObjects(keys, values, showMessages: true);
@@ -277,6 +281,114 @@ namespace Pickles.Forms
                     {
                         formResult.Validate(obj: chosenItems.First());
                     }
+                }
+            }
+
+            // Return the result
+            return formResult;
+        }
+
+        /// <summary>
+        /// Processes a generic form for showing objects in a dropdown.
+        /// </summary>
+        /// <param name="keys">A list of keys to display.</param>
+        /// <param name="values">A list of values to pass by key.</param>
+        /// <param name="title">An optional title to display.</param>
+        /// <typeparam name="T">The type of object being stored.</typeparam>
+        /// <returns>A FormResult object.</returns>
+        internal static FormResult<T> SelectFromDropdown<T>(List<string> keys, List<T> values, string title = null)
+        {
+            // Establish the form result to return
+            var formResult = new FormResult<T>(valid: false);
+
+            // Default title
+            title ??= "COMBOBOX";
+            title = "PICKLES: " + title;
+
+            // Keyed object process
+            var keyedObjects = pklFrm.CombineAsKeyedObjects(keys, values, showMessages: true);
+            if (keyedObjects is null) { return formResult; }
+
+            // Run the Wpf form
+            var dlg = new WpfComboBox(keyedObjects, title);
+
+            // Process the outcome if affirmative
+            if (dlg.ShowDialog() == true)
+            {
+                if (dlg.SelectedObject?.ItemValue is T t)
+                {
+                    formResult.Validate(obj: t);
+                }
+            }
+
+            // Return the result
+            return formResult;
+        }
+
+        /// <summary>
+        /// Processes a generic form for entering text.
+        /// </summary>
+        /// <param name="title">An optional title to display.</param>
+        /// <param name="tooltip">An optional tooltip to display.</param>
+        /// <param name="defaultValue">A default value to display.</param>
+        /// <returns>A FormResult object.</returns>
+        internal static FormResult<string> EnterText(string title = null, string tooltip = null, string defaultValue = null)
+        {
+            // Establish the form result to return
+            var formResult = new FormResult<string>(valid: false);
+
+            // Default values
+            title ??= "ENTER TEXT";
+            title = "PICKLES: " + title;
+            tooltip ??= "Enter text below";
+            defaultValue ??= "";
+
+            // Run the Wpf form
+            var dlg = new WpfEnterText(title, tooltip, defaultValue, numberEntry: false);
+
+            // Process the outcome if affirmative
+            if (dlg.ShowDialog() == true)
+            {
+                formResult.Validate(obj: dlg.GetText());
+            }
+
+            // Return the result
+            return formResult;
+        }
+
+        /// <summary>
+        /// Processes a generic form for entering a number.
+        /// </summary>
+        /// <param name="title">An optional title to display.</param>
+        /// <param name="tooltip">An optional tooltip to display.</param>
+        /// <param name="defaultValue">A default value to display.</param>
+        /// <param name="decimalEntry">If a decimal is permitted.</param>
+        /// <returns>A FormResult object.</returns>
+        internal static FormResult<double> EnterNumber(string title = null, string tooltip = null,
+            double defaultValue = 0.0, bool decimalEntry = true)
+        {
+            // Establish the form result to return
+            var formResult = new FormResult<double>(valid: false);
+
+            // Default values
+            title ??= "ENTER A NUMBER";
+            title = "PICKLES: " + title;
+            tooltip ??= "Enter a number below";
+            string defaultString = defaultValue == 0.0 ? "0" : defaultValue.ToString();
+
+            // Run the Wpf form
+            var dlg = new WpfEnterText(title, tooltip, defaultString,
+                numberEntry: true, decimalEntry: decimalEntry);
+
+            // Process the outcome if affirmative
+            if (dlg.ShowDialog() == true)
+            {
+                double? tryDouble = pklCnv.StringToDouble(dlg.GetText());
+
+                if (tryDouble.HasValue)
+                {
+                    double resultDouble = tryDouble.Value;
+                    formResult.Validate(obj: resultDouble);
                 }
             }
 

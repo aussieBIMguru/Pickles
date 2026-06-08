@@ -78,19 +78,19 @@ namespace Pickles.Utilities
         }
 
         /// <summary>
-        /// 
+        /// Raises a warning in the node calling this.
         /// </summary>
-        /// <param name="warning"></param>
+        /// <param name="warning">The warning type to display.</param>
         internal static void LogWarning(PKL_WARNING warning)
         {
             LogWarningMessageEvents.OnLogWarningMessage(warning.Ext_ToMessage());
         }
 
         /// <summary>
-        /// 
+        /// Sends text to clipboard.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="showMessage"></param>
+        /// <param name="text">Text to send.</param>
+        /// <param name="showMessage">Show success/error messages.</param>
         [STAThread]
         public static void SendText(string text, bool showMessage = false)
         {

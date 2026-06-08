@@ -22,6 +22,10 @@ namespace Pickles.Forms
         /// <param name="showLeftButton"></param>
         /// <param name="leftButtonText"></param>
         /// <param name="rightButtonText"></param>
+        /// <param name="yesNo"></param>
+        /// <param name="resourcePath"></param>
+        /// <param name="resourceText"></param>
+        /// <param name="showMore"></param>
         internal WpfMessage(string title = null, string message = null, bool showLeftButton = true,
             string leftButtonText = null, string rightButtonText = null, bool yesNo = false,
             string resourcePath = "", string resourceText = "", string showMore = "")

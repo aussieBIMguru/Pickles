@@ -1,4 +1,6 @@
-﻿internal static class Ext_Pickles
+﻿using System.Text.RegularExpressions;
+
+internal static class Ext_Pickles
 {
     internal static string Ext_ToMessage(this PKL_WARNING warning)
     {
@@ -10,5 +12,14 @@
             PKL_WARNING.KEY_VALUE_MISMATCH => "Key and value lists are not equal in length.",
             _ => warning.ToString()
         };
+    }
+
+    internal static Regex? Ext_ToRegex(this REGEX regex)
+    {
+        switch (regex)
+        {
+            case REGEX.DIGITS: return new Regex("^[0-9]$", RegexOptions.Compiled);
+            default: return default;
+        }
     }
 }

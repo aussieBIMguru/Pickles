@@ -1,12 +1,11 @@
-﻿using Autodesk.Revit.UI;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace Pickles.Utilities
 {
+    /// <summary>
+    /// File, folder and URL related utility methods.
+    /// </summary>
     internal static class Util_Files
     {
         /// <summary>
@@ -25,26 +24,26 @@ namespace Pickles.Utilities
         /// Attempts to open a link in the default browser.
         /// </summary>
         /// <param name="linkPath">The path, typically a URL.</param>
-        /// <returns>A Result.</returns>
-        internal static Result OpenLinkPath(string linkPath)
+        /// <returns>A Boolean.</returns>
+        internal static bool OpenLinkPath(string linkPath)
         {
             if (LinkIsAccessible(linkPath))
             {
                 try
                 {
                     Process.Start(new ProcessStartInfo { FileName = linkPath, UseShellExecute = true });
-                    return Result.Succeeded;
+                    return true;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An error occurred while trying to open the URL: {ex.Message} ({linkPath})");
-                    return Result.Cancelled;
+                    Debug.WriteLine($"An error occurred while trying to open the URL: {ex.Message} ({linkPath})");
+                    return false;
                 }
             }
             else
             {
-                Console.WriteLine($"ERROR: Link path could not be opened ({linkPath})");
-                return Result.Cancelled;
+                Debug.WriteLine($"ERROR: Link path could not be opened ({linkPath})");
+                return false;
             }
         }
 
@@ -83,17 +82,17 @@ namespace Pickles.Utilities
         /// </summary>
         /// <param name="filePath">The file path.</param>
         /// <returns>A Result.</returns>
-        internal static Result OpenFilePath(string filePath)
+        internal static bool OpenFilePath(string filePath)
         {
             try
             {
                 Process.Start(new ProcessStartInfo { FileName = filePath, UseShellExecute = true });
-                return Result.Succeeded;
+                return true;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"ERROR: File path could not be opened {ex.Message} ({filePath})");
-                return Result.Cancelled;
+                return false;
             }
         }
 
@@ -101,24 +100,24 @@ namespace Pickles.Utilities
         /// Attempts to open a directory.
         /// </summary>
         /// <param name="directoryPath">The directory path.</param>
-        /// <returns>A Result.</returns>
-        internal static Result OpenDirectory(string directoryPath)
+        /// <returns>A boolean.</returns>
+        internal static bool OpenDirectory(string directoryPath)
         {
             // Fail if it does not exist
             if (!Directory.Exists(directoryPath))
             {
-                return Result.Cancelled;
+                return false;
             }
 
             // Try to open the directory with Explorer.exe
             try
             {
                 System.Diagnostics.Process.Start("explorer.exe", directoryPath);
-                return Result.Succeeded;
+                return true;
             }
             catch
             {
-                return Result.Cancelled;
+                return false;
             }
         }
     }
