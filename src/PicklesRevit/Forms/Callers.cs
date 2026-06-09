@@ -383,7 +383,7 @@ namespace Pickles.Forms
             // Process the outcome if affirmative
             if (dlg.ShowDialog() == true)
             {
-                double? tryDouble = pklCnv.StringToDouble(dlg.GetText());
+                double? tryDouble = dlg.GetText().Ext_ToDouble();
 
                 if (tryDouble.HasValue)
                 {

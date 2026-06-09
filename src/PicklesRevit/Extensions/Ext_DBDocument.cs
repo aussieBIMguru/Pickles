@@ -164,5 +164,34 @@ namespace Pickles.Extensions
 
             return outDictionary;
         }
+
+        /// <summary>
+        /// Creates a DB ViewSheet with provided values.
+        /// </summary>
+        /// <param name="doc">Related Document.</param>
+        /// <param name="number">Sheet Number to apply.</param>
+        /// <param name="name">Sheet Name to apply.</param>
+        /// <param name="asPlaceholder">If the sheet is a placeholder.</param>
+        /// <param name="ttbId">The ElementId of the Titleblock FamilyType to use.</param>
+        /// <returns>A DB ViewSheet.</returns>
+        internal static DB.ViewSheet Ext_CreateSheet(this DB.Document doc, string number, string name,
+            bool asPlaceholder, DB.ElementId ttbId)
+        {
+            DB.ViewSheet sheet;
+
+            if (asPlaceholder)
+            {
+                sheet = DB.ViewSheet.CreatePlaceholder(doc);
+            }
+            else
+            {
+                sheet = DB.ViewSheet.Create(doc, ttbId);
+            }
+
+            sheet.SheetNumber = number;
+            sheet.Name = name;
+
+            return sheet;
+        }
     }
 }

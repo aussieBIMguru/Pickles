@@ -24,4 +24,12 @@ namespace Pickles.Enums
     {
         DIGITS = 0
     }
+
+    internal enum RESOURCE_TYPE
+    {
+        INVALID = 0,
+        FILE = 1,
+        DIRECTORY = 2,
+        URL = 3,
+    }
 }

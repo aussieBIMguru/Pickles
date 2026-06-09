@@ -30,19 +30,19 @@ namespace Pkl_Revit
         /// <search>warning, message, failure, elements</search>
         public static IEnumerable<DynElement> GetFailingElements(DB.FailureMessage warning, [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(docOrLinkInstance);
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return new List<DynElement>();
             }
 
             // Return the failing elements
             return warning.GetFailingElements()
-                .Select(i => i.Ext_GetDynamoElement(doc, true));
+                .Select(i => i.Ext_GetDynamoElement(docHelper.Document, true));
         }
     }
 }

@@ -11,11 +11,11 @@ namespace Pkl_Learning
     {
         //The empty private constructor.
         //This will be not imported into Dynamo.
-        private Pkl_Samples() { }
+        internal Pkl_Samples() { }
 
         //The public multiplication method. 
         //This will be imported into Dynamo.
-        public static double MultiplyByTwo(double inputNumber)
+        internal static double MultiplyByTwo(double inputNumber)
         {
             return inputNumber * 2.0;
         }
@@ -29,7 +29,7 @@ namespace Pkl_Learning
         /// <returns>A list of rectangles</returns>
         /// <search>grid, rectangle</search>
         [MultiReturn(new[] { "rectangles", "elementId" })]
-        public static Dictionary<string, object> RectangularGrid(double cellSize = 1.0, int xCount = 10, int yCount = 10)
+        internal static Dictionary<string, object> RectangularGrid(double cellSize = 1.0, int xCount = 10, int yCount = 10)
         {
             // Check if xCount and yCount are positive
             if (xCount <= 0 || yCount <= 0)

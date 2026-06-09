@@ -145,6 +145,14 @@ namespace Pickles.Utilities
             return filterText.Ext_MatchAsWords(filter, mode: matchMode);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="items"></param>
+        /// <param name="separator"></param>
+        /// <param name="multiSelect"></param>
+        /// <returns></returns>
         public static string ListViewToString<T>(List<KeyedValue<T>> items, string separator = "\t", bool multiSelect = true)
         {
             if (items.Count == 0) { return ""; }
@@ -167,6 +175,12 @@ namespace Pickles.Utilities
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="button"></param>
+        /// <param name="currentMode"></param>
+        /// <returns></returns>
         public static MATCH_MODE NextTextFilterMode(System.Windows.Controls.Button button = null,
             MATCH_MODE currentMode = MATCH_MODE.SUBSTRING_INSENSITIVE)
         {
@@ -197,6 +211,12 @@ namespace Pickles.Utilities
             return nextMode;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <param name="allowDecimal"></param>
         internal static void HandleNonNumericTextInput(object sender, TextCompositionEventArgs e, bool allowDecimal = true)
         {
             var tb = (System.Windows.Controls.TextBox)sender;
@@ -237,6 +257,11 @@ namespace Pickles.Utilities
             e.Handled = false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public static void HandleKeyDownControlKeys(object sender, KeyEventArgs e)
         {
             // Allow basic editing/navigation keys

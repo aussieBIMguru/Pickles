@@ -27,8 +27,8 @@ namespace Pkl_Revit
         public static Dictionary<string, object> Create(DynFamilySymbol titleBlockType,
             List<string> numbers, List<string> names, bool asPlaceholder = false)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(null);
+            // Get the related document
+            var docHelper = new DocumentHelper(null);
 
             // Final outputs
             var outSheets = new List<DynElement>();
@@ -42,9 +42,9 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
@@ -54,7 +54,7 @@ namespace Pkl_Revit
                 || names.Ext_ListIsValid(ensureNoNulls: true)
                 || numbers.Count != names.Count)
             {
-                pklGen.LogWarning(PKL_WARNING.INVALID_INPUTS);
+                PKL_WARNING.INVALID_INPUTS.Ext_Raise();
                 return output;
             }
 
@@ -67,7 +67,7 @@ namespace Pkl_Revit
             }
 
             // Get existing sheet numbers in the document
-            HashSet<string> exSheetNumbers = new DB.FilteredElementCollector(doc)
+            HashSet<string> exSheetNumbers = new DB.FilteredElementCollector(docHelper.Document)
                 .OfClass(typeof(DB.ViewSheet))
                 .Cast<DB.ViewSheet>()
                 .Select(s => s.SheetNumber)
@@ -81,7 +81,7 @@ namespace Pkl_Revit
             TransactionManager.Instance.ForceCloseTransaction();
 
             // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Sheets.Create"))
+            using (var transaction = new DB.Transaction(docHelper.Document, "Pickle: Sheets.Create"))
             {
                 transaction.Start();
 
@@ -92,11 +92,8 @@ namespace Pkl_Revit
                     if (!exSheetNumbers.Contains(numbers[i]))
                     {
                         // Create the sheet, add to number set
-                        DB.ViewSheet sheet = pklGen.CreateSheet(doc,
-                                numbers[i],
-                                names[i],
-                                asPlaceholder,
-                                ttbTypeId);
+                        DB.ViewSheet sheet = docHelper.Document.Ext_CreateSheet(
+                            numbers[i], names[i], asPlaceholder, ttbTypeId);
                         exSheetNumbers.Add(numbers[i]);
 
                         // Add to outputs
@@ -129,8 +126,8 @@ namespace Pkl_Revit
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> AddRevision(List<DynSheet> sheets, DynRevision revision)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(null);
+            // Get the related document
+            var docHelper = new DocumentHelper(null);
 
             // Final outputs
             var outSuccess = new List<bool>();
@@ -143,9 +140,9 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
@@ -153,7 +150,7 @@ namespace Pkl_Revit
             TransactionManager.Instance.ForceCloseTransaction();
 
             // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Sheet.AddRevision"))
+            using (var transaction = new DB.Transaction(docHelper.Document, "Pickle: Sheet.AddRevision"))
             {
                 transaction.Start();
 
@@ -186,8 +183,8 @@ namespace Pkl_Revit
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> RemoveRevision(List<DynSheet> sheets, DynRevision revision)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(null);
+            // Get the related document
+            var docHelper = new DocumentHelper(null);
 
             // Final outputs
             var outSuccess = new List<bool>();
@@ -203,7 +200,7 @@ namespace Pkl_Revit
             TransactionManager.Instance.ForceCloseTransaction();
 
             // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Sheet.AddRevision"))
+            using (var transaction = new DB.Transaction(docHelper.Document, "Pickle: Sheet.AddRevision"))
             {
                 transaction.Start();
 
@@ -238,8 +235,8 @@ namespace Pkl_Revit
         public static Dictionary<string, object> GetByNumber(List<string> numbers, [DefaultArgument("null")] DynElement sheetCollection = null,
             [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(docOrLinkInstance);
+            // Get the related document
+            var docHelper = new DocumentHelper(null);
 
             // Final outputs
             var outSheets = new List<DynElement?>();
@@ -253,9 +250,9 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
@@ -264,7 +261,7 @@ namespace Pkl_Revit
             DB.ElementId sheetCollectionId = internalSheetCollection.Ext_ToSheetCollectionId();
 
             // Sheet dictionary by number
-            var sheetDict = doc.Ext_CollectSheetsByNumber(sheetCollectionId);
+            var sheetDict = docHelper.Document.Ext_CollectSheetsByNumber(sheetCollectionId);
 
             // For each number, get its sheet if it exists in the document
             foreach (string number in numbers)

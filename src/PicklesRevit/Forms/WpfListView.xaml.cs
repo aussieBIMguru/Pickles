@@ -205,7 +205,7 @@ namespace Pickles.Forms
         {
             var items = this._view.Cast<KeyedObject>().ToList();
             var copyString = pklFrm.ListViewToString(items, multiSelect: this._multiSelect);
-            pklGen.SendText(copyString, true);
+            ClipboardHelper.SetText(copyString, true);
         }
 
         #endregion

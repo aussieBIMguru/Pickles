@@ -19,17 +19,17 @@ namespace Pkl_Revit
         public static IList<string> BaseExportOptionNames([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
-            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return new List<string>();
             }
 
             // Collect elements and return as output
-            return DB.BaseExportOptions.GetPredefinedSetupNames(doc);
+            return DB.BaseExportOptions.GetPredefinedSetupNames(docHelper.Document);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Pkl_Revit
             [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
-            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Lists we will build for other outputs
             var outInstances = new List<DynElement?>();
@@ -63,14 +63,14 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
             // Get all CAD import instances
-            IList<DB.ImportInstance> importInstances = doc.Ext_CollectByClass<DB.ImportInstance>()
+            IList<DB.ImportInstance> importInstances = docHelper.Document.Ext_CollectByClass<DB.ImportInstance>()
                 .Where(i => (i.IsLinked && includeLinked) || (!i.IsLinked && includeImported))
                 .ToList();
 
@@ -81,10 +81,10 @@ namespace Pkl_Revit
                 outInstances.Add(importInstance.Ext_ToDynElement(true));
                 outLinked.Add(importInstance.IsLinked);
                 DynElement linkType = importInstance.GetTypeId()
-                    .Ext_GetDynamoElement(doc, true);
+                    .Ext_GetDynamoElement(docHelper.Document, true);
                 outLinkTypes.Add(linkType);
                 DynElement ownerView = importInstance.OwnerViewId
-                    .Ext_GetDynamoElement(doc, true);
+                    .Ext_GetDynamoElement(docHelper.Document, true);
                 outOwnerViews.Add(ownerView);
             }
 
@@ -101,17 +101,17 @@ namespace Pkl_Revit
         public static IList<DynElement?> DesignOptions([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
-            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return new List<DynElement?>();
             }
 
             // Set and return the outputs
-            return doc.Ext_CollectByClassToDyn<DB.DesignOption>();
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.DesignOption>();
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Pkl_Revit
         public static Dictionary<string, object> DesignOptionSets([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
-            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Output names
             string outputName1 = "designOptionSets";
@@ -145,14 +145,14 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
             // Group design options by set
-            var designOptionsBySet = doc.Ext_CollectByClass<DB.DesignOption>()
+            var designOptionsBySet = docHelper.Document.Ext_CollectByClass<DB.DesignOption>()
                 .Where(o => o.Ext_GetDesignOptionSet() != null)
                 .GroupBy(o => o.Ext_GetDesignOptionSet().Id)
                 .ToDictionary(g => g.Key, g => g.ToList());
@@ -161,7 +161,7 @@ namespace Pkl_Revit
             foreach (var kvp in designOptionsBySet)
             {
                 // Add the key to option sets
-                optionSets.Add(kvp.Key.Ext_GetDynamoElement(doc, true));
+                optionSets.Add(kvp.Key.Ext_GetDynamoElement(docHelper.Document, true));
 
                 // List to construct for secondary options per set
                 var secondaryOptionsSet = new List<DynElement>();
@@ -200,12 +200,12 @@ namespace Pkl_Revit
             [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
-            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return new List<DynElement?>();
             }
 
@@ -214,7 +214,7 @@ namespace Pkl_Revit
             DB.ElementId sheetCollectionId = internalSheetCollection.Ext_ToSheetCollectionId();
 
             // Set and return the outputs
-            return doc.Ext_CollectSheets(sheetCollectionId, includePlaceholders).Ext_ToDynamoElements(true);
+            return docHelper.Document.Ext_CollectSheets(sheetCollectionId, includePlaceholders).Ext_ToDynamoElements(true);
         }
 
         /// <summary>
@@ -226,17 +226,17 @@ namespace Pkl_Revit
         public static IList<DB.FailureMessage> Warnings([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
-            DB.Document? doc = pklGen.GetDocumentRoutine(docOrLinkInstance, fallBack: true);
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return new List<DB.FailureMessage>();
             }
 
             // Return warnings
-            return doc.GetWarnings();
+            return docHelper.Document.GetWarnings();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// System
 using System.IO;
+using System.Runtime.Intrinsics.X86;
 using System.Windows;
 
 // Associated to the base Wpf namespace
@@ -12,7 +13,7 @@ namespace Pickles.Forms
     {
         private bool _yesNo = false;
         internal bool Affirmative = false;
-        private string _resourcePath = "";
+        private PathHelper _pathHelper;
 
         /// <summary>
         /// Processes a Wpf form.
@@ -54,24 +55,25 @@ namespace Pickles.Forms
             }
 
             // Link button
-            if (resourcePath.Ext_HasChars())
+            this._pathHelper = new PathHelper(resourcePath);
+
+            if (this._pathHelper.ResourcePath.Ext_HasChars())
             {
                 this.LinkButton.Visibility = System.Windows.Visibility.Visible;
-                this._resourcePath = resourcePath;
 
                 if (resourceText.Ext_HasChars())
                 {
                     this.LinkButton.Content = resourceText;
                 }
-                else if (Directory.Exists(resourcePath))
+                else if (this._pathHelper.ResourceType == RESOURCE_TYPE.DIRECTORY)
                 {
                     this.LinkButton.Content = "Open related directory...";
                 }
-                else if (File.Exists(resourcePath))
+                else if (this._pathHelper.ResourceType == RESOURCE_TYPE.FILE)
                 {
                     this.LinkButton.Content = "Open related file...";
                 }
-                else if (pklFil.LinkIsAccessible(resourcePath))
+                else if (this._pathHelper.ResourceType == RESOURCE_TYPE.URL)
                 {
                     this.LinkButton.Content = "Open related web link...";
                 }
@@ -91,8 +93,8 @@ namespace Pickles.Forms
         /// <param name="e"></param>
         private void LeftButton_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true;
             this.Affirmative = true;
+            this.DialogResult = true;
             this.Close();
         }
 
@@ -103,8 +105,8 @@ namespace Pickles.Forms
         /// <param name="e"></param>
         private void RightButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this._yesNo) { this.DialogResult = true; }
             this.Affirmative = false;
+            if (this._yesNo) { this.DialogResult = false; }
             this.Close();
         }
 
@@ -115,14 +117,9 @@ namespace Pickles.Forms
         /// <param name="e"></param>
         private void ShowMoreButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.ShowMoreBorder.Visibility == System.Windows.Visibility.Collapsed)
-            {
-                this.ShowMoreBorder.Visibility = System.Windows.Visibility.Visible;
-            }
-            else
-            {
-                this.ShowMoreBorder.Visibility = System.Windows.Visibility.Collapsed;
-            }
+            this.ShowMoreBorder.Visibility = (this.ShowMoreBorder.Visibility == System.Windows.Visibility.Collapsed)
+                ? System.Windows.Visibility.Visible
+                : System.Windows.Visibility.Collapsed;
         }
 
         /// <summary>
@@ -132,18 +129,7 @@ namespace Pickles.Forms
         /// <param name="e"></param>
         private void LinkButton_Click(object sender, RoutedEventArgs e)
         {
-            if (Directory.Exists(this._resourcePath))
-            {
-                pklFil.OpenDirectory(this._resourcePath);
-            }
-            else if (File.Exists(this._resourcePath))
-            {
-                pklFil.OpenFilePath(this._resourcePath);
-            }
-            else if (pklFil.LinkIsAccessible(this._resourcePath))
-            {
-                pklFil.OpenLinkPath(this._resourcePath);
-            }
+            this._pathHelper.Open();
         }
     }
 }

@@ -98,5 +98,77 @@ namespace Pickles.Extensions
                 return matches > 0;
             }
         }
+
+        /// <summary>
+        /// Convert a string to a nullable integer.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <param name="failValue">The value to return on failure to convert.</param>
+        /// <returns>A nullable integer.</returns>
+        public static int? Ext_ToInt(this string text, int? failValue = null)
+        {
+            int x = 0;
+
+            if (Int32.TryParse(text, out x))
+            {
+                return x;
+            }
+
+            return failValue;
+        }
+
+        /// <summary>
+        /// Convert a string to an integer.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <param name="failValue">The value to return on failure to convert.</param>
+        /// <returns>An integer.</returns>
+        public static int Ext_ToIntoOrDefault(this string text, int failValue = 0)
+        {
+            int x = 0;
+
+            if (Int32.TryParse(text, out x))
+            {
+                return x;
+            }
+
+            return failValue;
+        }
+
+        /// <summary>
+        /// Convert a string to a nullable double.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <param name="failValue">The value to return on failure to convert.</param>
+        /// <returns>A nullable double.</returns>
+        public static double? Ext_ToDouble(this string text, double? failValue = null)
+        {
+            double x = 0.0;
+
+            if (double.TryParse(text, out x))
+            {
+                return x;
+            }
+
+            return failValue;
+        }
+
+        /// <summary>
+        /// Convert a string to a double.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <param name="failValue">The value to return on failure to convert.</param>
+        /// <returns>A double.</returns>
+        public static double Ext_DoubleOrDefault(this string text, double failValue = 0.0)
+        {
+            double x = 0.0;
+
+            if (double.TryParse(text, out x))
+            {
+                return x;
+            }
+
+            return failValue;
+        }
     }
 }

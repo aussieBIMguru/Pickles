@@ -175,14 +175,14 @@ namespace Pkl_Script
             // Early return/warning if null values
             if (keys is null || values is null)
             {
-                pklGen.LogWarning(PKL_WARNING.INVALID_INPUTS);
+                PKL_WARNING.INVALID_INPUTS.Ext_Raise();
                 return output;
             }
 
             // Early return/warning if unequal keys/values
             if (keys.Count != values.Count)
             {
-                pklGen.LogWarning(PKL_WARNING.KEY_VALUE_MISMATCH);
+                PKL_WARNING.KEY_VALUE_MISMATCH.Ext_Raise();
                 return output;
             }
 
@@ -230,14 +230,14 @@ namespace Pkl_Script
             // Early return/warning if null values
             if (keys is null || values is null)
             {
-                pklGen.LogWarning(PKL_WARNING.INVALID_INPUTS);
+                PKL_WARNING.INVALID_INPUTS.Ext_Raise();
                 return output;
             }
 
             // Early return/warning if unequal keys/values
             if (keys.Count != values.Count)
             {
-                pklGen.LogWarning(PKL_WARNING.KEY_VALUE_MISMATCH);
+                PKL_WARNING.KEY_VALUE_MISMATCH.Ext_Raise();
                 return output;
             }
 
@@ -283,14 +283,14 @@ namespace Pkl_Script
             // Early return/warning if null values
             if (keys is null || values is null)
             {
-                pklGen.LogWarning(PKL_WARNING.INVALID_INPUTS);
+                PKL_WARNING.INVALID_INPUTS.Ext_Raise();
                 return output;
             }
 
             // Early return/warning if unequal keys/values
             if (keys.Count != values.Count)
             {
-                pklGen.LogWarning(PKL_WARNING.KEY_VALUE_MISMATCH);
+                PKL_WARNING.KEY_VALUE_MISMATCH.Ext_Raise();
                 return output;
             }
 

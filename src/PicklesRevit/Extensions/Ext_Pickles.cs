@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using DynamoServices;
+using System.Text.RegularExpressions;
 
 internal static class Ext_Pickles
 {
@@ -12,6 +13,11 @@ internal static class Ext_Pickles
             PKL_WARNING.KEY_VALUE_MISMATCH => "Key and value lists are not equal in length.",
             _ => warning.ToString()
         };
+    }
+
+    internal static void Ext_Raise(this PKL_WARNING warning)
+    {
+        LogWarningMessageEvents.OnLogWarningMessage(warning.Ext_ToMessage());
     }
 
     internal static Regex? Ext_ToRegex(this REGEX regex)
