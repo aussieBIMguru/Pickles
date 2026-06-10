@@ -1,7 +1,4 @@
-﻿using Autodesk.DesignScript.Runtime;
-using static System.Net.Mime.MediaTypeNames;
-
-namespace Pkl_Application
+﻿namespace Pkl_Application
 {
     /// <summary>
     /// Nodes relating to Clipboard management.
@@ -16,7 +13,8 @@ namespace Pkl_Application
         /// <param name="text">Text to send.</param>
         /// <param name="showOutcome">Display a message with the outcome.</param>
         /// <returns name="success">If text was sent.</returns>
-        /// <search>clipboard, send, text</search>
+        /// <search>Application.Clipboard.Send</search>
+        [NodeCategory("Action")]
         public static bool Send(string text, bool showOutcome = false)
         {
             return ClipboardHelper.SetText(text, showOutcome);
@@ -27,9 +25,11 @@ namespace Pkl_Application
         /// </summary>
         /// <param name="waitFor">Use to delay the operation.</param>
         /// <param name="showOutcome">Display a message with the outcome.</param>
-        /// <returns>The text, and if it was successful.</returns>
-        /// <search>clipboard, receive, text</search>
+        /// <returns name="text">The text (if any).</returns>
+        /// <returns name="success">If text was received.</returns>
+        /// <search>Application.Clipboard.Receive</search>
         [MultiReturn("text", "success")]
+        [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> Receive(
             [ArbitraryDimensionArrayImport][DefaultArgument("null")] object? waitFor = null,

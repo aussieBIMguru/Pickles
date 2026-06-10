@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Pickles.Forms
+﻿namespace Pickles.Forms
 {
     /// <summary>
     /// A class for holding a key value pair with no grouping systems.

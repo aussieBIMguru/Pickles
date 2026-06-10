@@ -1,6 +1,4 @@
-﻿using Autodesk.DesignScript.Runtime;
-
-namespace Pkl_Script
+﻿namespace Pkl_Script
 {
     /// <summary>
     /// Nodes relating to control flow.
@@ -15,9 +13,11 @@ namespace Pkl_Script
         /// <param name="flip">Should the inputs switch places.</param>
         /// <param name="inputA">Data to pass through or flip.</param>
         /// <param name="inputB">Data to pass through or flip.</param>
-        /// <returns>The outputs.</returns>
-        /// <search>flow, flip, filter</search>
+        /// <returns name="inputBorA">Input B (true) or A (false).</returns>
+        /// <returns name="inputAorB">Input A (true) or B (false).</returns>
+        /// <search>Script.Flow.Flipper</search>
         [MultiReturn("inputBorA", "inputAorB")]
+        [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> Flipper(bool flip,
             [ArbitraryDimensionArrayImport] object inputA,
@@ -36,7 +36,8 @@ namespace Pkl_Script
         /// <param name="openGate">Opens the gate, passing the data on.</param>
         /// <param name="data">Data to pass through the gate.</param>
         /// <returns name="output">An empty list if the gate is closed, otherwise the data.</returns>
-        /// <search>flow, gate, filter</search>
+        /// <search>Script.Flow.Gate</search>
+        [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static object Gate(bool openGate,
             [ArbitraryDimensionArrayImport] object data)
@@ -58,7 +59,8 @@ namespace Pkl_Script
         /// <param name="thenData">Data to pass through if True.</param>
         /// <param name="elseData">Data to pass through if False.</param>
         /// <returns name="output">thenData if True, or elseData if False.</returns>
-        /// <search>flow, if, then, else</search>
+        /// <search>Script.Flow.IfThenElse</search>
+        [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static object IfThenElse(bool ifBool,
             [ArbitraryDimensionArrayImport] object thenData,
@@ -79,7 +81,8 @@ namespace Pkl_Script
         /// </summary>
         /// <param name="data">Data to pass through.</param>
         /// <returns name="output">The input data.</returns>
-        /// <search>flow, relay</search>
+        /// <search>Script.Flow.Relay</search>
+        [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static object Relay([ArbitraryDimensionArrayImport] object data)
         {
@@ -92,7 +95,8 @@ namespace Pkl_Script
         /// <param name="data">Data to pass through.</param>
         /// <param name="waitFor">Data to wait for.</param>
         /// <returns name="output">The input data.</returns>
-        /// <search>flow, wait, await</search>
+        /// <search>Script.Flow.WaitFor</search>
+        [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static object WaitFor([ArbitraryDimensionArrayImport] object data,
             object waitFor)

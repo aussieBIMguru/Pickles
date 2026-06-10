@@ -1,9 +1,4 @@
-﻿// Autodesk
-using Autodesk.DesignScript.Runtime;
-using Autodesk.Revit.DB;
-using DynamoServices;
-using RevitServices.Transactions;
-using System.Text;
+﻿using System.Text;
 
 namespace Pkl_Revit
 {
@@ -21,8 +16,10 @@ namespace Pkl_Revit
         /// <param name="numbers">A list of numbers (strings).</param>
         /// <param name="names">A list of names (strings).</param>
         /// <param name="asPlaceholder">Create sheets as placeholders.</param>
-        /// <returns>A list of sheets and outcomes.</returns>
-        /// <search>sheet, viewsheet, create</search>
+        /// <returns name="sheets">Created sheets.</returns>
+        /// <returns name="success">If the sheet was created successfully.</returns>
+        /// <search>Revit.Sheet.Create</search>
+        [NodeCategory("Create")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> Create(DynFamilySymbol titleBlockType,
             List<string> numbers, List<string> names, bool asPlaceholder = false)
@@ -54,7 +51,7 @@ namespace Pkl_Revit
                 || names.Ext_ListIsValid(ensureNoNulls: true)
                 || numbers.Count != names.Count)
             {
-                PKL_WARNING.INVALID_INPUTS.Ext_Raise();
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
                 return output;
             }
 
@@ -62,7 +59,7 @@ namespace Pkl_Revit
             if (titleBlockType.InternalElement is DB.FamilySymbol symbol
                 && symbol.Family.FamilyCategory.Id.Value != (int)DB.BuiltInCategory.OST_TitleBlocks)
             {
-                LogWarningMessageEvents.OnLogWarningMessage("Titleblock family type was not provided.");
+                WARNING_TYPE.WRONG_CATEGORY_INPUTS.Ext_Raise();
                 return output;
             }
 
@@ -122,7 +119,10 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheets">Sheets to add the Revision to.</param>
         /// <param name="revision">The Revision to add.</param>
-        /// <search>sheet, revision, add</search>
+        /// <returns name="sheets">The sheets.</returns>
+        /// <returns name="success">If the revision was applied.</returns>
+        /// <search>Revit.Sheet.AddRevision</search>
+        [NodeCategory("Action")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> AddRevision(List<DynSheet> sheets, DynRevision revision)
         {
@@ -179,7 +179,10 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheets">Sheets to remove the Revision from.</param>
         /// <param name="revision">The Revision to remove.</param>
-        /// <search>sheet, revision, add</search>
+        /// <returns name="text">The sheets.</returns>
+        /// <returns name="success">If the revision was removed.</returns>
+        /// <search>Revit.Sheet.RemoveRevision</search>
+        [NodeCategory("Action")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> RemoveRevision(List<DynSheet> sheets, DynRevision revision)
         {
@@ -230,7 +233,10 @@ namespace Pkl_Revit
         /// <param name="numbers">Numbers to find sheets for.</param>
         /// <param name="sheetCollection">Numbers to find sheets for.</param>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <search>sheet, find, number</search>
+        /// <returns name="sheets">The sheets that were found.</returns>
+        /// <returns name="success">If a sheet was found.</returns>
+        /// <search>Revit.Sheet.GetByNumber</search>
+        [NodeCategory("Action")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> GetByNumber(List<string> numbers, [DefaultArgument("null")] DynElement sheetCollection = null,
             [DefaultArgument("null")] object? docOrLinkInstance = null)
@@ -296,7 +302,8 @@ namespace Pkl_Revit
         /// <param name="sheets">Sheets to generate titles for.</param>
         /// <param name="ruleParts">Sheet/Project parmeter references or separators.</param>
         /// <returns name="titles">The formatted document titles.</returns>
-        /// <search>sheet, title, format</search>
+        /// <search>Revit.Sheet.FormattedTitle</search>
+        [NodeCategory("Action")]
         public static List<string> FormattedTitle(List<DynSheet> sheets, [DefaultArgument("null")] List<string> ruleParts = null)
         {
             // Final outputs
@@ -374,7 +381,8 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheet">Sheets to check.</param>
         /// <returns name="isPlaceholder">If the sheet is a placeholder.</returns>
-        /// <search>sheet, placeholder</search>
+        /// <search>Revit.Sheet.IsPlaceholder</search>
+        [NodeCategory("Query")]
         public static bool? IsPlaceholder(DynSheet sheet)
         {
             // Final outputs
@@ -392,13 +400,14 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheet">Sheets to get revisions of.</param>
         /// <returns name="revisions">Revisions on the Sheet.</returns>
-        /// <search>sheet, revision</search>
-        public static List<DynElement> Revisions(DynSheet sheet)
+        /// <search>Revit.Sheet.GetRevisions</search>
+        [NodeCategory("Query")]
+        public static List<DynElement> GetRevisions(DynSheet sheet)
         {
             // Final outputs
             var revisions = new List<DynElement>();
 
-            if (sheet.InternalElement is ViewSheet internalSheet)
+            if (sheet.InternalElement is DB.ViewSheet internalSheet)
             {
                 revisions = internalSheet.GetAllRevisionIds()
                     .Select(i => i.Ext_GetElement<DB.Revision>(internalSheet.Document))

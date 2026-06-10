@@ -12,7 +12,8 @@
         /// </summary>
         /// <param name="designOption">The DesignOption.</param>
         /// <returns name="optionSet">The DesignOptionSet.</returns>
-        /// <search>design, option, optionset, set</search>
+        /// <search>Revit.DesignOption.GetOptionSet</search>
+        [NodeCategory("Query")]
         public static DynElement? GetOptionSet(DynElement designOption)
         {
             DynElement optionSet = null;

@@ -1,21 +1,21 @@
-﻿using DynamoServices;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 internal static class Ext_Pickles
 {
-    internal static string Ext_ToMessage(this PKL_WARNING warning)
+    internal static string Ext_ToMessage(this WARNING_TYPE warning)
     {
         return warning switch
         {
-            PKL_WARNING.UNKNOWN => "Unknown warning",
-            PKL_WARNING.NO_DOC_OR_LINK => "Document/RevitLinkInstance input was not valid.",
-            PKL_WARNING.INVALID_INPUTS => "Inputs are invalid, please review them.",
-            PKL_WARNING.KEY_VALUE_MISMATCH => "Key and value lists are not equal in length.",
+            WARNING_TYPE.UNKNOWN => "Unknown warning",
+            WARNING_TYPE.NO_DOC_OR_LINK => "Document/RevitLinkInstance is invalid.",
+            WARNING_TYPE.INVALID_INPUTS => "Input(s) are invalid.",
+            WARNING_TYPE.KEY_VALUE_MISMATCH => "Key and value lists are not equal in length.",
+            WARNING_TYPE.WRONG_CATEGORY_INPUTS => "Input(s) are of the wrong Revit category.",
             _ => warning.ToString()
         };
     }
 
-    internal static void Ext_Raise(this PKL_WARNING warning)
+    internal static void Ext_Raise(this WARNING_TYPE warning)
     {
         LogWarningMessageEvents.OnLogWarningMessage(warning.Ext_ToMessage());
     }

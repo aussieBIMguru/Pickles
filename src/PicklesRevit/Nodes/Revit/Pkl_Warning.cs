@@ -1,6 +1,4 @@
-﻿using Autodesk.DesignScript.Runtime;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Warnings.
@@ -14,7 +12,8 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="warning">The DB.FailureMessage.</param>
         /// <returns name="description">The warning DescriptionText.</returns>
-        /// <search>warning, message, failure</search>
+        /// <search>Revit.Warning.GetDescription</search>
+        [NodeCategory("Query")]
         public static string? GetDescription(DB.FailureMessage warning)
         {
             if (warning is null) { return null; }
@@ -27,7 +26,8 @@ namespace Pkl_Revit
         /// <param name="warning">The DB.FailureMessage.</param>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
         /// <returns name="elements">The related Elements.</returns>
-        /// <search>warning, message, failure, elements</search>
+        /// <search>Revit.Warning.GetFailingElements</search>
+        [NodeCategory("Action")]
         public static IEnumerable<DynElement> GetFailingElements(DB.FailureMessage warning, [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document

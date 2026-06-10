@@ -1,8 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using Pickles.Extensions;
-using Revit.Elements;
-
-namespace Pickles.Extensions
+﻿namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Elements.

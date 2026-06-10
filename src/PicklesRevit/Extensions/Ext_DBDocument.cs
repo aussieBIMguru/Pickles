@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.DB;
-
-namespace Pickles.Extensions
+﻿namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Documents.
@@ -120,12 +118,12 @@ namespace Pickles.Extensions
         /// <param name="sheetCollectionId">The Id of the colletion. Null = all sheets, Invalid = no collection.</param>
         /// <param name="includePlaceholders">Include placeholder Sheets.</param>
         /// <returns>An IList of DB ViewSheets.</returns>
-        internal static IList<ViewSheet> Ext_CollectSheets(this DB.Document doc,
+        internal static IList<DB.ViewSheet> Ext_CollectSheets(this DB.Document doc,
             DB.ElementId sheetCollectionId = null, bool includePlaceholders = true)
         {
-            var sheets = new List<ViewSheet>();
+            var sheets = new List<DB.ViewSheet>();
 
-            IEnumerable<ViewSheet> allSheets = doc.Ext_CollectByClass<DB.ViewSheet>();
+            IEnumerable<DB.ViewSheet> allSheets = doc.Ext_CollectByClass<DB.ViewSheet>();
 
             if (!includePlaceholders)
             {

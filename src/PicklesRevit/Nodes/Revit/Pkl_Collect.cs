@@ -1,7 +1,4 @@
-﻿// Autodesk
-using Autodesk.DesignScript.Runtime;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to collection of elements.
@@ -15,7 +12,8 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
         /// <returns name="optionNames">A list of BaseExportOption names.</returns>
-        /// <search>collect, export, options</search>
+        /// <search>Revit.Collect.BaseExportOptionNames</search>
+        [NodeCategory("Action")]
         public static IList<string> BaseExportOptionNames([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
@@ -38,8 +36,12 @@ namespace Pkl_Revit
         /// <param name="includeLinked">Include linked CAD instances.</param>
         /// <param name="includeImported">Include imported CAD instances.</param>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns>A list of ImportInstances, their types and related Views (if view specific).</returns>
-        /// <search>collect, cad, import</search>
+        /// <returns name="instance">The CAD instance.</returns>
+        /// <returns name="isLinked">If the CAD instance is linked (or imported).</returns>
+        /// <returns name="type">The type of the CAD instance.</returns>
+        /// <returns name="ownerView">The view that owns the CAD instance if it is view specific.</returns>
+        /// <search>Revit.Collect.CadInstances</search>
+        [NodeCategory("Action")]
         [MultiReturn("instance", "isLinked", "type", "ownerView")]
         public static Dictionary<string, object> CadInstances(bool includeLinked = true, bool includeImported = true,
             [DefaultArgument("null")] object? docOrLinkInstance = null)
@@ -97,7 +99,8 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
         /// <returns name="options">A list of DesignOptions.</returns>
-        /// <search>collect, design, option, designoption</search>
+        /// <search>Revit.Collect.DesignOptions</search>
+        [NodeCategory("Action")]
         public static IList<DynElement?> DesignOptions([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
@@ -118,8 +121,11 @@ namespace Pkl_Revit
         /// Collects all DesignOptionSets in the Document and their primary/secondary options.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns>A list of DesignOptions.</returns>
-        /// <search>collect, design, option, designoption</search>
+        /// <returns name="designOptionSets">The DesignOptionSets as Elements.</returns>
+        /// <returns name="primaryOptions">The primary option of each set.</returns>
+        /// <returns name="secondaryOptions">A list of secondary options for each set.</returns>
+        /// <search>Revit.Collect.DesignOptionSets</search>
+        [NodeCategory("Action")]
         [MultiReturn("designOptionSets", "primaryOptions", "secondaryOptions")]
         public static Dictionary<string, object> DesignOptionSets([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
@@ -195,7 +201,8 @@ namespace Pkl_Revit
         /// <param name="sheetCollection">Optional SheetCollection to filter sheets by.</param>
         /// <param name="includePlaceholders">Include placeholder sheets.</param>
         /// <returns name="sheets">A list of Sheets.</returns>
-        /// <search>collect, sheet, sheets</search>
+        /// <search>Revit.Collect.Sheets</search>
+        [NodeCategory("Action")]
         public static IList<DynElement?> Sheets([DefaultArgument("null")] DynElement? sheetCollection = null, bool includePlaceholders = true,
             [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
@@ -222,7 +229,8 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
         /// <returns name="warnings">A list of DB.FailureMessages.</returns>
-        /// <search>collect, warning, failure</search>
+        /// <search>Revit.Collect.Warnings</search>
+        [NodeCategory("Action")]
         public static IList<DB.FailureMessage> Warnings([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document

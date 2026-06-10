@@ -12,10 +12,11 @@
         /// </summary>
         /// <param name="directoryPath">The directory path to open.</param>
         /// <returns name="success">If the directory was opened.</returns>
-        /// <search>directory, folder, open</search>
+        /// <search>Application.Directory.Open</search>
+        [NodeCategory("Action")]
         public static bool Open(string directoryPath)
         {
-            return new PathHelper(directoryPath).Open();
+            return new ResourceHelper(directoryPath).Open();
         }
 
         /// <summary>
@@ -23,10 +24,11 @@
         /// </summary>
         /// <param name="directoryPath">The directory path to create.</param>
         /// <returns name="success">If the directory was created.</returns>
-        /// <search>directory, folder, create</search>
+        /// <search>Application.Directory.Create</search>
+        [NodeCategory("Create")]
         public static bool Create(string directoryPath)
         {
-            return new PathHelper(directoryPath).CreateAsDirectoryPath();
+            return new ResourceHelper(directoryPath).CreateAsDirectoryPath();
         }
 
         /// <summary>
@@ -36,11 +38,12 @@
         /// <param name="searchString">Optional search string to apply.</param>
         /// <param name="deepSearch">Optionally search sub-directories.</param>
         /// <returns name="filePaths">The file paths in the directory.</returns>
-        /// <search>directory, contents, search</search>
+        /// <search>Application.Directory.GetFiles</search>
+        [NodeCategory("Query")]
         public static List<string> GetFiles(string directoryPath,
             string searchString = "*", bool deepSearch = false)
         {
-            return new PathHelper(directoryPath).GetContentsAsDirectoryPath(searchString, deepSearch);
+            return new ResourceHelper(directoryPath).GetContentsAsDirectoryPath(searchString, deepSearch);
         }
     }
 }

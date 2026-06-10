@@ -8,7 +8,7 @@ namespace Pickles.Helpers
     /// Provides helper utilities for analyzing, validating, and interacting with file paths, 
     /// directory paths, and web URLs.
     /// </summary>
-    internal class PathHelper
+    internal class ResourceHelper
     {
         internal string ResourcePath { get; private set; }
         internal RESOURCE_TYPE ResourceType { get; private set; }
@@ -16,10 +16,10 @@ namespace Pickles.Helpers
         internal bool Accessible => _Accessible();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PathHelper"/> class with the specified resource path.
+        /// Initializes a new instance of the <see cref="ResourceHelper"/> class with the specified resource path.
         /// </summary>
         /// <param name="resourcePath">The raw string path or URL to be managed and analyzed.</param>
-        internal PathHelper(string resourcePath)
+        internal ResourceHelper(string resourcePath)
         {
             this.ResourcePath = resourcePath?.Trim() ?? string.Empty;
             this.ResourceType = GetResourceType();

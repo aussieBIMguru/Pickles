@@ -59,7 +59,7 @@ namespace Pickles.Helpers
         /// </summary>
         internal void RaiseInvalidWarning()
         {
-            PKL_WARNING.NO_DOC_OR_LINK.Ext_Raise();
+            WARNING_TYPE.NO_DOC_OR_LINK.Ext_Raise();
         }
     }
 }

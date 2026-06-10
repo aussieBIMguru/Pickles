@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Pickles.Extensions
+﻿namespace Pickles.Extensions
 {
     internal static class Ext_String
     {

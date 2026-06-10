@@ -1,6 +1,4 @@
 ﻿// System
-using System.IO;
-using System.Runtime.Intrinsics.X86;
 using System.Windows;
 
 // Associated to the base Wpf namespace
@@ -13,7 +11,7 @@ namespace Pickles.Forms
     {
         private bool _yesNo = false;
         internal bool Affirmative = false;
-        private PathHelper _pathHelper;
+        private ResourceHelper _pathHelper;
 
         /// <summary>
         /// Processes a Wpf form.
@@ -55,7 +53,7 @@ namespace Pickles.Forms
             }
 
             // Link button
-            this._pathHelper = new PathHelper(resourcePath);
+            this._pathHelper = new ResourceHelper(resourcePath);
 
             if (this._pathHelper.ResourcePath.Ext_HasChars())
             {

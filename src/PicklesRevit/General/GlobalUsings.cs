@@ -1,5 +1,13 @@
 ﻿// This file provides alias' and availability of namespaces in all files
 
+// General Dynamo usings
+global using Dynamo.Graph.Nodes;
+global using Autodesk.DesignScript.Runtime;
+global using RevitServices.Persistence;
+global using DynamoServices;
+global using RevitServices.Transactions;
+global using Revit.Elements;
+
 // Dynamo element alias'
 global using DynElement = global::Revit.Elements.Element;
 global using DynRevision = global::Revit.Elements.Revision;
@@ -9,7 +17,8 @@ global using DynFamilySymbol = global::Revit.Elements.FamilyType;
 
 // Revit database alias
 global using DB = Autodesk.Revit.DB;
-global using RvtUI = Autodesk.Revit.UI;
+global using UI = Autodesk.Revit.UI;
+global using Result = Autodesk.Revit.UI.Result;
 
 // Pickle usings
 global using Pickles.Enums;

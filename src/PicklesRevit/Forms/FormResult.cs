@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Pickles.Forms
+﻿namespace Pickles.Forms
 {
     /// <summary>
     /// A class for holding form outcomes, used by custom forms.
