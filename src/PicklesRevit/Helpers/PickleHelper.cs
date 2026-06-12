@@ -5,7 +5,7 @@ namespace Pickles.Helpers
     /// <summary>
     /// Stores and retrieves objects stored to memory.
     /// </summary>
-    internal static class CryptoHelper
+    internal static class PickleHelper
     {
         internal const string PREFIX_ELEMENTID = "ElementId";
         internal const string PREFIX_STRING = "String";
@@ -22,9 +22,9 @@ namespace Pickles.Helpers
         /// <param name="key">The key to encode.</param>
         /// <param name="permitNulls">If null objects should encode.</param>
         /// <returns>A keyed encoding string.</returns>
-        internal static string? Encode(object obj, string? key, bool permitNulls = false)
+        internal static string? Pickle(object obj, string? key, bool permitNulls = false)
         {
-            string? encodedKey = EncodeObject(obj);
+            string? encodedKey = PickleObject(obj);
 
             if (encodedKey is null || key is null)
             {
@@ -41,7 +41,7 @@ namespace Pickles.Helpers
         /// </summary>
         /// <param name="obj">The object to encode.</param>
         /// <returns>An encoding string.</returns>
-        internal static string? EncodeObject(object obj)
+        internal static string? PickleObject(object obj)
         {
             if (obj is DynElement dynElement && dynElement.InternalElement is DB.Element element)
             {
@@ -73,7 +73,7 @@ namespace Pickles.Helpers
         /// <param name="encodedObject">The encoding string.</param>
         /// <param name="docOrLinkInstance">Document or link instance to get Elements from.</param>
         /// <returns>A KeyedObject.</returns>
-        internal static KeyedObject? Decode(string? encodedObject, object? docOrLinkInstance = null)
+        internal static KeyedObject? Unpickle(string? encodedObject, object? docOrLinkInstance = null)
         {
             KeyedObject outObject = new KeyedObject(null, null);
             if (encodedObject is null) { return outObject; }

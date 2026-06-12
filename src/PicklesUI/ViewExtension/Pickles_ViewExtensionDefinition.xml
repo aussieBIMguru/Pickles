@@ -1,0 +1,4 @@
+﻿<ViewExtensionDefinition>
+	<AssemblyPath>PicklesUI.dll</AssemblyPath>
+	<TypeName>PicklesUI.PicklesExtension</TypeName>
+</ViewExtensionDefinition>

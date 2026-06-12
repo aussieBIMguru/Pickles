@@ -1,8 +1,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.6.11822.322 stable
+VisualStudioVersion = 18.6.11822.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pickles", "Pickles.csproj", "{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PicklesUI", "..\PicklesUI\PicklesUI.csproj", "{C6077780-34A8-708D-9087-5CCAA8AC5CF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.Build.0 = Debug R27|Any CPU
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.ActiveCfg = Release R27|Any CPU
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.Build.0 = Release R27|Any CPU
+		{C6077780-34A8-708D-9087-5CCAA8AC5CF8}.Debug R27|Any CPU.ActiveCfg = Debug R27|Any CPU
+		{C6077780-34A8-708D-9087-5CCAA8AC5CF8}.Debug R27|Any CPU.Build.0 = Debug R27|Any CPU
+		{C6077780-34A8-708D-9087-5CCAA8AC5CF8}.Release R27|Any CPU.ActiveCfg = Release R27|Any CPU
+		{C6077780-34A8-708D-9087-5CCAA8AC5CF8}.Release R27|Any CPU.Build.0 = Release R27|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

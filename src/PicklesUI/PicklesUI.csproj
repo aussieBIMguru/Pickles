@@ -93,20 +93,32 @@
 			<HintPath>$(DynamoRevitPath)\nodes\DSRevitNodesUI.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
+		<Reference Include="DynamoCoreWpf">
+			<HintPath>$(DynamoRevitPath)\DynamoCoreWpf.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
 	</ItemGroup>
 	
 	<ItemGroup>
 	  <Folder Include="Resources\" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="ViewExtension\Pickles_ViewExtensionDefinition.xml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>Pickles_ViewExtensionDefinition.xml</TargetPath>
+		</None>
+	</ItemGroup>
+
 	<Target Name="CopyToDynamoPackage" AfterTargets="Build">
 		<PropertyGroup>
 			<DynamoBin>$(FolderPackages)bin\</DynamoBin>
 		</PropertyGroup>
-		
+
 		<ItemGroup>
 			<AssemblyFiles Include="$(TargetDir)$(AssemblyName).dll" />
 			<AssemblyFiles Include="$(TargetDir)$(AssemblyName).xml" />
+			<AssemblyFiles Include="$(TargetDir)*ViewExtensionDefinition.xml" />
 		</ItemGroup>
 		
 		<MakeDir Directories="$(DynamoBin)" />

@@ -66,6 +66,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\PicklesUI\PicklesUI.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!-- Revit API -->
 		<Reference Include="RevitAPI">
 			<HintPath>$(RevitInstallPath)\RevitAPI.dll</HintPath>
