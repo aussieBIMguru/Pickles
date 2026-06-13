@@ -13,7 +13,7 @@ namespace PicklesUI
         private const string NoItems = "No view templates available in project.";
         private const string OutputName = "viewTemplate";
 
-        private static IEnumerable<DB.View> GetItems()
+        private static IEnumerable<DB.View> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
             if (doc == null) return Enumerable.Empty<DB.View>();

@@ -42,7 +42,7 @@ namespace PicklesUI
             ["Z"] = "Zulu"
         };
 
-        private static IEnumerable<string> GetItems() => Nato.Keys;
+        private static IEnumerable<string> GetItems(NodeModel node) => Nato.Keys;
 
         public Pkl_SelectNatoLetter() : base(
             OutputName, NoItems,

@@ -16,12 +16,12 @@ namespace Pkl_Data
         /// </summary>
         /// <param name="keys">Keys associated with each value.</param>
         /// <param name="values">Objects to pickle.</param>
-        /// <param name="pickleNulls">Pickles null inputs (otherwise, returns null).</param>
-        /// <returns name="encodings">Pickled string representations.</returns>
-        /// <returns name="pickled">Indicates whether each object was successfully pickled.</returns>
+        /// <param name="pickleNulls">Pickles null inputs to strings (otherwise, omit them).</param>
+        /// <returns name="pickles">Pickled string representations.</returns>
+        /// <returns name="success">Indicates whether each object was successfully pickled.</returns>
         /// <search>Data.Pickling.Pickle</search>
         [NodeCategory("Action")]
-        [MultiReturn("pickles", "pickled")]
+        [MultiReturn("pickles", "success")]
         public static Dictionary<string, object> Pickle(List<string> keys, List<object> values, bool pickleNulls = false)
         {
             // Final outputs
@@ -32,7 +32,7 @@ namespace Pkl_Data
             var output = new Dictionary<string, object>
             {
                 { "pickles", pickles },
-                { "pickled", success }
+                { "success", success }
             };
 
             // Early return/warning if null values
@@ -53,8 +53,16 @@ namespace Pkl_Data
             for (int i = 0; i < keys.Count; i++)
             {
                 string? pickledObject = PickleHelper.Pickle(values[i], keys[i], pickleNulls);
-                pickles.Add(pickledObject);
-                success.Add(pickledObject != null);
+
+                if (pickledObject is null)
+                {
+                    success.Add(false);
+                }
+                else
+                {
+                    pickles.Add(pickledObject);
+                    success.Add(true);
+                }
             }
 
             // Return output
@@ -68,10 +76,10 @@ namespace Pkl_Data
         /// <param name="docOrLinkInstance">Document, link, or link instance used for Element lookup.</param>
         /// <returns name="keys">Unpickled keys.</returns>
         /// <returns name="values">Unpickled values.</returns>
-        /// <returns name="unpickled">Indicates whether each object was successfully unpickled.</returns>
+        /// <returns name="success">Indicates whether each object was successfully unpickled.</returns>
         /// <search>Data.Pickling.Unpickle</search>
         [NodeCategory("Action")]
-        [MultiReturn("keys", "values", "unpickled")]
+        [MultiReturn("keys", "values", "success")]
         public static Dictionary<string, object> Unpickle(List<string>? pickles,
             [DefaultArgument("null")] object? docOrLinkInstance = null)
         {

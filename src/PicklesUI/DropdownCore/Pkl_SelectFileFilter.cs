@@ -44,7 +44,7 @@ namespace PicklesUI
             ["BIM Files (*.rvt;*.rfa;*.ifc)|*.rvt;*.rfa;*.ifc"] = "BIM Files"
         };
 
-        private static IEnumerable<string> GetItems() => FileFilters.Keys;
+        private static IEnumerable<string> GetItems(NodeModel node) => FileFilters.Keys;
 
         public Pkl_SelectFileFilter() : base(
             OutputName, NoItems,

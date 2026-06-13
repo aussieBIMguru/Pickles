@@ -1,5 +1,6 @@
-﻿using Dynamo.Models;
-using Dynamo.Graph.Workspaces;
+﻿using Dynamo.Graph.Workspaces;
+using Dynamo.Models;
+using Dynamo.ViewModels;
 using System.IO;
 
 namespace PicklesUI
@@ -18,6 +19,11 @@ namespace PicklesUI
         /// Gets the current Dynamo model.
         /// </summary>
         public static DynamoModel? Model { get; internal set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static DynamoViewModel? ViewModel { get; internal set; }
 
         /// <summary>
         /// Gets the current Dynamo workspace.
@@ -122,7 +128,9 @@ namespace PicklesUI
         /// <returns>The key names.</returns>
         public static string[] GetKeys()
         {
-            return Data.Keys.ToArray();
+            return Data.Keys
+                .OrderBy(x => x)
+                .ToArray();
         }
     }
 }

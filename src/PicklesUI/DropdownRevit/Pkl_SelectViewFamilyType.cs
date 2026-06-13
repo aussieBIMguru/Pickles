@@ -13,7 +13,7 @@ namespace PicklesUI
         private const string NoItems = "No view family types available in project.";
         private const string OutputName = "viewFamilyType";
 
-        private static IEnumerable<DB.ViewFamilyType> GetItems()
+        private static IEnumerable<DB.ViewFamilyType> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
             if (doc == null) return Enumerable.Empty<DB.ViewFamilyType>();

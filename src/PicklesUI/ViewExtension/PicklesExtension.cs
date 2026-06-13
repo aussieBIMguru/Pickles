@@ -15,7 +15,7 @@ namespace PicklesUI
         /// Guid of the extension.
         /// </summary>
         public string UniqueId => "9F59E90E-E791-4E54-B52F-AE75E8D4A4B8";
-        
+
         /// <summary>
         /// Name of the extension.
         /// </summary>
@@ -41,6 +41,7 @@ namespace PicklesUI
             if (p.DynamoWindow.DataContext is DynamoViewModel vm)
             {
                 GraphStorage.Model = vm.Model;
+                GraphStorage.ViewModel = vm;
             }
         }
 
@@ -92,6 +93,18 @@ namespace PicklesUI
             foreach (var pair in GraphStorage.Data)
             {
                 extensionData[pair.Key] = pair.Value;
+            }
+
+            // Populate all dynamic canvas nodes for use in selection node
+            if (GraphStorage.ViewModel?.CurrentSpaceViewModel != null)
+            {
+                foreach (var nodeVm in GraphStorage.ViewModel.CurrentSpaceViewModel.Nodes)
+                {
+                    if (nodeVm.NodeLogic is Pkl_SelectByNodeName selectNode)
+                    {
+                        selectNode.PickleKey = nodeVm.Name;
+                    }
+                }
             }
         }
     }

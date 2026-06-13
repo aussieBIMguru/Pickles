@@ -13,7 +13,7 @@ namespace PicklesUI
         private const string NoItems = "No CAD Links available in project.";
         private const string OutputName = "importInstance";
 
-        private static IEnumerable<DB.ImportInstance> GetItems()
+        private static IEnumerable<DB.ImportInstance> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
             if (doc == null) return Enumerable.Empty<DB.ImportInstance>();

@@ -92,4 +92,35 @@ namespace PicklesUI.Factories
         public AssociativeNode BuildOutput(string item) =>
             AstFactory.BuildStringNode(item);
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class ElementOrPrimitiveOutputStrategy : IOutputStrategy<object>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public AssociativeNode BuildOutput(object item)
+        {
+            switch (item)
+            {
+                case null:
+                    return AstFactory.BuildNullNode();
+                case DB.Element element:
+                    return AstFactory.BuildFunctionCall(
+                        "Revit.Elements.ElementSelector",
+                        "ByElementId",
+                        new List<AssociativeNode>
+                        {
+                            AstFactory.BuildIntNode(element.Id.Value)
+                        });
+
+                default:
+                    return AstFactory.BuildPrimitiveNodeFromObject(item);
+            }
+        }
+    }
 }
