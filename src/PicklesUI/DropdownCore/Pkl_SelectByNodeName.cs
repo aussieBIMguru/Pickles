@@ -18,6 +18,11 @@ namespace PicklesUI
         private const string NoItems = "No pickles found.";
         private const string OutputName = "pickles";
 
+        /// <summary>
+        /// Do not allow to be an input node (doesn't work in player).
+        /// </summary>
+        public override bool IsInputNode => false;
+
         [JsonProperty]
         public string PickleKey { get; set; } = "";
 
