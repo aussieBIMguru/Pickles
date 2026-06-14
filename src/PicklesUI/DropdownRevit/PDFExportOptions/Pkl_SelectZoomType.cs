@@ -1,27 +1,23 @@
 using Dynamo.Graph.Nodes;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
 
 namespace PicklesUI
 {
-    [NodeName("Pkl_SelectPrinter")]
+    [NodeName("Pkl_SelectZoomType")]
     [NodeCategory("Pickles.Pkl_Revit.Pkl_Export")]
-    [NodeDescription("Select from the printers installed on this computer.")]
+    [NodeDescription("Select from the available ZoomType options.")]
     [IsDesignScriptCompatible]
-    public class Pkl_SelectPrinter : DropDownFactoryBaseCore<string>
+    public class Pkl_SelectZoomType : DropDownFactoryBaseCore<string>
     {
-        private const string NoItems = "No printers found.";
-        private const string OutputName = "printerName";
+        private const string NoItems = "No formats found.";
+        private const string OutputName = "settingName";
 
         private static IEnumerable<string> GetItems(NodeModel node)
         {
-            foreach (string printer in PrinterSettings.InstalledPrinters)
-            {
-                yield return printer;
-            }
+            return Enum.GetNames(typeof(DB.ZoomType)).ToList();
         }
 
-        public Pkl_SelectPrinter() : base(
+        public Pkl_SelectZoomType() : base(
             OutputName,
             NoItems,
             GetItems,
@@ -30,7 +26,7 @@ namespace PicklesUI
         { }
 
         [JsonConstructor]
-        public Pkl_SelectPrinter(
+        public Pkl_SelectZoomType(
             IEnumerable<PortModel> inPorts,
             IEnumerable<PortModel> outPorts) : base(
             OutputName,

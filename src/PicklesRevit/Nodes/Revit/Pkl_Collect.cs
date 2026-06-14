@@ -8,29 +8,6 @@
         internal Pkl_Collect() { }
 
         /// <summary>
-        /// Collects all BaseExportOption names in the provided Document.
-        /// </summary>
-        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns name="optionNames">A list of BaseExportOption names.</returns>
-        /// <search>Revit.Collect.BaseExportOptionNames</search>
-        [NodeCategory("Action")]
-        public static IList<string> BaseExportOptionNames([DefaultArgument("null")] object? docOrLinkInstance = null)
-        {
-            // Get the related document
-            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
-
-            // Early return/warning if no document
-            if (!docHelper.IsValid)
-            {
-                docHelper.RaiseInvalidWarning();
-                return new List<string>();
-            }
-
-            // Collect elements and return as output
-            return DB.BaseExportOptions.GetPredefinedSetupNames(docHelper.Document);
-        }
-
-        /// <summary>
         /// Collects all linked and/or imported CAD objects in a Document.
         /// </summary>
         /// <param name="includeLinked">Include linked CAD instances.</param>

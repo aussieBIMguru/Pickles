@@ -1,9 +1,5 @@
 ﻿using Autodesk.Revit.DB;
-using Dynamo.Graph.Nodes.CustomNodes;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Pkl_Revit
 {
@@ -128,7 +124,7 @@ namespace Pkl_Revit
         /// Gets the local file path of a document, using the Revit cache location for workshared models.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns>The local file path.</returns>
+        /// <returns name="filePath">The local file path.</returns>
         /// <search>Revit.Document.LocalPath</search>
         [NodeCategory("Query")]
         public static string? LocalPath([DefaultArgument("null")] object? docOrLinkInstance = null)
@@ -146,32 +142,32 @@ namespace Pkl_Revit
             // Try to get the local path of the document
             DB.Document doc = docHelper.Document;
 
-            try
+            if (doc.WorksharingCentralGUID != Guid.Empty)
             {
-                string guid = doc.WorksharingCentralGUID.ToString();
+                try
+                {
+                    string guidString = doc.WorksharingCentralGUID.ToString();
+                    string revitFolder = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Autodesk",
+                        "Revit");
 
-                string revitFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Autodesk",
-                    "Revit");
+                    return Directory
+                        .GetFiles(revitFolder, $"{guidString}.rvt", SearchOption.AllDirectories)
+                        .FirstOrDefault()
+                        ?? doc.PathName;
+                }
+                catch { }
+            }
 
-                return Directory
-                    .GetFiles(revitFolder, $"{guid}.rvt", SearchOption.AllDirectories)
-                    .FirstOrDefault()
-                    ?? doc.PathName;
-            }
-            catch
-            {
-                // Fallback on path name
-                return doc.PathName;
-            }
+            return doc.PathName;
         }
 
         /// <summary>
         /// Gets the starting view of a document.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance (current if not provided).</param>
-        /// <returns>The starting view, if any.</returns>
+        /// <returns name="view">The starting view.</returns>
         /// <search>Revit.Document.GetStartingView</search>
         [NodeCategory("Query")]
         public static DynElement? GetStartingView([DefaultArgument("null")] object? docOrLinkInstance = null)

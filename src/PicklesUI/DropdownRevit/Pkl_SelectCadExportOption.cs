@@ -1,27 +1,25 @@
 using Dynamo.Graph.Nodes;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
+using RevitServices.Persistence;
 
 namespace PicklesUI
 {
-    [NodeName("Pkl_SelectPrinter")]
+    [NodeName("Pkl_SelectCadExportOption")]
     [NodeCategory("Pickles.Pkl_Revit.Pkl_Export")]
-    [NodeDescription("Select from the printers installed on this computer.")]
+    [NodeDescription("Select from the available BaseExportOptions.")]
     [IsDesignScriptCompatible]
-    public class Pkl_SelectPrinter : DropDownFactoryBaseCore<string>
+    public class Pkl_SelectCadExportOption : DropDownFactoryBaseCore<string>
     {
-        private const string NoItems = "No printers found.";
-        private const string OutputName = "printerName";
+        private const string NoItems = "No settings found.";
+        private const string OutputName = "optionName";
 
         private static IEnumerable<string> GetItems(NodeModel node)
         {
-            foreach (string printer in PrinterSettings.InstalledPrinters)
-            {
-                yield return printer;
-            }
+            DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
+            return DB.BaseExportOptions.GetPredefinedSetupNames(doc);
         }
 
-        public Pkl_SelectPrinter() : base(
+        public Pkl_SelectCadExportOption() : base(
             OutputName,
             NoItems,
             GetItems,
@@ -30,7 +28,7 @@ namespace PicklesUI
         { }
 
         [JsonConstructor]
-        public Pkl_SelectPrinter(
+        public Pkl_SelectCadExportOption(
             IEnumerable<PortModel> inPorts,
             IEnumerable<PortModel> outPorts) : base(
             OutputName,

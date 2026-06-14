@@ -1,27 +1,24 @@
 using Dynamo.Graph.Nodes;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
+using RevitServices.Persistence;
 
 namespace PicklesUI
 {
-    [NodeName("Pkl_SelectPrinter")]
+    [NodeName("Pkl_SelectExportPaperFormat")]
     [NodeCategory("Pickles.Pkl_Revit.Pkl_Export")]
-    [NodeDescription("Select from the printers installed on this computer.")]
+    [NodeDescription("Select from the available ExportPaperFormat options.")]
     [IsDesignScriptCompatible]
-    public class Pkl_SelectPrinter : DropDownFactoryBaseCore<string>
+    public class Pkl_SelectExportPaperFormat : DropDownFactoryBaseCore<string>
     {
-        private const string NoItems = "No printers found.";
-        private const string OutputName = "printerName";
+        private const string NoItems = "No formats found.";
+        private const string OutputName = "settingName";
 
         private static IEnumerable<string> GetItems(NodeModel node)
         {
-            foreach (string printer in PrinterSettings.InstalledPrinters)
-            {
-                yield return printer;
-            }
+            return Enum.GetNames(typeof(DB.ExportPaperFormat)).ToList();
         }
 
-        public Pkl_SelectPrinter() : base(
+        public Pkl_SelectExportPaperFormat() : base(
             OutputName,
             NoItems,
             GetItems,
@@ -30,7 +27,7 @@ namespace PicklesUI
         { }
 
         [JsonConstructor]
-        public Pkl_SelectPrinter(
+        public Pkl_SelectExportPaperFormat(
             IEnumerable<PortModel> inPorts,
             IEnumerable<PortModel> outPorts) : base(
             OutputName,

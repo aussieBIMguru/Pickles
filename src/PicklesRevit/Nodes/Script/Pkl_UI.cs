@@ -20,8 +20,10 @@
         /// <search>Script.UI.Message</search>
         [NodeCategory("Action")]
         [MultiReturn("affirmative", "passThrough")]
+        [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> Message(string title, string message,
-            [DefaultArgument("null")] object? passThrough = null, bool yesNo = false, bool noCancel = false)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object? passThrough = null,
+            bool yesNo = false, bool noCancel = false)
         {
             // Output variables
             bool outAffirmative = false;
@@ -62,9 +64,11 @@
         /// <search>Script.UI.MessagePlus</search>
         [NodeCategory("Action")]
         [MultiReturn("affirmative", "passThrough")]
+        [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> MessagePlus(string title, string message,
-            [DefaultArgument("null")] object? passThrough = null, bool yesNo = false, bool noCancel = false,
-            string resourcePath = "", string resourceText = "", string showMore = "")
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object? passThrough = null,
+            bool yesNo = false, bool noCancel = false, string resourcePath = "", string resourceText = "", 
+            string showMore = "")
         {
             // Output variables
             bool outAffirmative = false;
@@ -101,9 +105,10 @@
         /// <returns name="filePath">Ths selected file path.</returns>
         /// <search>Script.UI.SelectFile</search>
         [NodeCategory("Action")]
+        [return: ArbitraryDimensionArrayImport]
         public static string? SelectFile([DefaultArgument("null")] string? title = null,
             [DefaultArgument("null")] string? filter = null,
-            [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Run the form
             var formResult = pklCal.SelectFilePaths(title, filter, multiSelect: false);
@@ -121,9 +126,10 @@
         /// <returns name="filePaths">Ths selected file paths.</returns>
         /// <search>Script.UI.SelectFiles/search>
         [NodeCategory("Action")]
+        [return: ArbitraryDimensionArrayImport]
         public static List<string>? SelectFiles([DefaultArgument("null")] string? title = null,
             [DefaultArgument("null")] string? filter = null,
-            [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Run the form
             var formResult = pklCal.SelectFilePaths(title, filter, multiSelect: true);
@@ -140,8 +146,9 @@
         /// <returns name="directoryPath">The selected directory path.</returns>
         /// <search>Script.UI.SelectDirectory</search>
         [NodeCategory("Action")]
+        [return: ArbitraryDimensionArrayImport]
         public static string? SelectDirectory([DefaultArgument("null")] string? title = null,
-            [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Run the form
             var formResult = pklCal.SelectDirectory(title);
@@ -163,9 +170,10 @@
         /// <search>Script.UI.SelectObjectsFromList</search>
         [NodeCategory("Action")]
         [MultiReturn("objects", "cancelled")]
+        [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> SelectObjectsFromList(List<string> keys, List<object> values,
             [DefaultArgument("null")] string? title = null, bool allowNoSelection = false,
-            [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Final outputs
             var outObjects = new List<object>();
@@ -220,9 +228,10 @@
         /// <search>Script.UI.SelectObjectFromList</search>
         [NodeCategory("Action")]
         [MultiReturn("object", "cancelled")]
+        [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> SelectObjectFromList(List<string> keys, List<object> values,
             [DefaultArgument("null")] string? title = null, bool allowNoSelection = false,
-            [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Final outputs
             object outObject = null;
@@ -276,8 +285,10 @@
         /// <search>Script.UI.SelectObjectFromDropdown</search>
         [NodeCategory("Action")]
         [MultiReturn("object", "cancelled")]
+        [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> SelectObjectFromDropdown(List<string> keys, List<object> values,
-            [DefaultArgument("null")] string? title = null, [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")] string? title = null,
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Final outputs
             object outObject = null;
@@ -330,9 +341,10 @@
         /// <search>Script.UI.EnterText</search>
         [NodeCategory("Action")]
         [MultiReturn("value", "cancelled")]
+        [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> EnterText([DefaultArgument("null")] string? title = null,
             [DefaultArgument("null")] string? tooltip = null, string defaultValue = "",
-            [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Final outputs
             object outValue = null;
@@ -372,9 +384,10 @@
         /// <search>Script.UI.EnterNumber</search>
         [NodeCategory("Action")]
         [MultiReturn("value", "cancelled")]
+        [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> EnterNumber([DefaultArgument("null")] string? title = null,
             [DefaultArgument("null")] string? tooltip = null, double defaultValue = 0, bool allowDecimal = true,
-            [DefaultArgument("null")] object waitFor = null)
+            [DefaultArgument("null")][ArbitraryDimensionArrayImport] object waitFor = null)
         {
             // Final outputs
             double? outValue = null;

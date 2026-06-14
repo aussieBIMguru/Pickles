@@ -1,27 +1,23 @@
 using Dynamo.Graph.Nodes;
 using Newtonsoft.Json;
-using System.Drawing.Printing;
 
 namespace PicklesUI
 {
-    [NodeName("Pkl_SelectPrinter")]
+    [NodeName("Pkl_SelectPageOrientationType")]
     [NodeCategory("Pickles.Pkl_Revit.Pkl_Export")]
-    [NodeDescription("Select from the printers installed on this computer.")]
+    [NodeDescription("Select from the available PageOrientationType options.")]
     [IsDesignScriptCompatible]
-    public class Pkl_SelectPrinter : DropDownFactoryBaseCore<string>
+    public class Pkl_SelectPageOrientationType : DropDownFactoryBaseCore<string>
     {
-        private const string NoItems = "No printers found.";
-        private const string OutputName = "printerName";
+        private const string NoItems = "No formats found.";
+        private const string OutputName = "settingName";
 
         private static IEnumerable<string> GetItems(NodeModel node)
         {
-            foreach (string printer in PrinterSettings.InstalledPrinters)
-            {
-                yield return printer;
-            }
+            return Enum.GetNames(typeof(DB.PageOrientationType)).ToList();
         }
 
-        public Pkl_SelectPrinter() : base(
+        public Pkl_SelectPageOrientationType() : base(
             OutputName,
             NoItems,
             GetItems,
@@ -30,7 +26,7 @@ namespace PicklesUI
         { }
 
         [JsonConstructor]
-        public Pkl_SelectPrinter(
+        public Pkl_SelectPageOrientationType(
             IEnumerable<PortModel> inPorts,
             IEnumerable<PortModel> outPorts) : base(
             OutputName,

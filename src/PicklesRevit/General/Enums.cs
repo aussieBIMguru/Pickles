@@ -6,7 +6,8 @@
         NO_DOC_OR_LINK = 1,
         INVALID_INPUTS = 2,
         KEY_VALUE_MISMATCH = 3,
-        WRONG_CATEGORY_INPUTS = 4
+        WRONG_CATEGORY_INPUTS = 4,
+        DIRECTORY_DOES_NOT_EXIST = 5
     }
 
     internal enum MATCH_MODE
