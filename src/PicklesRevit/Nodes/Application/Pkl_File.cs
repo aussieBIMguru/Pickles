@@ -1,4 +1,6 @@
-﻿namespace Pkl_Application
+﻿using Autodesk.Revit.DB;
+
+namespace Pkl_Application
 {
     /// <summary>
     /// Nodes relating to file management.
@@ -29,6 +31,26 @@
         public static double? FileSize(string filePath)
         {
             return new ResourceHelper(filePath).GetFileSizeInMb();
+        }
+
+        /// <summary>
+        /// Gets the Revit version of a file (if it is a Revit file).
+        /// </summary>
+        /// <param name="filePath">The file path to check.</param>
+        /// <returns name="fileVersion">The Revit version, or null if unavailable.</returns>
+        /// <search>Application.File.GetRevitVersion</search>
+        [NodeCategory("Query")]
+        public static int? GetRevitVersion(string filePath)
+        {
+            try
+            {
+                var fileInfo = DB.BasicFileInfo.Extract(filePath);
+                return fileInfo?.Format.Ext_ToInt();
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>

@@ -103,14 +103,6 @@
 	  <Folder Include="Resources\" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<None Include="DropdownCore\Pkl_SelectByNodeName.cs" />
-		<None Include="ViewExtension\Pickles_ViewExtensionDefinition.xml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>Pickles_ViewExtensionDefinition.xml</TargetPath>
-		</None>
-	</ItemGroup>
-
 	<Target Name="CopyToDynamoPackage" AfterTargets="Build">
 		<PropertyGroup>
 			<DynamoBin>$(FolderPackages)bin\</DynamoBin>

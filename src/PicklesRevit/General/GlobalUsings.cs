@@ -14,10 +14,13 @@ global using DynRevision = global::Revit.Elements.Revision;
 global using DynView = global::Revit.Elements.Views.View;
 global using DynSheet = global::Revit.Elements.Views.Sheet;
 global using DynFamilySymbol = global::Revit.Elements.FamilyType;
+global using DynSpecType = Revit.Elements.SpecType;
+global using DynGroupType = Revit.Elements.GroupType;
+global using DynForgeType = Revit.Elements.ForgeType;
 
 // Revit database alias
 global using DB = Autodesk.Revit.DB;
-global using UI = Autodesk.Revit.UI;
+global using RUI = Autodesk.Revit.UI;
 global using Result = Autodesk.Revit.UI.Result;
 
 // Pickle usings
