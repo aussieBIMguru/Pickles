@@ -1,6 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System.IO;
-using pklEnum = Pickles.Helpers.EnumHelpers;
+using pklEnum = Pickles.Enums.EnumHelpers;
 
 namespace Pkl_Revit
 {

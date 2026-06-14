@@ -1,6 +1,4 @@
-﻿using Pickles;
-
-namespace Pkl_Data
+﻿namespace Pkl_Data
 {
     /// <summary>
     /// Nodes relating to Pickle specific types.
@@ -58,6 +56,31 @@ namespace Pkl_Data
             }
 
             throw new ArgumentException("Input must be a Pickles.UnitInfo");
+        }
+    }
+}
+
+namespace Pickles
+{
+    /// <summary>
+    /// Wrapper to hold/pass UnitType information.
+    /// </summary>
+    internal class UnitInfo
+    {
+        internal string TypeId { get; }
+        internal DB.ForgeTypeId ForgeTypeId { get; }
+        internal string UnitName => DB.LabelUtils.GetLabelForUnit(ForgeTypeId);
+
+        internal UnitInfo(string typeId)
+        {
+            TypeId = typeId;
+            ForgeTypeId = new DB.ForgeTypeId(typeId);
+        }
+
+        internal UnitInfo(DB.ForgeTypeId forgeTypeId)
+        {
+            TypeId = forgeTypeId.TypeId;
+            ForgeTypeId = forgeTypeId;
         }
     }
 }
