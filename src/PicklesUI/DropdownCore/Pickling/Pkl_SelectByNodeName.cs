@@ -12,7 +12,7 @@ namespace PicklesUI
     [NodeName("Pkl_SelectByNodeName")]
     [NodeCategory("Pickles.Pkl_Data.Pkl_Pickling")]
     [NodeDescription("Select from a list of pickled objects, which can then be unpickled in your graph.\n\n" +
-        "Rename the node to match a pickled key to access its values (otherwise it uses the first key, if available).\n\n" +
+        "Rename the node to match a pickled key to access its values after saving at least once since pickling.\n\n" +
         "NOTE: Only works on canvas, not in player.")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectByNodeName : DropDownFactoryBaseCore<string>
@@ -26,26 +26,26 @@ namespace PicklesUI
         public override bool IsInputNode => false;
 
         [JsonProperty]
-        public string PickleKey { get; set; } = "";
+        public string DisplayName { get; set; } = "";
 
         private static IEnumerable<string> GetItems(NodeModel node)
         {
             var n = (Pkl_SelectByNodeName)node;
-            var keyName = n.PickleKey;
+            string pickleName = "";
 
-            if (!GraphStorage.Contains(keyName))
+            if (GraphStorage.TryGetDisplayName(n.GUID, out var value))
             {
-                keyName = GraphStorage.GetKeys().FirstOrDefault() ?? "";
+                pickleName = value;
             }
 
-            if (!GraphStorage.TryGet(keyName, out var value))
+            if (!GraphStorage.TryGetPickle(pickleName, out var pickle))
             {
                 return new List<string>();
             }
 
             try
             {
-                return JsonConvert.DeserializeObject<List<string>>(value)
+                return JsonConvert.DeserializeObject<List<string>>(pickle)
                     ?? new List<string>();
             }
             catch

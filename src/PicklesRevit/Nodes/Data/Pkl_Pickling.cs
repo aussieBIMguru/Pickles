@@ -241,7 +241,7 @@ namespace Pkl_Data
 
             string value = JsonConvert.SerializeObject(pickles);
 
-            return GraphStorage.Set(
+            return GraphStorage.SetPickle(
                 keyName,
                 value);
         }
@@ -255,7 +255,7 @@ namespace Pkl_Data
         [NodeCategory("Action")]
         public static List<string> LoadPicklesFromGraph(string keyName = "default")
         {
-            if (!GraphStorage.TryGet(keyName, out var value))
+            if (!GraphStorage.TryGetPickle(keyName, out var value))
             {
                 return new List<string>();
             }
@@ -280,7 +280,7 @@ namespace Pkl_Data
         [NodeCategory("Query")]
         public static string[] GetGraphKeys(bool refresh = false)
         {
-            return GraphStorage.GetKeys();
+            return GraphStorage.GetPickleKeys();
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace Pkl_Data
             
             foreach (var keyName in keyNames)
             {
-                success.Add(GraphStorage.Remove(keyName));
+                success.Add(GraphStorage.RemovePickle(keyName));
             }
 
             return success;

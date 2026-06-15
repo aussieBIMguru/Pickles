@@ -60,6 +60,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Nodes\Data\Pkl_Colour.cs~RFf9f8793.TMP" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="DynamoVisualProgramming.Core" Version="$(DynVersion).*" />
 		<PackageReference Include="DynamoVisualProgramming.DynamoCoreNodes" Version="$(DynVersion).*" />
 		<PackageReference Include="DynamoVisualProgramming.ZeroTouchLibrary" Version="$(DynVersion).*" />

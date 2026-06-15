@@ -19,10 +19,10 @@ namespace PicklesUI
 
         private static IEnumerable<string> GetItems(NodeModel node)
         {
-            var keyNames = GraphStorage.GetKeys();
+            var keyNames = GraphStorage.GetPickleKeys();
             var keyName = keyNames.Length > 2 ? keyNames[2] : keyNames.LastOrDefault() ?? "";
 
-            if (!GraphStorage.TryGet(keyName, out var value))
+            if (!GraphStorage.TryGetPickle(keyName, out var value))
             {
                 return new List<string>();
             }

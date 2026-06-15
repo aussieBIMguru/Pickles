@@ -2,6 +2,7 @@
 using Dynamo.Graph;
 using Dynamo.ViewModels;
 using Dynamo.Wpf.Extensions;
+using Newtonsoft.Json;
 
 namespace PicklesUI
 {
@@ -67,13 +68,13 @@ namespace PicklesUI
         /// <param name="extensionData">Extension related data.</param>
         public void OnWorkspaceOpen(Dictionary<string, string> extensionData)
         {
-            // Clear graphstorage data
-            GraphStorage.Data.Clear();
-
-            // Store extension data to graphstorage object
-            foreach (var pair in extensionData)
+            if (extensionData.TryGetValue(nameof(GraphData), out var json))
             {
-                GraphStorage.Data[pair.Key] = pair.Value;
+                GraphStorage.Data = JsonConvert.DeserializeObject<GraphData>(json) ?? new GraphData();
+            }
+            else
+            {
+                GraphStorage.Data = new GraphData();
             }
         }
 
@@ -86,26 +87,11 @@ namespace PicklesUI
             Dictionary<string, string> extensionData,
             SaveContext saveContext)
         {
-            // Clear the extension data
             extensionData.Clear();
 
-            // Populate the extension data with graphstorage data
-            foreach (var pair in GraphStorage.Data)
-            {
-                extensionData[pair.Key] = pair.Value;
-            }
+            GraphStorage.StoreNodeNicknames();
 
-            // Populate all dynamic canvas nodes for use in selection node
-            if (GraphStorage.ViewModel?.CurrentSpaceViewModel != null)
-            {
-                foreach (var nodeVm in GraphStorage.ViewModel.CurrentSpaceViewModel.Nodes)
-                {
-                    if (nodeVm.NodeLogic is Pkl_SelectByNodeName selectNode)
-                    {
-                        selectNode.PickleKey = nodeVm.Name;
-                    }
-                }
-            }
+            extensionData[GraphData.StorageKey] = JsonConvert.SerializeObject(GraphStorage.Data);
         }
     }
 }
