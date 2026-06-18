@@ -16,10 +16,20 @@ global using DynRevision = global::Revit.Elements.Revision;
 global using DynView = global::Revit.Elements.Views.View;
 global using DynSheet = global::Revit.Elements.Views.Sheet;
 global using DynFamilySymbol = global::Revit.Elements.FamilyType;
-global using DynSpecType = Revit.Elements.SpecType;
-global using DynGroupType = Revit.Elements.GroupType;
-global using DynForgeType = Revit.Elements.ForgeType;
-global using DynDateTime = DSCore.DateTime;
+global using DynSpecType = global::Revit.Elements.SpecType;
+global using DynGroupType = global::Revit.Elements.GroupType;
+global using DynForgeType = global::Revit.Elements.ForgeType;
+
+// Dynamo geometry alias'
+global using DynGeometry = global::Autodesk.DesignScript.Geometry.Geometry;
+global using DynPoint = global::Autodesk.DesignScript.Geometry.Point;
+global using DynVector = global::Autodesk.DesignScript.Geometry.Vector;
+global using DynSolid = global::Autodesk.DesignScript.Geometry.Solid;
+global using DynCurve = global::Autodesk.DesignScript.Geometry.Curve;
+global using DynBb = global::Autodesk.DesignScript.Geometry.BoundingBox;
+global using DynPlane = global::Autodesk.DesignScript.Geometry.Plane;
+global using DynPolyCurve = global::Autodesk.DesignScript.Geometry.PolyCurve;
+global using DynSurface = global::Autodesk.DesignScript.Geometry.Surface;
 
 // Revit database alias
 global using DB = Autodesk.Revit.DB;

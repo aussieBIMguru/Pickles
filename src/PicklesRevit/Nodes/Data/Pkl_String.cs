@@ -40,7 +40,7 @@ namespace Pkl_Data
         /// <param name="failValue">The value to return if conversion fails.</param>
         /// <returns name="number">The converted number, or the fallback value if conversion fails.</returns>
         /// <search>Data.String.StringToNumber</search>
-        [NodeCategory("Create")]
+        [NodeCategory("Action")]
         public static double? ToNumber(
             string text,
             [DefaultArgument("null")] double? failValue = null)
@@ -54,7 +54,7 @@ namespace Pkl_Data
         /// <param name="number">The text to enumerate.</param>
         /// <returns name="text">The string.</returns>
         /// <search>Data.String.NumberToString</search>
-        [NodeCategory("Create")]
+        [NodeCategory("Action")]
         public static string FromNumber(double number)
         {
             return number.ToString("G", CultureInfo.InvariantCulture);
@@ -66,7 +66,7 @@ namespace Pkl_Data
         /// <param name="text">The string to convert.</param>
         /// <returns name="guid">A System.Guid (null if unsuccessful).</returns>
         /// <search>Data.String.ToGuid</search>
-        [NodeCategory("Create")]
+        [NodeCategory("Action")]
         public static System.Guid? ToGuid(string text)
         {
             return Guid.TryParse(text, out var g) ? g : null;
@@ -107,9 +107,9 @@ namespace Pkl_Data
         /// </summary>
         /// <param name="text">The text to enumerate.</param>
         /// <returns name="characters">The characters.</returns>
-        /// <search>Data.String.Characters</search>
+        /// <search>Data.String.ToCharacters</search>
         [NodeCategory("Action")]
-        public static IList<string> Characters(string text)
+        public static IList<string> ToCharacters(string text)
         {
             return text
                 .Select(c => c.ToString())
@@ -137,19 +137,19 @@ namespace Pkl_Data
         /// <param name="rowDelimiter">Delimiter for rows.</param>
         /// <returns name="matrix">A 2D list of strings.</returns>
         /// <search>Data.String.ToMatrix</search>
-        [NodeCategory("Create")]
+        [NodeCategory("Action")]
         public static List<List<string>> ToMatrix(string text,
             string columnDelimiter = ",", string rowDelimiter = "\n")
         {
-            if (text.Ext_HasNoChars())
+            List<List<string>> matrix = new();
+            if (text is null) { return matrix; }
+            
+            foreach (var row in text.Split(rowDelimiter))
             {
-                return new List<List<string>>();
+                matrix.Add(row.Split(columnDelimiter).ToList());
             }
 
-            return text
-                .Split(rowDelimiter, StringSplitOptions.None)
-                .Select(r => r.Split(columnDelimiter, StringSplitOptions.None).ToList())
-                .ToList();
+            return matrix;
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace Pkl_Data
         /// <param name="rowDelimiter">Delimiter between rows.</param>
         /// <returns name="text">The merged string.</returns>
         /// <search>Data.String.FromMatrix</search>
-        [NodeCategory("Create")]
+        [NodeCategory("Action")]
         public static string FromMatrix(List<List<string>> matrix,
             string columnDelimiter = ",", string rowDelimiter = "\n")
         {
