@@ -88,7 +88,7 @@ namespace Pickles.Helpers
                 case PREFIX_ELEMENTID:
 
                     DB.Document doc = new DocumentHelper(docOrLinkInstance, fallBack: true).Document;
-                    int? idValue = keyParts[1].Ext_ToInt();
+                    int? idValue = keyParts[1].Ext_ToIntOrNull();
 
                     if (doc != null && idValue.HasValue)
                     {
@@ -105,11 +105,11 @@ namespace Pickles.Helpers
                     return outObject;
 
                 case PREFIX_DOUBLE:
-                    outObject.ItemValue = keyParts[1].Ext_ToDouble();
+                    outObject.ItemValue = keyParts[1].Ext_ToDoubleOrNull();
                     return outObject;
 
                 case PREFIX_INTEGER:
-                    outObject.ItemValue = keyParts[1].Ext_ToInt();
+                    outObject.ItemValue = keyParts[1].Ext_ToIntOrNull();
                     return outObject;
 
                 default:

@@ -381,7 +381,7 @@
             // Process the outcome if affirmative
             if (dlg.ShowDialog() == true)
             {
-                double? tryDouble = dlg.GetText().Ext_ToDouble();
+                double? tryDouble = dlg.GetText().Ext_ToDoubleOrNull();
 
                 if (tryDouble.HasValue)
                 {

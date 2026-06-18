@@ -45,7 +45,7 @@ namespace Pkl_Application
             try
             {
                 var fileInfo = DB.BasicFileInfo.Extract(filePath);
-                return fileInfo?.Format.Ext_ToInt();
+                return fileInfo?.Format.Ext_ToIntOrNull();
             }
             catch
             {
