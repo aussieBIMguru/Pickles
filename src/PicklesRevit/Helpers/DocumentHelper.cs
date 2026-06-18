@@ -44,6 +44,18 @@ namespace Pickles.Helpers
                 return doc;
             }
 
+            if (input is DynDocument dynDoc)
+            {
+                DB.Document? dbDoc = dynDoc.Ext_ToDBDocument();
+
+                if (dbDoc != null)
+                {
+                    this.IsLinkedDocument = dbDoc.IsLinked;
+                }
+
+                return dbDoc;
+            }
+
             if (input is DynElement dynElement
                 && dynElement.InternalElement is DB.RevitLinkInstance revitLinkInstance)
             {

@@ -208,7 +208,7 @@
         /// <returns name="warnings">A list of DB.FailureMessages.</returns>
         /// <search>Revit.Collect.Warnings</search>
         [NodeCategory("Action")]
-        public static IList<DB.FailureMessage> Warnings([DefaultArgument("null")] object? docOrLinkInstance = null)
+        public static IList<DynWarning> Warnings([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
             var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
@@ -217,11 +217,13 @@
             if (!docHelper.IsValid)
             {
                 docHelper.RaiseInvalidWarning();
-                return new List<DB.FailureMessage>();
+                return new List<DynWarning>();
             }
 
             // Return warnings
-            return docHelper.Document.GetWarnings();
+            return docHelper.Document.GetWarnings()
+                .Select(w => w.Ext_ToDynWarning())
+                .ToList();
         }
     }
 }

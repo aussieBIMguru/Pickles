@@ -1,4 +1,6 @@
-﻿namespace Pickles.Extensions
+﻿using System.Reflection;
+
+namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Documents.
@@ -190,6 +192,23 @@
             sheet.Name = name;
 
             return sheet;
+        }
+
+        /// <summary>
+        /// Attempts to convert a Revit Document to the Dynamo type.
+        /// Thanks to Erfajo and Jon Pierson for providing the approach.
+        /// https://forum.dynamobim.com/t/the-fusion-post-for-coders/78033
+        /// </summary>
+        /// <param name="doc">The Revit DB Document.</param>
+        /// <returns>A Dynamo Document.</returns>
+        internal static DynDocument? Ext_ToDynDocument(this DB.Document doc)
+        {
+            if (doc is null) { return null; }
+            
+            var constructor = typeof(DynDocument).GetConstructors(
+                BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault();
+
+            return constructor.Invoke(new object[] { doc }) as DynDocument;
         }
     }
 }

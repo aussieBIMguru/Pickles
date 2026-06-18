@@ -10,6 +10,8 @@ global using Revit.Elements;
 
 // Dynamo element alias'
 global using DynElement = global::Revit.Elements.Element;
+global using DynDocument = global::Revit.Application.Document;
+global using DynWarning = global::Revit.Application.Warning;
 global using DynRevision = global::Revit.Elements.Revision;
 global using DynView = global::Revit.Elements.Views.View;
 global using DynSheet = global::Revit.Elements.Views.Sheet;
@@ -17,6 +19,7 @@ global using DynFamilySymbol = global::Revit.Elements.FamilyType;
 global using DynSpecType = Revit.Elements.SpecType;
 global using DynGroupType = Revit.Elements.GroupType;
 global using DynForgeType = Revit.Elements.ForgeType;
+global using DynDateTime = DSCore.DateTime;
 
 // Revit database alias
 global using DB = Autodesk.Revit.DB;

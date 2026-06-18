@@ -14,16 +14,16 @@ namespace Pkl_Revit
         /// Gets the document related to a link, if not the document provided and if not, the current document.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns name="document">The DB.Document.</returns>
+        /// <returns name="document">The Document.</returns>
         /// <search>Revit.Document.GetDocument</search>
         [NodeCategory("Query")]
-        public static DB.Document? GetDocument([DefaultArgument("null")] object? docOrLinkInstance = null)
+        public static DynDocument? GetDocument([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
             var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
 
             // Return the document
-            return docHelper.Document;
+            return docHelper.Document.Ext_ToDynDocument();
         }
 
         /// <summary>
@@ -75,6 +75,42 @@ namespace Pkl_Revit
         }
 
         /// <summary>
+        /// Returns the first document with a matching name in the application, if any.
+        /// </summary>
+        /// <param name="documentName">The title to match a Document with.</param>
+        /// <param name="prioritizeBackground">If background documents should be preferred vs linked/current.</param>
+        /// <returns name="document">A Dynamo Document.</returns>
+        /// <search>Revit.Document.GetByTitle</search>
+        [NodeCategory("Action")]
+        public static DynDocument? GetByTitle(string documentName, bool prioritizeBackground = false)
+        {
+            // Work through documents
+            DB.Document backgroundMatch = null;
+            DB.Document foregroundMatch = null;
+
+            // For each document...
+            foreach (DB.Document doc in DocumentManager.Instance.CurrentDBDocument.Application.Documents)
+            {
+                // If we found a match...
+                if (doc.Title == documentName)
+                {
+                    // Foreground check
+                    if (foregroundMatch is null && (doc.IsLinked || documentName == doc.Title))
+                    {
+                        foregroundMatch = doc;
+                    }
+                    // Background check
+                    else if (backgroundMatch is null)
+                    {
+                        backgroundMatch = doc;
+                    }
+                }
+            }
+
+            return (prioritizeBackground ? backgroundMatch ?? foregroundMatch : foregroundMatch ?? backgroundMatch).Ext_ToDynDocument();
+        }
+
+        /// <summary>
         /// Gets the document unit type used for a given specification.
         /// </summary>
         /// <param name="specType">The specification to query.</param>
@@ -110,7 +146,7 @@ namespace Pkl_Revit
                     .GetFormatOptions(specType.Ext_ToSpecTypeId())
                     .GetUnitTypeId();
 
-                output["unitType"] = new Pickles.UnitInfo(unitTypeId);
+                output["unitType"] = unitTypeId.Ext_ToDynForgeType();
                 output["unitName"] = DB.LabelUtils.GetLabelForUnit(unitTypeId);
             }
             catch

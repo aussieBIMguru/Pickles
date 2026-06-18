@@ -10,18 +10,6 @@ namespace Pkl_Data
         internal Pkl_DateTime() { }
 
         /// <summary>
-        /// Returns the system DateTime for now.
-        /// </summary>
-        /// <param name="refresh">Update the node contents.</param>
-        /// <returns name="dateTime">A System.DateTime.</returns>
-        /// <search>Data.DateTime.Now</search>
-        [NodeCategory("Create")]
-        public static System.DateTime Now(bool refresh = false)
-        {
-            return System.DateTime.Now;
-        }
-
-        /// <summary>
         /// Returns common formatted string representations of a datetime (or now).
         /// </summary>
         /// <param name="dateTime"></param>
