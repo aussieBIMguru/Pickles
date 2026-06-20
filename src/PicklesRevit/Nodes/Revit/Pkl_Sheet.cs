@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Dynamo.Graph.Nodes.CustomNodes;
+using System.Text;
 
 namespace Pkl_Revit
 {
@@ -242,7 +243,7 @@ namespace Pkl_Revit
             [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
-            var docHelper = new DocumentHelper(null);
+            var docHelper = new DocumentHelper(docOrLinkInstance, true);
 
             // Final outputs
             var outSheets = new List<DynElement?>();
@@ -418,6 +419,51 @@ namespace Pkl_Revit
 
             // Return outputs
             return revisions;
+        }
+
+        /// <summary>
+        /// Returns the last titleblock on the sheet, if any.
+        /// </summary>
+        /// <param name="sheets">Sheets to get the titleblocks of.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="titleblocks">Last titleblocks on the Sheets, if any.</returns>
+        /// <search>Revit.Sheet.GetTitleblock</search>
+        [NodeCategory("Action")]
+        public static List<DynElement> GetTitleblock(List<DynSheet> sheets, [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Title block list
+            List<DynElement> titleblocks = new();
+
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return titleblocks;
+            }
+
+            // Collect all titleblocks, to dictionary by Owner view Id
+            IList<DB.Element> allTtbs = docHelper.Document.Ext_CollectByCategory(DB.BuiltInCategory.OST_TitleBlocks);
+            Dictionary<DB.ElementId, DB.Element> ttbDictionary = new();
+            foreach (var ttb in allTtbs) { ttbDictionary[ttb.OwnerViewId] = ttb; }
+
+            // Get titleblock for each sheet
+            foreach (DynSheet sheet in sheets)
+            {
+                if (ttbDictionary.TryGetValue(sheet.InternalElement.Id, out DB.Element foundTtb))
+                {
+                    titleblocks.Add(foundTtb.Ext_ToDynElement(true));
+                }
+                else
+                {
+                    titleblocks.Add(null);
+                }
+            }
+
+            // Return outputs
+            return titleblocks;
         }
     }
 }

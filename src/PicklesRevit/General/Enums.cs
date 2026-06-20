@@ -9,7 +9,8 @@ namespace Pickles.Enums
         INVALID_INPUTS = 2,
         KEY_VALUE_MISMATCH = 3,
         WRONG_CATEGORY_INPUTS = 4,
-        DIRECTORY_DOES_NOT_EXIST = 5
+        DIRECTORY_DOES_NOT_EXIST = 5,
+        DOC_NOT_WORKSHARED = 6
     }
 
     internal enum MATCH_MODE
@@ -60,6 +61,7 @@ namespace Pickles.Enums
                 WARNING_TYPE.KEY_VALUE_MISMATCH => "Key and value lists are not equal in length.",
                 WARNING_TYPE.WRONG_CATEGORY_INPUTS => "Input(s) are of the wrong Revit category.",
                 WARNING_TYPE.DIRECTORY_DOES_NOT_EXIST => "Directory does not exist.",
+                WARNING_TYPE.DOC_NOT_WORKSHARED => "The current Document is not Workshared.",
                 _ => warning.ToString()
             };
         }
