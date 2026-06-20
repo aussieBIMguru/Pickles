@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectViewFamilyType")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_ViewFamilyType")]
     [NodeDescription("Select a view family type from the current document.")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectViewFamilyType : DropDownFactoryBase<DB.ViewFamilyType>

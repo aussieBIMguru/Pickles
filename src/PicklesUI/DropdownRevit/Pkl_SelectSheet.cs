@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectSheet")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_Sheet")]
     [NodeDescription("Select a Sheet from the current document.")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectSheet : DropDownFactoryBase<DB.ViewSheet>

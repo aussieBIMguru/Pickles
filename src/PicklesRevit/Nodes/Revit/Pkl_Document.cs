@@ -1,5 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using System.IO;
+﻿using System.IO;
 
 namespace Pkl_Revit
 {
@@ -141,7 +140,7 @@ namespace Pkl_Revit
 
             try
             {
-                ForgeTypeId unitTypeId = docHelper.Document
+                DB.ForgeTypeId unitTypeId = docHelper.Document
                     .GetUnits()
                     .GetFormatOptions(specType.Ext_ToSpecTypeId())
                     .GetUnitTypeId();

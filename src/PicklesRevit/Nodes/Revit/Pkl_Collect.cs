@@ -1,4 +1,7 @@
-﻿namespace Pkl_Revit
+﻿using Autodesk.Revit.DB;
+using System.Windows.Controls;
+
+namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to collection of elements.
@@ -172,6 +175,31 @@
         }
 
         /// <summary>
+        /// Collects all Levels, sorted by elevation.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="levels">A list of Levels.</returns>
+        /// <search>Revit.Collect.Levels</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> Levels([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return warnings
+            return docHelper.Document.Ext_CollectByClass<DB.Level>()
+                .OrderBy(l => l.Elevation)
+                .Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
         /// Collects all Sheets in a Document, with optional SheetCollection and placeholder filters.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
@@ -202,10 +230,10 @@
         }
 
         /// <summary>
-        /// Collects all Warnings as DB.FailureMessages.
+        /// Collects all Warnings.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns name="warnings">A list of DB.FailureMessages.</returns>
+        /// <returns name="warnings">A list of Warnings.</returns>
         /// <search>Revit.Collect.Warnings</search>
         [NodeCategory("Action")]
         public static IList<DynWarning> Warnings([DefaultArgument("null")] object? docOrLinkInstance = null)
@@ -223,6 +251,38 @@
             // Return warnings
             return docHelper.Document.GetWarnings()
                 .Select(w => w.Ext_ToDynWarning())
+                .ToList();
+        }
+
+        /// <summary>
+        /// Collects all Worksets as DB.Worksets.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="warnings">A list of DB.Worksets.</returns>
+        /// <search>Revit.Collect.Worksets</search>
+        [NodeCategory("Action")]
+        public static IList<DB.Workset> Worksets([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DB.Workset>();
+            }
+
+            // Early return if document is not workshared
+            if (!docHelper.Document.IsWorkshared)
+            {
+                WARNING_TYPE.DOC_NOT_WORKSHARED.Ext_Raise();
+                return new List<DB.Workset>();
+            }
+
+            // Return worksets
+            return new FilteredWorksetCollector(docHelper.Document)
+                .OfKind(WorksetKind.UserWorkset)
                 .ToList();
         }
     }

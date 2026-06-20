@@ -43,3 +43,4 @@ global using Pickles.Helpers;
 global using pklFrm = Pickles.Utilities.Utils_Forms;
 global using pklCal = Pickles.Forms.Callers;
 global using KeyedObject = Pickles.Forms.KeyedValue<object>;
+global using pklEnum = Pickles.Enums.EnumHelpers;

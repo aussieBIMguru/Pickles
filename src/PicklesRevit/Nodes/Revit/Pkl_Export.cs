@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using System.IO;
-using pklEnum = Pickles.Enums.EnumHelpers;
+﻿using System.IO;
 
 namespace Pkl_Revit
 {
@@ -128,7 +126,7 @@ namespace Pkl_Revit
             }
 
             // Catch invalid options
-            options ??= new PDFExportOptions()
+            options ??= new DB.PDFExportOptions()
             {
                 AlwaysUseRaster = false,
                 Combine = true,
@@ -151,7 +149,7 @@ namespace Pkl_Revit
             {
                 // Set file name and id list to export
                 options.FileName = fileNames[i];
-                var exportIds = new List<ElementId>() { viewsOrSheets[i].InternalElement.Id };
+                var exportIds = new List<DB.ElementId>() { viewsOrSheets[i].InternalElement.Id };
 
                 // Export the sheet, make the file path
                 bool result = doc.Export(directoryPath, exportIds, options);
@@ -229,7 +227,7 @@ namespace Pkl_Revit
             else
             {
                 // Default options otherwise
-                dwgExportOptions = new DWGExportOptions();
+                dwgExportOptions = new DB.DWGExportOptions();
             }
 
             // Set the coordinate and merge settings
@@ -240,7 +238,7 @@ namespace Pkl_Revit
             for (int i = 0; i < viewsOrSheets.Count; i++)
             {
                 // Set file name and id list to export
-                var exportIds = new List<ElementId>() { viewsOrSheets[i].InternalElement.Id };
+                var exportIds = new List<DB.ElementId>() { viewsOrSheets[i].InternalElement.Id };
 
                 // Export the sheet, make the file path
                 bool result = doc.Export(directoryPath, fileNames[i], exportIds, dwgExportOptions);

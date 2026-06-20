@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectViewTemplate")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_View")]
     [NodeDescription("Select a view template from the current document.")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectViewTemplate : DropDownFactoryBase<DB.View>

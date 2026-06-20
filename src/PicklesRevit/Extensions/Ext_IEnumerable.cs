@@ -11,7 +11,8 @@
         /// <param name="revitElements">Elements to convert.</param>
         /// <param name="revitOwned">Does Revit own the Elements.</param>
         /// <returns>A list of Dynamo Elements.</returns>
-        internal static IList<DynElement?> Ext_ToDynamoElements(this IEnumerable<DB.Element> revitElements, bool revitOwned)
+        internal static IList<DynElement?> Ext_ToDynamoElements<T>(this IEnumerable<T> revitElements, bool revitOwned)
+            where T : DB.Element
         {
             return revitElements
                 .Select(e => e.Ext_ToDynElement(revitOwned))

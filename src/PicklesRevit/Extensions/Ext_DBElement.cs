@@ -1,4 +1,6 @@
-﻿namespace Pickles.Extensions
+﻿using Autodesk.DesignScript.Geometry;
+
+namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Elements.
@@ -11,7 +13,7 @@
         /// <param name="element">The Element to convert.</param>
         /// <param name="revitOwned">If the Element is Revit owned.</param>
         /// <returns>A Dynamo Element.</returns>
-        internal static DynElement? Ext_ToDynElement(this DB.Element element, bool revitOwned)
+        internal static DynElement? Ext_ToDynElement<T>(this T element, bool revitOwned) where T : DB.Element
         {
             return element == null ? null : element.ToDSType(revitOwned);
         }

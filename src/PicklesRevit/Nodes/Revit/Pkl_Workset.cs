@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.DB;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Worksets.
@@ -31,7 +29,7 @@ namespace Pkl_Revit
 
             // Collect worksets and get existing names
             var worksetDictionary = new DB.FilteredWorksetCollector(doc)
-                .OfKind(WorksetKind.UserWorkset)
+                .OfKind(DB.WorksetKind.UserWorkset)
                 .ToWorksets()
                 .ToDictionary(w => w.Name, w => w);
 
@@ -88,7 +86,7 @@ namespace Pkl_Revit
 
             // Collect worksets and get existing names
             List<string> worksetNames = new DB.FilteredWorksetCollector(doc)
-                .OfKind(WorksetKind.UserWorkset)
+                .OfKind(DB.WorksetKind.UserWorkset)
                 .ToWorksets()
                 .Select(w => w.Name)
                 .ToList();
@@ -149,7 +147,7 @@ namespace Pkl_Revit
 
             // Collect worksets and get existing names
             IList<DB.Workset> allWorksets = new DB.FilteredWorksetCollector(doc)
-                .OfKind(WorksetKind.UserWorkset)
+                .OfKind(DB.WorksetKind.UserWorkset)
                 .ToWorksets();
             HashSet<string> isolateNames = worksets.Select(w => w.Name).ToHashSet();
 
@@ -214,7 +212,7 @@ namespace Pkl_Revit
 
             // Collect worksets
             IList<DB.Workset> allWorksets = new DB.FilteredWorksetCollector(doc)
-                .OfKind(WorksetKind.UserWorkset)
+                .OfKind(DB.WorksetKind.UserWorkset)
                 .ToWorksets();
             
             // Find the two worksets
@@ -234,6 +232,18 @@ namespace Pkl_Revit
 
             // Return the outcomes
             return output;
+        }
+
+        /// <summary>
+        /// Returns the DB.Workset's name.
+        /// </summary>
+        /// <param name="workset">The DB.Workset.</param>
+        /// <returns name="name">The Workset's name.</returns>
+        /// <search>Revit.Workset.Name</search>
+        [NodeCategory("Query")]
+        public static string Name(DB.Workset workset)
+        {
+            return workset.Name;
         }
     }
 }
