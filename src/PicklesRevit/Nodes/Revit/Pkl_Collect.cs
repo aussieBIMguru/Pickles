@@ -1,4 +1,6 @@
 ﻿using Autodesk.Revit.DB;
+using DesignScript.Builtin;
+using Dynamo.Graph.Nodes.CustomNodes;
 using System.Windows.Controls;
 
 namespace Pkl_Revit
@@ -172,6 +174,255 @@ namespace Pkl_Revit
 
             // Return the output
             return output;
+        }
+
+        /// <summary>
+        /// Collects all DimensionTypes in the Document, separated by standard and spot types.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="dimensionTypes">All DimensionTypes in the document.</returns>
+        /// <returns name="spotDimensionTypes">All SpotDimensionTypes in the document.</returns>
+        /// <search>Revit.Collect.DimensionTypes</search>
+        [NodeCategory("Action")]
+        [MultiReturn("dimensionTypes", "spotDimensionTypes")]
+        public static Dictionary<string, object> DimensionTypes([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Return the output
+            return new Dictionary<string, object>()
+            {
+                { "dimensionTypes",
+                    docHelper.Document.Ext_CollectByClassToDyn<DB.DimensionType>(elementTypes: true) },
+                { "spotDimensionTypes",
+                    docHelper.Document.Ext_CollectByClassToDyn<DB.SpotDimensionType>(elementTypes: true) }
+            };
+        }
+
+        /// <summary>
+        /// Collects all Families in the Document, separated by user created, internal and modelled in place.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="userCreated">Families created by users.</returns>
+        /// <returns name="internal">Families that are internal to Revit.</returns>
+        /// <returns name="modelledInPlace">Families that are modelled in place.</returns>
+        /// <search>Revit.Collect.Families</search>
+        [NodeCategory("Action")]
+        [MultiReturn("userCreated", "internal", "modelledInPlace")]
+        public static Dictionary<string, object> Families([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Return the output
+            List<DynElement> userCreatedFamilies = new();
+            List<DynElement> internalFamilies = new();
+            List<DynElement> inplaceFamilies = new();
+
+            var output = new Dictionary<string, object>()
+            {
+                { "userCreated", userCreatedFamilies },
+                { "internal", internalFamilies },
+                { "modelledInPlace", inplaceFamilies }
+            };
+
+            // Collect and filter families into the outputs
+            foreach (DB.Family family in docHelper.Document.Ext_CollectByClass<DB.Family>())
+            {
+                if (family.IsInPlace) { inplaceFamilies.Add(family.Ext_ToDynElement(true)); }
+                else if (family.IsUserCreated) { userCreatedFamilies.Add(family.Ext_ToDynElement(true)); }
+                else { internalFamilies.Add(family.Ext_ToDynElement(true)); }
+            }
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all FillPatternElements in the Document, and if they are Drafting patterns.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="patternElements">The FillPatternElements.</returns>
+        /// <returns name="isDrafting">Is it a Drafting pattern.</returns>
+        /// <search>Revit.Collect.FillPatternElements</search>
+        [NodeCategory("Action")]
+        [MultiReturn("patternElements", "isDrafting")]
+        public static Dictionary<string, object> FillPatternElements([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Get the patterns and if they are drafting
+            List<DynElement> patternElements = new();
+            List<bool> isDrafting = new();
+
+            foreach (var fpe in docHelper.Document.Ext_CollectByClass<DB.FillPatternElement>())
+            {
+                patternElements.Add(fpe.Ext_ToDynElement(true));
+                isDrafting.Add(fpe.GetFillPattern().Target == DB.FillPatternTarget.Drafting);
+            }
+
+            // Return the output
+            return new Dictionary<string, object>()
+            {
+                { "patternElements", patternElements },
+                { "isDrafting", isDrafting },
+            };
+        }
+
+        /// <summary>
+        /// Collects all GroupTypes as Dynamo GroupTypes.
+        /// </summary>
+        /// <param name="refresh">Refreshes the contents of the node.</param>
+        /// <returns name="groupTypeIds">The GroupTypes.</returns>
+        /// <search>Revit.Collect.GroupTypes</search>
+        [NodeCategory("Action")]
+        public static List<DynGroupType> GroupTypes(bool refresh = false)
+        {
+            return DB.ParameterUtils.GetAllBuiltInGroups()
+                .Select(g => g.Ext_ToDynGroupType())
+                .ToList();
+        }
+
+        /// <summary>
+        /// Collects all Image instances in a Document.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="instances">The Image instances.</returns>
+        /// <returns name="fileNames">The File name of the instances.</returns>
+        /// <returns name="ownerViews">The view that owns the Image instance.</returns>
+        /// <search>Revit.Collect.ImageInstances</search>
+        [NodeCategory("Action")]
+        [MultiReturn("instances", "fileNames", "ownerViews")]
+        public static Dictionary<string, object> ImageInstances([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+            DB.Document doc = docHelper.Document;
+
+            // Lists we will build for other outputs
+            var outInstances = new List<DynElement?>();
+            var outFileNames = new List<string>();
+            var outOwnerViews = new List<DynElement?>();
+
+            // Default output dictionary
+            var output = new Dictionary<string, object>
+            {
+                { "instances", outInstances },
+                { "fileNames", outFileNames },
+                { "ownerViews", outOwnerViews }
+            };
+
+            // Get all image instances
+            var imageInstances = doc.Ext_CollectByClass<DB.ImageInstance>();
+
+            // For each Image instance...
+            foreach (DB.ImageInstance imageInstance in imageInstances)
+            {
+                outInstances.Add(imageInstance.Ext_ToDynElement(true));
+                outFileNames.Add(imageInstance.Name);
+                outOwnerViews.Add(imageInstance.OwnerViewId
+                    .Ext_GetElement<DB.View>(doc)?
+                    .Ext_ToDynElement(true));
+            }
+
+            // Return the outputs
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all Keynotes from the current document's loaded Keynote file.
+        /// </summary>
+        /// <param name="excludeParents">Exclude keynotes that act as parents to others.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="keynoteValues">The values of the Keynotes.</returns>
+        /// <returns name="keynoteDescriptions">The descriptions of the Keynotes.</returns>
+        /// <returns name="keynoteParents">Keynotes that act as parent values.</returns>
+        /// <search>Revit.Collect.Keynotes</search>
+        [NodeCategory("Action")]
+        [MultiReturn("keynoteValues", "keynoteDescriptions", "keynoteParents")]
+        public static Dictionary<string, object> Keynotes(bool excludeParents = true,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+            DB.Document doc = docHelper.Document;
+
+            var output = new Dictionary<string, object>
+            {
+                { "keynoteValues", new List<string>() },
+                { "keynoteDescriptions", new List<string>() },
+                { "keynoteParents", new List<string>() }
+            };
+
+            // Get keynote table, early return if none available
+            DB.KeynoteTable table = DB.KeynoteTable.GetKeynoteTable(doc);
+            DB.KeyBasedTreeEntries keynoteEntry = table?.GetKeyBasedTreeEntries();
+            DB.KeyBasedTreeEntriesIterator keynoteEnum = keynoteEntry?.GetKeyBasedTreeEntriesIterator();
+
+            if (keynoteEnum == null)
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise("No keynote entries could be retrieved from the current document.");
+                return output;
+            }
+
+            // Lists we will build for other outputs
+            List<string> keyValues = new();
+            List<string> keyDescriptions = new();
+            List<string> keyParents = new();
+            List<string> baseValues = new();
+            List<string> baseDescriptions = new();
+            List<string> baseParents = new();
+            
+
+            // Iterate through the keynote entries
+            while (keynoteEnum.MoveNext())
+            {
+                DB.KeyBasedTreeEntry entry = keynoteEnum.Current;
+                keyValues.Add(entry.Key);
+                keyParents.Add(entry.ParentKey);
+                keyDescriptions.Add(((DB.KeynoteEntry)entry).KeynoteText);
+            }
+
+            // Process down to entries without parent rows
+            if (excludeParents)
+            {
+                HashSet<string> parentSet = keyParents
+                    .Where(p => p.Ext_HasChars())
+                    .ToHashSet();
+
+                // Obtain the entries that are not parents
+                for (int i = 0; i < keyValues.Count; i++)
+                {
+                    string keyValue = keyValues[i];
+
+                    if (!parentSet.Contains(keyValue))
+                    {
+                        baseValues.Add(keyValues[i]);
+                        baseDescriptions.Add(keyDescriptions[i]);
+                        baseParents.Add(keyParents[i]);
+                    }
+                }
+            }
+
+            // Return the outputs
+            output["keynoteValues"] = excludeParents ? baseValues : keyValues;
+            output["keynoteDescriptions"] = excludeParents ? baseDescriptions : keyDescriptions;
+            output["keynoteParents"] = excludeParents ? baseParents : keyParents;
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all SpecTypes as Dynamo ForgeTypes.
+        /// </summary>
+        /// <param name="refresh">Refreshes the contents of the node.</param>
+        /// <returns name="specTypeIds">The SpecTypes.</returns>
+        /// <search>Revit.Collect.SpecTypes</search>
+        [NodeCategory("Action")]
+        public static List<DynSpecType> SpecTypes(bool refresh = false)
+        {
+            return DB.SpecUtils.GetAllSpecs()
+                .Select(g => g.Ext_ToDynSpecType())
+                .ToList();
         }
 
         /// <summary>

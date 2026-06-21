@@ -4,7 +4,7 @@ namespace Pickles.Enums
 {
     internal enum WARNING_TYPE
     {
-        UNKNOWN = 0,
+        DEFAULT = 0,
         NO_DOC_OR_LINK = 1,
         INVALID_INPUTS = 2,
         KEY_VALUE_MISMATCH = 3,
@@ -51,24 +51,24 @@ namespace Pickles.Enums
 
     internal static class Ext_Pickles
     {
-        internal static string Ext_ToMessage(this WARNING_TYPE warning)
+        internal static string Ext_ToMessage(this WARNING_TYPE warning, string message = null)
         {
             return warning switch
             {
-                WARNING_TYPE.UNKNOWN => "Unknown warning",
+                WARNING_TYPE.DEFAULT => message ?? "Unknown warning type.",
                 WARNING_TYPE.NO_DOC_OR_LINK => "Document/RevitLinkInstance is invalid.",
                 WARNING_TYPE.INVALID_INPUTS => "Input(s) are invalid.",
                 WARNING_TYPE.KEY_VALUE_MISMATCH => "Inputs are not equal in length.",
                 WARNING_TYPE.WRONG_CATEGORY_INPUTS => "Input(s) are of the wrong Revit category.",
                 WARNING_TYPE.DIRECTORY_DOES_NOT_EXIST => "Directory does not exist.",
                 WARNING_TYPE.DOC_NOT_WORKSHARED => "The current Document is not Workshared.",
-                _ => warning.ToString()
+                _ => message ?? "Unknown warning type."
             };
         }
 
-        internal static void Ext_Raise(this WARNING_TYPE warning)
+        internal static void Ext_Raise(this WARNING_TYPE warning, string message = null)
         {
-            LogWarningMessageEvents.OnLogWarningMessage(warning.Ext_ToMessage());
+            LogWarningMessageEvents.OnLogWarningMessage(warning.Ext_ToMessage(message));
         }
 
         internal static Regex? Ext_ToRegex(this REGEX regex)
