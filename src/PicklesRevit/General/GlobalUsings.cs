@@ -19,6 +19,7 @@ global using DynFamilySymbol = global::Revit.Elements.FamilyType;
 global using DynSpecType = global::Revit.Elements.SpecType;
 global using DynGroupType = global::Revit.Elements.GroupType;
 global using DynForgeType = global::Revit.Elements.ForgeType;
+global using DynCategory = global::Revit.Elements.Category;
 
 // Dynamo geometry alias'
 global using DynGeometry = global::Autodesk.DesignScript.Geometry.Geometry;

@@ -1,6 +1,8 @@
-﻿using Autodesk.Revit.DB;
+﻿using Autodesk.DesignScript.Geometry;
+using Autodesk.Revit.DB;
 using DesignScript.Builtin;
 using Dynamo.Graph.Nodes.CustomNodes;
+using System.Drawing.Drawing2D;
 using System.Windows.Controls;
 
 namespace Pkl_Revit
@@ -412,20 +414,6 @@ namespace Pkl_Revit
         }
 
         /// <summary>
-        /// Collects all SpecTypes as Dynamo ForgeTypes.
-        /// </summary>
-        /// <param name="refresh">Refreshes the contents of the node.</param>
-        /// <returns name="specTypeIds">The SpecTypes.</returns>
-        /// <search>Revit.Collect.SpecTypes</search>
-        [NodeCategory("Action")]
-        public static List<DynSpecType> SpecTypes(bool refresh = false)
-        {
-            return DB.SpecUtils.GetAllSpecs()
-                .Select(g => g.Ext_ToDynSpecType())
-                .ToList();
-        }
-
-        /// <summary>
         /// Collects all Levels, sorted by elevation.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
@@ -444,10 +432,310 @@ namespace Pkl_Revit
                 return new List<DynElement>();
             }
 
-            // Return warnings
+            // Return the elements
             return docHelper.Document.Ext_CollectByClass<DB.Level>()
                 .OrderBy(l => l.Elevation)
                 .Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all Legend Types.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="legendTypes">A list of Legend Types.</returns>
+        /// <search>Revit.Collect.LegendTypes</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> LegendTypes([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClass<DB.View>()
+                .Where(v => v.ViewType == DB.ViewType.Legend)
+                .Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all LinePatternElements in the Document.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="patternElements">The LinePatternElements.</returns>
+        /// <search>Revit.Collect.LinePatternElements</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> LinePatternElements([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.LinePatternElement>();
+        }
+
+        /// <summary>
+        /// Collects all Lines in the Document, and if they are detail lines.
+        /// </summary>
+        /// <param name="includeDetail">Include detail lines.</param>
+        /// <param name="includeModel">Include model lines.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="lines">The Lines.</returns>
+        /// <returns name="isDetailLine">Is it a detail line.</returns>
+        /// <search>Revit.Collect.Lines</search>
+        [NodeCategory("Action")]
+        [MultiReturn("lines", "isDetailLine")]
+        public static Dictionary<string, object> Lines(bool includeDetail = true, bool includeModel = true,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Get the patterns and if they are drafting
+            List<DynElement> lines = new();
+            List<bool> isDetail = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "lines", lines },
+                { "isDetailLine", isDetail }
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+
+            // Collect and add the lines by detail/model types
+            foreach (var l in docHelper.Document.Ext_CollectByCategory(DB.BuiltInCategory.OST_Lines))
+            {
+                bool detail = l is DB.DetailCurve;
+
+                if ((detail && includeDetail) || (!detail && includeModel))
+                {
+                    lines.Add(l.Ext_ToDynElement(true));
+                    isDetail.Add(detail);
+                }
+            }
+
+            // Return the output
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all LineStyles in the document as well as their associated GraphicStyle Element, Id and if they are user made.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="lineStyles">The LineStyles as Revit.Element.Category.</returns>
+        /// <returns name="lineStyleIds">The Id's of the LineStyles as integers.</returns>
+        /// <returns name="graphicStyles">The GraphicStyle elements of the LineStyles.</returns>
+        /// <returns name="userMade">If the LineStyle is made by a user vs system.</returns>
+        /// <search>Revit.Collect.LineStyles</search>
+        [NodeCategory("Action")]
+        [MultiReturn("lineStyles", "lineStyleIds", "graphicStyles", "userMade")]
+        public static Dictionary<string, object> LineStyles([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Get the patterns and if they are drafting
+            List<DynCategory> lineStyles = new();
+            List<long> lineStyleIds = new();
+            List<DynElement> graphicStyles = new();
+            List<bool> userMade = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "lineStyles", lineStyles },
+                { "lineStyleIds", lineStyleIds },
+                { "graphicStyles", graphicStyles },
+                { "userMade", userMade }
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+            
+            // Get line subcategories
+            DB.Document doc = docHelper.Document;
+            DB.Category? linesCat = DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Lines);
+
+            // Collect and add the lines by detail/model types
+            foreach (DB.Category subCategory in linesCat.SubCategories.Cast<DB.Category>())
+            {
+                long subCategoryInt = subCategory.Id.Value;
+                DynElement graphicStyle = subCategory
+                    .GetGraphicsStyle(DB.GraphicsStyleType.Projection)
+                    .Ext_ToDynElement(true);
+
+                lineStyles.Add(subCategory.Ext_ToDynCategory());
+                lineStyleIds.Add(subCategoryInt);
+                graphicStyles.Add(graphicStyle);
+
+                bool isUserMade =  subCategory.Parent != null &&
+                    subCategory.Parent.Id == linesCat.Id &&
+                    !subCategory.Name.StartsWith("<");
+
+                userMade.Add(isUserMade);
+            }
+
+            // Return the output
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all Materials.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="materials">A list of Materials.</returns>
+        /// <search>Revit.Collect.Materials</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> Materials([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.Material>();
+        }
+
+        /// <summary>
+        /// Collects all Phases.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="phases">A list of Phases.</returns>
+        /// <search>Revit.Collect.Phases</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> Phases([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.Material>();
+        }
+
+        /// <summary>
+        /// Collects all Regions in the Document, and if they are Filled or Masking regions.
+        /// </summary>
+        /// <param name="includeFilled">Include filled regions.</param>
+        /// <param name="includeMasking">Include masking regions.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="regions">The regions.</returns>
+        /// <returns name="isFilledRegion">Is it a filled region.</returns>
+        /// <search>Revit.Collect.Regions</search>
+        [NodeCategory("Action")]
+        [MultiReturn("regions", "isFilledRegion")]
+        public static Dictionary<string, object> Regions(bool includeFilled = true, bool includeMasking = true,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Get the patterns and if they are drafting
+            List<DynElement> regions = new();
+            List<bool> isFilledRegion = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "regions", regions },
+                { "isFilledRegion", isFilledRegion }
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+
+            // Collect and add the regions
+            foreach (var r in docHelper.Document.Ext_CollectByClass<DB.FilledRegion>())
+            {
+                var type = docHelper.Document.GetElement(r.GetTypeId()) as DB.FilledRegionType;
+                if (type == null) continue;
+
+                bool isFilled = !type.IsMasking;
+
+                if ((isFilled && includeFilled) || (!isFilled && includeMasking))
+                {
+                    regions.Add(r.Ext_ToDynElement(true));
+                    isFilledRegion.Add(isFilled);
+                }
+            }
+
+            // Return the output
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all Revisions, sorted by sequence number.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="revisions">The Revisions.</returns>
+        /// <search>Revit.Collect.Revisions</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> Revisions([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClass<DB.Revision>()
+                .OrderBy(r => r.SequenceNumber)
+                .Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all SpecTypes as Dynamo ForgeTypes.
+        /// </summary>
+        /// <param name="refresh">Refreshes the contents of the node.</param>
+        /// <returns name="specTypeIds">The SpecTypes.</returns>
+        /// <search>Revit.Collect.SpecTypes</search>
+        [NodeCategory("Action")]
+        public static List<DynSpecType> SpecTypes(bool refresh = false)
+        {
+            return DB.SpecUtils.GetAllSpecs()
+                .Select(g => g.Ext_ToDynSpecType())
+                .ToList();
         }
 
         /// <summary>
