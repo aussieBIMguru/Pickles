@@ -6,7 +6,7 @@ using Autodesk.Revit.DB;
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectSheetCollection")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_Sheet")]
     [NodeDescription("Select a SheetCollection from the current document (all sheets returns the ProjectBrowser object).")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectSheetCollection : DropDownFactoryBase<DB.Element>

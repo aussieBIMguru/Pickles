@@ -1,8 +1,10 @@
 ﻿using Autodesk.DesignScript.Geometry;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using DesignScript.Builtin;
 using Dynamo.Graph.Nodes.CustomNodes;
 using System.Drawing.Drawing2D;
+using System.Linq.Expressions;
 using System.Windows.Controls;
 
 namespace Pkl_Revit
@@ -647,6 +649,29 @@ namespace Pkl_Revit
         }
 
         /// <summary>
+        /// Collects all PrintSettings in the Document.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="printSettings">The regions.</returns>
+        /// <search>Revit.Collect.PrintSettings</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> PrintSettings([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the print settings
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.PrintSetting>();
+        }
+
+        /// <summary>
         /// Collects all Regions in the Document, and if they are Filled or Masking regions.
         /// </summary>
         /// <param name="includeFilled">Include filled regions.</param>
@@ -700,6 +725,50 @@ namespace Pkl_Revit
         }
 
         /// <summary>
+        /// Collects all linked Revit instances in the Document, and theit types.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="linkInstances">The RevitLink instances.</returns>
+        /// <returns name="linkTypes">Is RevitLink types</returns>
+        /// <search>Revit.Collect.RevitLinkInstances</search>
+        [NodeCategory("Action")]
+        [MultiReturn("linkInstances", "linkTypes")]
+        public static Dictionary<string, object> RevitLinkInstances([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Output dictionary
+            List<DynElement> linkInstances = new();
+            List<DynElement> linkTypes = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "linkInstances", linkInstances },
+                { "linkTypes", linkTypes }
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+
+            // Collect and add the link instances/types
+            DB.Document doc = docHelper.Document;
+
+            foreach (DB.Element linkInstance in doc.Ext_CollectByCategory(DB.BuiltInCategory.OST_RvtLinks))
+            {
+                linkInstances.Add(linkInstance.Ext_ToDynElement(true));
+                linkTypes.Add(linkInstance.Id.Ext_GetDynamoElement(doc, true));
+            }
+
+            // Return the output
+            return output;
+        }
+
+        /// <summary>
         /// Collects all Revisions, sorted by sequence number.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
@@ -721,6 +790,176 @@ namespace Pkl_Revit
             // Return the elements
             return docHelper.Document.Ext_CollectByClass<DB.Revision>()
                 .OrderBy(r => r.SequenceNumber)
+                .Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all Rooms in the Document, also returning them by their placement status.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="allRooms">All of the Rooms.</returns>
+        /// <returns name="enclosedRooms">All placed, enclosed Rooms.</returns>
+        /// <returns name="unenclosedRooms">All placed, unenclosed Rooms.</returns>
+        /// <returns name="redundantRooms">All placed, redundant Rooms.</returns>
+        /// <returns name="unplacedRooms">All unplaced Rooms.</returns>
+        /// <search>Revit.Collect.Rooms</search>
+        [NodeCategory("Action")]
+        [MultiReturn("allRooms", "enclosedRooms", "unenclosedRooms", "redundantRooms", "unplacedRooms")]
+        public static Dictionary<string, object> Rooms([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Get the patterns and if they are drafting
+            List<DynElement> allRooms = new();
+            List<DynElement> enclosedRooms = new();
+            List<DynElement> unenclosedRooms = new();
+            List<DynElement> redundantRooms = new();
+            List<DynElement> unplacedRooms = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "allRooms", allRooms },
+                { "enclosedRooms", enclosedRooms },
+                { "unenclosedRooms", unenclosedRooms },
+                { "redundantRooms", redundantRooms },
+                { "unplacedRooms", unplacedRooms },
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+
+            // Construct the boundary location object
+            DB.Document doc = docHelper.Document;
+            DB.SpatialElementBoundaryLocation boundaryLocation = DB.AreaVolumeSettings
+                .GetAreaVolumeSettings(doc)
+                .GetSpatialElementBoundaryLocation(DB.SpatialElementType.Room);
+
+            // Construct the spatial element boundary options
+            var options = new DB.SpatialElementBoundaryOptions()
+            {
+                SpatialElementBoundaryLocation = boundaryLocation
+            };
+
+            // Process the rooms
+            foreach (DB.SpatialElement room in
+                docHelper.Document.Ext_CollectByCategory(DB.BuiltInCategory.OST_Rooms))
+            {
+                DynElement dynRoom = room.Ext_ToDynElement(true);
+                allRooms.Add(dynRoom);
+                
+                // Area greater than 0 = Placed
+                if (room.Area != 0)
+                {
+                    enclosedRooms.Add(dynRoom);
+                }
+                // Edges found = Redundant
+                else if (room.GetBoundarySegments(options).Count > 0)
+                {
+                    redundantRooms.Add(dynRoom);
+                }
+                // No location = Unplaced
+                else if (room.Location is null)
+                {
+                    unplacedRooms.Add(dynRoom);
+                }
+                // Otherwise = Unenclosed
+                else
+                {
+                    unenclosedRooms.Add(dynRoom);
+                }
+            }
+
+            // Return the output
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all Schedule types, sorted by if they are Key or Revision schedules.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="schedules">Standard Schedule types.</returns>
+        /// <returns name="keySchedules">Key Schedule types.</returns>
+        /// <returns name="revisionSchedules">Revision Schedule types.</returns>
+        /// <search>Revit.Collect.SchedulesByType</search>
+        [MultiReturn("schedules", "keySchedules", "revisionSchedules")]
+        [NodeCategory("Action")]
+        public static Dictionary<string, object> SchedulesByType([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Lists of schedules by type
+            List<DynElement> schedules = new();
+            List<DynElement> keySchedules = new();
+            List<DynElement> revisionSchedules = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "schedules", schedules },
+                { "keySchedules", keySchedules },
+                { "revisionSchedules", revisionSchedules }
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+
+            // Collect all schedule types
+            IEnumerable<ViewSchedule> scheduleTypes = docHelper.Document.Ext_CollectByClass<DB.ViewSchedule>();
+
+            // Add each schedule depending on its type
+            foreach (DB.ViewSchedule scheduleType in scheduleTypes)
+            {
+                DynElement dynScheduleType = scheduleType.Ext_ToDynElement(true);
+                
+                if (scheduleType.Definition.IsKeySchedule)
+                {
+                    keySchedules.Add(dynScheduleType);
+                }
+                else if (scheduleType.Name.Contains("<Revision Schedule>"))
+                {
+                    revisionSchedules.Add(dynScheduleType);
+                }
+                else
+                {
+                    schedules.Add(dynScheduleType);
+                }
+            }
+
+            // Return the output
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all Schedule types, excluding Key and Revision Schedules.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="scheduleTypes">A list of Schedule types.</returns>
+        /// <search>Revit.Collect.ScheduleTypes</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> ScheduleTypes([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement?>();
+            }
+
+            return docHelper.Document.Ext_CollectByClass<DB.ViewSchedule>()
+                .Where(s => !s.Definition.IsKeySchedule
+                    && !s.Name.Contains("<Revision Schedule>"))
                 .Ext_ToDynamoElements(true);
         }
 
@@ -766,6 +1005,286 @@ namespace Pkl_Revit
 
             // Set and return the outputs
             return docHelper.Document.Ext_CollectSheets(sheetCollectionId, includePlaceholders).Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all SpaceSchedule types, sorted by occupancy, power and lighting types.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="occupancySchedules">Occupancy SpaceSchedule types.</returns>
+        /// <returns name="lightingSchedules">Lighting SpaceSchedule types.</returns>
+        /// <returns name="powerSchedules">Power SpaceSchedule types.</returns>
+        /// <search>Revit.Collect.SpaceSchedulesByType</search>
+        [MultiReturn("occupancySchedules", "lightingSchedules", "powerSchedules")]
+        [NodeCategory("Action")]
+        public static Dictionary<string, object> SpaceSchedulesByType([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Lists of schedules by type
+            List<DynElement> occupancySchedules = new();
+            List<DynElement> lightingSchedules = new();
+            List<DynElement> powerSchedules = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "occupancySchedules", occupancySchedules },
+                { "lightingSchedules", lightingSchedules },
+                { "powerSchedules", powerSchedules }
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+
+            // Collect all schedule types
+            DB.Document doc = docHelper.Document;
+            IEnumerable<DB.Analysis.HVACLoadSpaceType> spaceTypes = doc
+                .Ext_CollectByClass<DB.Analysis.HVACLoadSpaceType>();
+
+            // Add each schedule depending on its type
+            HashSet<DB.ElementId> scheduleIdsFound = new();
+
+            foreach (DB.Analysis.HVACLoadSpaceType spaceType in spaceTypes)
+            {
+                DB.ElementId oId = spaceType.LookupParameter("Occupancy Schedule").AsElementId();
+                DB.ElementId lId = spaceType.LookupParameter("Lighting Schedule").AsElementId();
+                DB.ElementId pId = spaceType.LookupParameter("Power Schedule").AsElementId();
+
+                if (!scheduleIdsFound.Contains(oId))
+                {
+                    scheduleIdsFound.Add(oId);
+                    occupancySchedules.Add(oId.Ext_GetDynamoElement(doc, true));
+                }
+
+                if (!scheduleIdsFound.Contains(lId))
+                {
+                    scheduleIdsFound.Add(lId);
+                    lightingSchedules.Add(lId.Ext_GetDynamoElement(doc, true));
+                }
+
+                if (!scheduleIdsFound.Contains(pId))
+                {
+                    scheduleIdsFound.Add(pId);
+                    powerSchedules.Add(pId.Ext_GetDynamoElement(doc, true));
+                }
+            }
+
+            // Return the output
+            return output;
+        }
+
+        /// <summary>
+        /// Collects all SpaceTypes in the Document.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="spaceTypes">The SpaceTypes.</returns>
+        /// <search>Revit.Collect.SpaceTypes</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> SpaceTypes([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the print settings
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.Analysis.HVACLoadSpaceType>();
+        }
+
+        /// <summary>
+        /// Collects all Viewports.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="viewports">A list of Viewports.</returns>
+        /// <search>Revit.Collect.Viewports</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> Viewports([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.Viewport>();
+        }
+
+        /// <summary>
+        /// Collects all Viewport types.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="viewportTypes">A list of Viewport types.</returns>
+        /// <search>Revit.Collect.ViewportTypes</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> ViewportTypes([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Construct the collector rule
+            DB.FilterRule? collectorRule = DB.ParameterFilterRuleFactory.CreateEqualsRule(
+                new DB.ElementId(DB.BuiltInParameter.SYMBOL_FAMILY_NAME_PARAM),
+                "Viewport");
+            var parameterFilter = new DB.ElementParameterFilter(collectorRule);
+
+            // Return the elements
+            return new DB.FilteredElementCollector(docHelper.Document)
+                .WhereElementIsElementType()
+                .WherePasses(parameterFilter)
+                .ToElements()
+                .Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all Views, excluding things an end user would not see to be a View generally.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="views">A list of Views.</returns>
+        /// <search>Revit.Collect.Views</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> Views([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Ignore types
+            var ignoreTypes = new HashSet<DB.ViewType>()
+            {
+                // Browser/Internal
+                DB.ViewType.Internal,
+                DB.ViewType.ProjectBrowser,
+                DB.ViewType.SystemBrowser,
+                DB.ViewType.Undefined,
+                
+                // Documentation
+                DB.ViewType.Legend,
+                DB.ViewType.DrawingSheet,
+                DB.ViewType.Schedule,
+                DB.ViewType.ColumnSchedule,
+                DB.ViewType.PanelSchedule,
+                
+                // Reports
+                DB.ViewType.Report,
+                DB.ViewType.CostReport,
+                DB.ViewType.LoadsReport,
+                DB.ViewType.PressureLossReport,
+                DB.ViewType.SystemsAnalysisReport,
+            };
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClass<DB.View>()
+                .Where(v => !v.IsTemplate && !ignoreTypes.Contains(v.ViewType))
+                .Ext_ToDynamoElements(true);
+        }
+
+        /// <summary>
+        /// Collects all ViewSheetSets.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="viewSheetSets">A list of ViewSheetSets.</returns>
+        /// <search>Revit.Collect.ViewSheetSets</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement> ViewSheetSets([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByClassToDyn<DB.ViewSheetSet>();
+        }
+
+        /// <summary>
+        /// Collects all View Templates in the document.
+        /// </summary>
+        /// <param name="includeThreed">Include 3D view templates (which will return as null due to Dynamo limitations).</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="viewTemplates">The View Templates.</returns>
+        /// <returns name="names">The names of the View Templates.</returns>
+        /// <returns name="elementIds">The ElementId's of the Templates.</returns>
+        /// <search>Revit.Collect.ViewTemplates</search>
+        [NodeCategory("Action")]
+        [MultiReturn("viewTemplates", "names", "elementIds")]
+        public static Dictionary<string, object> ViewTemplates(bool includeThreed = true,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Output dictionary
+            List<DynElement> viewTemplates = new();
+            List<string> names = new();
+            List<long> elementIds = new();
+
+            var output = new Dictionary<string, object>
+            {
+                { "viewTemplates", viewTemplates },
+                { "names", names },
+                { "elementIds", elementIds }
+            };
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return output;
+            }
+
+            // Collect all view templates
+            IEnumerable<DB.View> allTemplates = docHelper.Document.Ext_CollectByClass<DB.View>()
+                .Where(v => v.IsTemplate);
+
+            // Collect and add the templates
+            foreach (DB.View viewTemplate in allTemplates)
+            {
+                // Handle 3D view templates
+                if (viewTemplate.ViewType == DB.ViewType.ThreeD)
+                {
+                    if (!includeThreed) { continue; }
+                }
+
+                viewTemplates.Add(viewTemplate.Ext_ToDynElement(true));
+                names.Add(viewTemplate.Name);
+                elementIds.Add(viewTemplate.Id.Value);
+            }
+
+            // Return the output
+            return output;
         }
 
         /// <summary>

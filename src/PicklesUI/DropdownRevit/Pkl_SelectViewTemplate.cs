@@ -21,7 +21,8 @@ namespace PicklesUI
             return new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.View))
                 .Cast<DB.View>()
-                .Where(v => v.IsTemplate);
+                .Where(v => v.IsTemplate)
+                .OrderBy(v => v.Name);
         }
 
         public Pkl_SelectViewTemplate() : base(
