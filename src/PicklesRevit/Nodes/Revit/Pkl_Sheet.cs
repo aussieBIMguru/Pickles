@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using CoreNodeModels.Input;
+using System.Text;
 
 namespace Pkl_Revit
 {
@@ -48,8 +49,7 @@ namespace Pkl_Revit
             // Null validation routine, ensure equal name/number count
             if (titleBlockType == null
                 || numbers.Ext_ListIsValid(ensureNoNulls: true)
-                || names.Ext_ListIsValid(ensureNoNulls: true)
-                || numbers.Count != names.Count)
+                || names.Ext_ListIsValid(ensureNoNulls: true))
             {
                 WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
                 return output;
@@ -61,6 +61,12 @@ namespace Pkl_Revit
             {
                 WARNING_TYPE.WRONG_CATEGORY_INPUTS.Ext_Raise();
                 return output;
+            }
+
+            // Unequal length warning (proceed with shortest)
+            if (numbers.Count != names.Count)
+            {
+                WARNING_TYPE.KEY_VALUE_MISMATCH.Ext_Raise();
             }
 
             // Get existing sheet numbers in the document
@@ -83,7 +89,7 @@ namespace Pkl_Revit
                 transaction.Start();
 
                 // For each name/number pairing...
-                for (int i = 0; i < numbers.Count; i++)
+                for (int i = 0; i < Math.Min(names.Count, numbers.Count); i++)
                 {
                     // If the number is not used...
                     if (!exSheetNumbers.Contains(numbers[i]))
@@ -304,7 +310,8 @@ namespace Pkl_Revit
         /// <returns name="titles">The formatted document titles.</returns>
         /// <search>Revit.Sheet.FormattedTitle</search>
         [NodeCategory("Action")]
-        public static List<string> FormattedTitle(List<DynSheet> sheets, [DefaultArgument("null")] List<string> ruleParts = null)
+        public static List<string> FormattedTitle(List<DynSheet> sheets,
+            [DefaultArgument("null")] List<string> ruleParts = null)
         {
             // Final outputs
             var titles = new List<string>();
@@ -428,7 +435,8 @@ namespace Pkl_Revit
         /// <returns name="titleblocks">Last titleblocks on the Sheets, if any.</returns>
         /// <search>Revit.Sheet.GetTitleblock</search>
         [NodeCategory("Action")]
-        public static List<DynElement> GetTitleblock(List<DynSheet> sheets, [DefaultArgument("null")] object? docOrLinkInstance = null)
+        public static List<DynElement> GetTitleblock(List<DynSheet> sheets,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Title block list
             List<DynElement> titleblocks = new();

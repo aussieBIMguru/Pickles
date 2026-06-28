@@ -1,13 +1,4 @@
-﻿using Autodesk.DesignScript.Geometry;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
-using DesignScript.Builtin;
-using Dynamo.Graph.Nodes.CustomNodes;
-using System.Drawing.Drawing2D;
-using System.Linq.Expressions;
-using System.Windows.Controls;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to collection of elements.
@@ -15,6 +6,73 @@ namespace Pkl_Revit
     public class Pkl_Collect
     {
         internal Pkl_Collect() { }
+
+        /// <summary>
+        /// Collects all Elements of Category, with an optional View and Document input.
+        /// </summary>
+        /// <param name="category">The Category to collect elements from.</param>
+        /// <param name="elementTypes">Collect ElementTypes instead of Elements.</param>
+        /// <param name="view">Optional View to collect from.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="elements">A list of Elements.</returns>
+        /// <search>Revit.Collect.AllElementsOfCategory</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement?> AllElementsOfCategory(DynCategory category, bool elementTypes = false,
+            [DefaultArgument("null")] DynView? view = null,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement?>();
+            }
+
+            // Return the elements
+            return docHelper.Document.Ext_CollectByCategoryToDyn(
+                category: category.Ext_ToBuiltInCategory() ?? DB.BuiltInCategory.INVALID,
+                elementTypes: elementTypes,
+                view: view.Ext_ToRevitView(),
+                true);
+        }
+
+        /// <summary>
+        /// Collects all Elements of Class, with an optional View and Document input.
+        /// </summary>
+        /// <param name="classType">The Class to collect Elements from</param>
+        /// <param name="elementTypes">Collect ElementTypes instead of Elements.</param>
+        /// <param name="view">Optional View to collect from.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="elements">A list of Elements.</returns>
+        /// <search>Revit.Collect.AllElementsOfClass</search>
+        [NodeCategory("Action")]
+        public static IList<DynElement?> AllElementsOfClass(Type classType, bool elementTypes = false,
+            [DefaultArgument("null")] DynView? view = null,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return new List<DynElement?>();
+            }
+
+            // Catch invalid type
+            if (!typeof(DB.Element).IsAssignableFrom(classType) && classType != typeof(DB.Element))
+            {
+                throw new ArgumentException("classType must be a Revit DB Element type.");
+            }
+
+            // Return the elements
+            var fec = docHelper.Document.Ext_Collector(elementTypes, view.Ext_ToRevitView());
+            return fec.OfClass(classType).Ext_ToDynamoElements(true);
+        }
 
         /// <summary>
         /// Collects all linked and/or imported CAD objects in a Document.
@@ -913,7 +971,7 @@ namespace Pkl_Revit
             }
 
             // Collect all schedule types
-            IEnumerable<ViewSchedule> scheduleTypes = docHelper.Document.Ext_CollectByClass<DB.ViewSchedule>();
+            IEnumerable<DB.ViewSchedule> scheduleTypes = docHelper.Document.Ext_CollectByClass<DB.ViewSchedule>();
 
             // Add each schedule depending on its type
             foreach (DB.ViewSchedule scheduleType in scheduleTypes)
@@ -1047,7 +1105,9 @@ namespace Pkl_Revit
                 .Ext_CollectByClass<DB.Analysis.HVACLoadSpaceType>();
 
             // Add each schedule depending on its type
-            HashSet<DB.ElementId> scheduleIdsFound = new();
+            HashSet<DB.ElementId> occupancyIdsFound = new();
+            HashSet<DB.ElementId> lightingIdsFound = new();
+            HashSet<DB.ElementId> powerIdsFound = new();
 
             foreach (DB.Analysis.HVACLoadSpaceType spaceType in spaceTypes)
             {
@@ -1055,21 +1115,21 @@ namespace Pkl_Revit
                 DB.ElementId lId = spaceType.LookupParameter("Lighting Schedule").AsElementId();
                 DB.ElementId pId = spaceType.LookupParameter("Power Schedule").AsElementId();
 
-                if (!scheduleIdsFound.Contains(oId))
+                if (!occupancyIdsFound.Contains(oId))
                 {
-                    scheduleIdsFound.Add(oId);
+                    occupancyIdsFound.Add(oId);
                     occupancySchedules.Add(oId.Ext_GetDynamoElement(doc, true));
                 }
 
-                if (!scheduleIdsFound.Contains(lId))
+                if (!lightingIdsFound.Contains(lId))
                 {
-                    scheduleIdsFound.Add(lId);
+                    lightingIdsFound.Add(lId);
                     lightingSchedules.Add(lId.Ext_GetDynamoElement(doc, true));
                 }
 
-                if (!scheduleIdsFound.Contains(pId))
+                if (!powerIdsFound.Contains(pId))
                 {
-                    scheduleIdsFound.Add(pId);
+                    powerIdsFound.Add(pId);
                     powerSchedules.Add(pId.Ext_GetDynamoElement(doc, true));
                 }
             }
@@ -1339,8 +1399,8 @@ namespace Pkl_Revit
             }
 
             // Return worksets
-            return new FilteredWorksetCollector(docHelper.Document)
-                .OfKind(WorksetKind.UserWorkset)
+            return new DB.FilteredWorksetCollector(docHelper.Document)
+                .OfKind(DB.WorksetKind.UserWorkset)
                 .ToList();
         }
     }

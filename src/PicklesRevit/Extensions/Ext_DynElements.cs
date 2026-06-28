@@ -19,6 +19,15 @@ namespace Pickles.Extensions
             return new DB.ForgeTypeId(forgeType.TypeId);
         }
 
+        internal static DB.View? Ext_ToRevitView(this DynView view)
+        {
+            if (view?.InternalElement is DB.View revitView)
+            {
+                return revitView;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Attempts to convert a Dynamo Document to the Revit type.
         /// Thanks to Erfajo and Jon Pierson for providing the approach.
@@ -51,6 +60,14 @@ namespace Pickles.Extensions
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
             return property.GetValue(warning) as DB.FailureMessage;
+        }
+
+        internal static DB.BuiltInCategory? Ext_ToBuiltInCategory(this DynCategory category)
+        {
+            if (category == null)
+                return null;
+
+            return (DB.BuiltInCategory)category.Id;
         }
     }
 }

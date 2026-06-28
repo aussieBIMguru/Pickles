@@ -77,5 +77,16 @@ namespace Pickles.Extensions
                 _ => default
             };
         }
+
+        /// <summary>
+        /// Attempts to get the type of an Element.
+        /// </summary>
+        /// <param name="element">The extended Element.</param>
+        /// <returns>The Element's type, if any.</returns>
+        public static DB.Element? Ext_GetType(this DB.Element element)
+        {
+            if (element is null) { return null; }
+            return element.GetTypeId().Ext_GetElement<DB.Element>(element.Document);
+        }
     }
 }

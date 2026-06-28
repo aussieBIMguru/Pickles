@@ -1,4 +1,7 @@
-﻿namespace Pickles.Extensions
+﻿using Autodesk.Revit.DB;
+using UnitsUI;
+
+namespace Pickles.Extensions
 {
     internal static class Ext_Double
     {
@@ -20,6 +23,22 @@
         internal static double Ext_ToRadians(this double degrees)
         {
             return degrees * (Math.PI / (double)180);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="ftid"></param>
+        /// <returns></returns>
+        internal static double Ext_InternalToProject(this double value, DB.ForgeTypeId ftid)
+        {
+            if (ftid != null && DB.UnitUtils.IsUnit(ftid))
+            {
+                return DB.UnitUtils.ConvertFromInternalUnits(value, ftid);
+            }
+
+            return value;
         }
     }
 }

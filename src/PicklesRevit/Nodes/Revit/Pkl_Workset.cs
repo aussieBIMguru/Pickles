@@ -1,4 +1,6 @@
-﻿namespace Pkl_Revit
+﻿using CoreNodeModels.Input;
+
+namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Worksets.
@@ -84,6 +86,12 @@
                 return success;
             }
 
+            // Unequal length warning (proceed with shortest)
+            if (worksets.Count != names.Count)
+            {
+                WARNING_TYPE.KEY_VALUE_MISMATCH.Ext_Raise();
+            }
+
             // Collect worksets and get existing names
             List<string> worksetNames = new DB.FilteredWorksetCollector(doc)
                 .OfKind(DB.WorksetKind.UserWorkset)
@@ -100,7 +108,7 @@
                 transaction.Start();
 
                 // Rename the workset if it doesn't exist by name
-                for (int i = 0; i < worksets.Count; i++)
+                for (int i = 0; i < Math.Min(names.Count, worksets.Count); i++)
                 {
                     if (worksetNames.Contains(names[i]))
                     {

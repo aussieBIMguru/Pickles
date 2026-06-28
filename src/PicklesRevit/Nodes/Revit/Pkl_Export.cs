@@ -125,6 +125,12 @@ namespace Pkl_Revit
                 return output;
             }
 
+            // Unequal length warning (proceed with shortest)
+            if (viewsOrSheets.Count != fileNames.Count)
+            {
+                WARNING_TYPE.KEY_VALUE_MISMATCH.Ext_Raise();
+            }
+
             // Catch invalid options
             options ??= new DB.PDFExportOptions()
             {
@@ -145,7 +151,7 @@ namespace Pkl_Revit
             };
 
             // For each view/sheet...
-            for (int i = 0; i < viewsOrSheets.Count; i++)
+            for (int i = 0; i < Math.Min(viewsOrSheets.Count, fileNames.Count); i++)
             {
                 // Set file name and id list to export
                 options.FileName = fileNames[i];
@@ -205,13 +211,18 @@ namespace Pkl_Revit
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
 
             // Make sure inputs are likely valid
-            if (viewsOrSheets.Count != fileNames.Count
-                || viewsOrSheets.Count == 0
+            if (viewsOrSheets.Count == 0
                 || viewsOrSheets.Ext_ListIsValid(ensureNoNulls: true)
                 || fileNames.Ext_ListIsValid(ensureNoNulls: true))
             {
                 WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
                 return output;
+            }
+
+            // Unequal length warning (proceed with shortest)
+            if (viewsOrSheets.Count != fileNames.Count)
+            {
+                WARNING_TYPE.KEY_VALUE_MISMATCH.Ext_Raise();
             }
 
             // Get all export option names to find a match
@@ -235,7 +246,7 @@ namespace Pkl_Revit
             dwgExportOptions.MergedViews = mergeViewsAsXrefs;
 
             // For each view/sheet...
-            for (int i = 0; i < viewsOrSheets.Count; i++)
+            for (int i = 0; i < Math.Min(viewsOrSheets.Count, fileNames.Count); i++)
             {
                 // Set file name and id list to export
                 var exportIds = new List<DB.ElementId>() { viewsOrSheets[i].InternalElement.Id };
