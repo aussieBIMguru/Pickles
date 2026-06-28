@@ -1,6 +1,4 @@
-﻿using PicklesUI;
-
-namespace Pkl_Application
+﻿namespace Pkl_Application
 {
     /// <summary>
     /// Nodes relating to Dynamo itself.
@@ -18,7 +16,7 @@ namespace Pkl_Application
         [NodeCategory("Query")]
         public static string? CurrentGraphName([DefaultArgument("null")] bool refresh)
         {
-            return GraphStorage.WorkspaceName;
+            return PicklesUI.GraphStorage.WorkspaceName;
         }
     }
 }

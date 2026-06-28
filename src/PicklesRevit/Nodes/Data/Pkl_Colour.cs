@@ -1,6 +1,4 @@
-﻿using DSCore;
-
-namespace Pkl_Data
+﻿namespace Pkl_Data
 {
     /// <summary>
     /// Nodes relating to colours.

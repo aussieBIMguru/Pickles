@@ -1,6 +1,4 @@
-﻿using Autodesk.DesignScript.Geometry;
-
-namespace Pickles.Extensions
+﻿namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Elements.

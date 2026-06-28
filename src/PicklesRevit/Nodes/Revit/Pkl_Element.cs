@@ -1,4 +1,4 @@
-﻿    namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Elements.
@@ -190,6 +190,110 @@
         }
 
         /// <summary>
+        /// Returns the Workset an Element is on.
+        /// </summary>
+        /// <param name="element">The Element to query.</param>
+        /// <returns name="workset">The Workset of the Element.</returns>
+        /// <search>Revit.Element.GetWorkset</search>
+        [NodeCategory("Action")]
+        public static DB.Workset? GetWorkset(DynElement element)
+        {
+            // Get the current document
+            DB.Element revitElement = element.InternalElement;
+            DB.Document doc = revitElement.Document;
+
+            // Early return if document is not workshared
+            if (!doc.IsWorkshared)
+            {
+                WARNING_TYPE.DOC_NOT_WORKSHARED.Ext_Raise();
+                return null;
+            }
+
+            return doc.GetWorksetTable().GetWorkset(revitElement.WorksetId);
+        }
+
+        /// <summary>
+        /// Returns the Group an Element is in, if any.
+        /// </summary>
+        /// <param name="element">The Element to query.</param>
+        /// <returns name="group">The Group of the Element, if any.</returns>
+        /// <search>Revit.Element.GetGroup</search>
+        [NodeCategory("Action")]
+        public static DynElement? GetGroup(DynElement element)
+        {
+            // Get the current document
+            DB.Element revitElement = element.InternalElement;
+            DB.Document doc = revitElement.Document;
+            return revitElement.GroupId.Ext_GetDynamoElement(doc, true);
+        }
+
+        /// <summary>
+        /// Sets all Elements to a given Workset.
+        /// </summary>
+        /// <param name="elements">The Element to set.</param>
+        /// <param name="workset">The Workset to apply.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to transact in (current if not provided).</param>
+        /// <returns name="success">Did the change succeed.</returns>
+        /// <search>Revit.Element.SetWorkset</search>
+        [NodeCategory("Action")]
+        public static List<bool> SetWorkset(List<DynElement> elements, DB.Workset workset,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance);
+            List<bool> success = new();
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return success;
+            }
+
+            DB.Document doc = docHelper.Document;
+
+            // Early return if document is not workshared
+            if (!doc.IsWorkshared)
+            {
+                WARNING_TYPE.DOC_NOT_WORKSHARED.Ext_Raise();
+            }
+
+            // Close any active transactions
+            TransactionManager.Instance.ForceCloseTransaction();
+
+            // Using a transaction...
+            using (var transaction = new DB.Transaction(doc, "Pickle: Elements.SetWorkset"))
+            {
+                transaction.Start();
+
+                int wsId = workset.Id.IntegerValue;
+
+                // Try to set the Workset
+                foreach (DynElement element in elements)
+                {
+                    try
+                    {
+                        DB.Parameter parameter = element.InternalElement
+                            .get_Parameter(DB.BuiltInParameter.ELEM_PARTITION_PARAM);
+                        parameter.Set(wsId);
+                        success.Add(true);
+                    }
+                    catch
+                    {
+                        success.Add(false);
+                    }
+                }
+
+                transaction.Commit();
+            }
+
+            TransactionManager.Instance.TransactionTaskDone();
+
+            // Return output
+            return success;
+        }
+
+        /// <summary>
         /// Attempt to rename provided Elements.
         /// </summary>
         /// <param name="elements">Elements to rename.</param>
@@ -268,6 +372,81 @@
         }
 
         /// <summary>
+        /// Isolates a list of Elements in a given View.
+        /// </summary>
+        /// <param name="elements">Elements to isolate.</param>
+        /// <param name="view">View to isolate Elements in.</param>
+        /// <returns name="success">Did the isolation work.</returns>
+        /// <search>Revit.Element.IsolateInView</search>
+        [NodeCategory("Action")]
+        public static bool IsolateInView(List<DynElement> elements, DynView view)
+        {
+            DB.View revitView = view.Ext_ToRevitView();
+            DB.Document doc = revitView?.Document;
+
+            if (revitView is null || doc is null)
+            {
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
+                return false;
+            }
+            
+            // Close any active transactions
+            TransactionManager.Instance.ForceCloseTransaction();
+
+            // Using a transaction...
+            using (var transaction = new DB.Transaction(doc, "Pickle: Elements.IsolateInView"))
+            {
+                transaction.Start();
+
+                // Get Element Id list
+                List<DB.ElementId> ids = elements
+                    .Select(e => e.InternalElement.Id)
+                    .ToList();
+
+                // Isolate elements
+                revitView.IsolateElementsTemporary(ids);
+
+                transaction.Commit();
+            }
+
+            TransactionManager.Instance.TransactionTaskDone();
+
+            // Return output
+            return true;
+        }
+
+        /// <summary>
+        /// Selects provided Elements in Revit.
+        /// </summary>
+        /// <param name="elements">Elements to select.</param>
+        /// <returns name="success">Did the selection work.</returns>
+        /// <search>Revit.Element.Select</search>
+        [NodeCategory("Action")]
+        public static bool Select (List<DynElement> elements)
+        {
+            // Get active UI Document
+            RUI.UIDocument uiDoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument;
+
+            // Ids to select
+            List<DB.ElementId> selectIds = elements
+                .Select(e => e?.InternalElement?.Id)
+                .Where(e => e != null)
+                .Distinct()
+                .ToList();
+
+            // Try to select
+            try
+            {
+                uiDoc.Selection.SetElementIds(selectIds);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Checks if an Element is editable by you.
         /// </summary>
         /// <param name="element">The Element to check.</param>
@@ -292,6 +471,38 @@
             if (checkoutStatus == DB.CheckoutStatus.OwnedByOtherUser) return false;
             if (checkoutStatus == DB.CheckoutStatus.OwnedByCurrentUser) return true;
             return updateStatus == DB.ModelUpdatesStatus.CurrentWithCentral;
+        }
+
+        /// <summary>
+        /// Returns the WorksharingTooltipInfo properties of an Element.
+        /// </summary>
+        /// <param name="element">The Element to check.</param>
+        /// <returns name="createdBy">Who created the Element.</returns>
+        /// <returns name="ownedBy">Who owns the Element.</returns>
+        /// <returns name="lastChangedBy">Who last changed the Element.</returns>
+        /// <search>Revit.Element.Owners</search>
+        [NodeCategory("Query")]
+        [MultiReturn("createdBy", "ownedBy", "lastChangedBy")]
+        public static Dictionary<string, object> Owners(DynElement element)
+        {
+            DB.Element revitElement = element.InternalElement;
+            DB.Document doc = revitElement.Document;
+            
+            // Early return if document is not workshared
+            if (!doc.IsWorkshared)
+            {
+                WARNING_TYPE.DOC_NOT_WORKSHARED.Ext_Raise();
+            }
+
+            // Return the owner properties of tooltip info
+            DB.WorksharingTooltipInfo tti = DB.WorksharingUtils.GetWorksharingTooltipInfo(doc, revitElement.Id);
+
+            return new Dictionary<string, object>()
+            {
+                { "createdBy", tti.Creator },
+                { "ownedBy", tti.Owner },
+                { "lastChangedBy", tti.LastChangedBy }
+            };
         }
 
         /// <summary>

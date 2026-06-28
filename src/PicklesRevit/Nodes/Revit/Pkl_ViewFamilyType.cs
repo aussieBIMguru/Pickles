@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.DB;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to ViewFamilyTypes.
@@ -34,7 +32,7 @@ namespace Pkl_Revit
             DB.ViewFamily viewFamily = pklEnum.EnumByName(viewFamilyName, DB.ViewFamily.Invalid);
 
             // Set and return the outputs
-            return docHelper.Document.Ext_CollectByClass<ViewFamilyType>(elementTypes: true)
+            return docHelper.Document.Ext_CollectByClass<DB.ViewFamilyType>(elementTypes: true)
                 .Where(v => v.ViewFamily == viewFamily)
                 .Ext_ToDynamoElements(true);
         }
@@ -65,7 +63,7 @@ namespace Pkl_Revit
             DB.ViewFamily viewFamily = pklEnum.EnumByName(viewFamilyName, DB.ViewFamily.Invalid);
 
             // Set and return the outputs
-            return docHelper.Document.Ext_CollectByClass<ViewFamilyType>(elementTypes: true)
+            return docHelper.Document.Ext_CollectByClass<DB.ViewFamilyType>(elementTypes: true)
                 .FirstOrDefault(v => v.ViewFamily == viewFamily && v.Name == typeName)
                 .Ext_ToDynElement(true);
         }

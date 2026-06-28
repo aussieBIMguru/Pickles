@@ -1,10 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnitsUI;
-
-namespace Pickles.Extensions
+﻿namespace Pickles.Extensions
 {
     internal static class Ext_DBParameter
     {
@@ -20,12 +14,12 @@ namespace Pickles.Extensions
 
             switch (parameter.StorageType)
             {
-                case StorageType.String:
+                case DB.StorageType.String:
                     return parameter.AsString();
 
-                case StorageType.Integer:
+                case DB.StorageType.Integer:
                     {
-                        if (parameter.Definition?.GetDataType() == SpecTypeId.Boolean.YesNo)
+                        if (parameter.Definition?.GetDataType() == DB.SpecTypeId.Boolean.YesNo)
                         {
                             return parameter.AsInteger() == 1;
                         }
@@ -33,7 +27,7 @@ namespace Pickles.Extensions
                         return parameter.AsInteger();
                     }
 
-                case StorageType.Double:
+                case DB.StorageType.Double:
                     {
                         DB.ForgeTypeId? ftid = null;
 
@@ -46,7 +40,7 @@ namespace Pickles.Extensions
                         return parameter.AsDouble().Ext_InternalToProject(ftid);
                     }
 
-                case StorageType.ElementId:
+                case DB.StorageType.ElementId:
                     return parameter.AsElementId().Ext_GetDynamoElement(doc, true);
 
                 default:

@@ -1,6 +1,4 @@
-﻿using CoreNodeModels.Input;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Worksets.

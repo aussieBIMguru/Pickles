@@ -15,6 +15,7 @@ global using DynWarning = global::Revit.Application.Warning;
 global using DynRevision = global::Revit.Elements.Revision;
 global using DynView = global::Revit.Elements.Views.View;
 global using DynSheet = global::Revit.Elements.Views.Sheet;
+global using DynGroup = global::Revit.Elements.Group;
 global using DynFamilySymbol = global::Revit.Elements.FamilyType;
 global using DynSpecType = global::Revit.Elements.SpecType;
 global using DynGroupType = global::Revit.Elements.GroupType;

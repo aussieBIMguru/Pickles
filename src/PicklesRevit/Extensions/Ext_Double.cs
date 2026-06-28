@@ -1,7 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using UnitsUI;
-
-namespace Pickles.Extensions
+﻿namespace Pickles.Extensions
 {
     internal static class Ext_Double
     {
