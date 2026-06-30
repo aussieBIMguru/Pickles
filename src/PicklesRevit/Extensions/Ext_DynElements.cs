@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Autodesk.Revit.DB;
+using System.Reflection;
 
 namespace Pickles.Extensions
 {
@@ -26,6 +27,25 @@ namespace Pickles.Extensions
                 return revitView;
             }
             return null;
+        }
+
+        internal static DynPoint Ext_ToDynamoPoint(this DB.XYZ point, bool convertToProject = false)
+        {
+            if (convertToProject)
+            {
+                return DynPoint.ByCoordinates(point.X.Ext_InternalToProject(SpecTypeId.Length),
+                    point.Y.Ext_InternalToProject(SpecTypeId.Length),
+                    point.Z.Ext_InternalToProject(SpecTypeId.Length));
+            }
+            else
+            {
+                return DynPoint.ByCoordinates(point.X, point.Y, point.Z);
+            }
+        }
+
+        internal static DynVector Ext_ToDynamoVector(this DB.XYZ vector)
+        {
+            return DynVector.ByCoordinates(vector.X, vector.Y, vector.Z);
         }
 
         /// <summary>
