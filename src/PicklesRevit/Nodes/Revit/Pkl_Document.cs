@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Autodesk.Revit.DB;
+using System.IO;
 
 namespace Pkl_Revit
 {
@@ -10,12 +11,202 @@ namespace Pkl_Revit
         internal Pkl_Document() { }
 
         /// <summary>
+        /// Opens a Revit Document from a file path in the background.
+        /// 
+        /// Central files will be opened as a new local file if a directory path for the local is provided.
+        /// </summary>
+        /// <param name="filePath">The path of the file to open in Revit.</param>
+        /// <param name="options">Optional options to configure how the file is opened.</param>
+        /// <param name="localDirectoryPath">If a workshared document is provided, create/open locally here instead.</param>
+        /// <returns name="document">The Document.</returns>
+        /// <search>Revit.Document.Create</search>
+        [NodeCategory("Action")]
+        public static DynDocument? Open(string filePath, [DefaultArgument("null")] DB.OpenOptions? options = null,
+            [DefaultArgument("null")] string? localDirectoryPath = null)
+        {
+            // Validate Document suitability
+            DB.BasicFileInfo info = DB.BasicFileInfo.Extract(filePath);
+
+            if (info.IsSavedInLaterVersion)
+            {
+                WARNING_TYPE.DOC_HIGHER_VERSION.Ext_Raise();
+                return null;
+            }
+
+            // Convert to model path
+            DB.ModelPath modelPath = DB.ModelPathUtils.ConvertUserVisiblePathToModelPath(filePath);
+            options ??= new DB.OpenOptions();
+
+            // Workshared document causes local creation if directory specified
+            if (info.IsWorkshared && localDirectoryPath.Ext_HasChars())
+            {
+                options.DetachFromCentralOption = DB.DetachFromCentralOption.DoNotDetach;
+
+                string localPath = System.IO.Path.Combine(localDirectoryPath,
+                    System.IO.Path.GetFileNameWithoutExtension(filePath) + "_local.rvt");
+
+                // Create new local file
+                DB.ModelPath localModelPath = DB.ModelPathUtils.ConvertUserVisiblePathToModelPath(localPath);
+                DB.ModelPath centralModelPath = DB.ModelPathUtils.ConvertUserVisiblePathToModelPath(info.CentralPath);
+                DB.WorksharingUtils.CreateNewLocal(centralModelPath, localModelPath);
+                modelPath = localModelPath;
+            }
+
+            // Open the document
+            var app = DocumentManager.Instance.CurrentUIApplication.Application;
+            return app.OpenDocumentFile(modelPath, options).Ext_ToDynDocument();
+        }
+
+        /// <summary>
+        /// Constructs OpenOptions for opening a Document.
+        /// </summary>
+        /// <param name="audit">Should the audit setting be applied.</param>
+        /// <param name="detachFromCentral">Should the model be detached from central.</param>
+        /// <param name="preserveWorksets">If detaching, will worksets be preserved.</param>
+        /// <param name="ignoreExtensions">Should any extensible schemas be removed if encountered.</param>
+        /// <param name="allowWrongUser">Should users who do not own a local be able to open it.</param>
+        /// <returns name="options">The DB.OpenOptions.</returns>
+        /// <search>Revit.Document.OpenOptions</search>
+        [NodeCategory("Create")]
+        public static DB.OpenOptions OpenOptions(bool audit = false, bool detachFromCentral = false,
+            bool preserveWorksets = true, bool ignoreExtensions = false, bool allowWrongUser = false)
+        {
+            // Create detach options
+            DB.DetachFromCentralOption detachOptions = detachFromCentral 
+                ? preserveWorksets 
+                ? DB.DetachFromCentralOption.DetachAndPreserveWorksets
+                : DB.DetachFromCentralOption.DetachAndDiscardWorksets
+                : DB.DetachFromCentralOption.DoNotDetach;
+
+            // Return the options
+            return new DB.OpenOptions()
+            {
+                Audit = audit,
+                DetachFromCentralOption = detachOptions,
+                IgnoreExtensibleStorageSchemaConflict = ignoreExtensions,
+                AllowOpeningLocalByWrongUser = allowWrongUser
+            };
+        }
+
+        /// <summary>
+        /// Saves a Document (without closing it).
+        /// </summary>
+        /// <param name="document">The document to save.</param>
+        /// <returns name="document">The Document.</returns>
+        /// <search>Revit.Document.Action</search>
+        [NodeCategory("Action")]
+        public static DynDocument? Save(DynDocument document)
+        {
+            document.Ext_ToDBDocument().Save();
+            return document;
+        }
+
+        /// <summary>
+        /// Saves a Document to a specified path (without closing it).
+        /// </summary>
+        /// <param name="document">The document to save.</param>
+        /// <param name="filePath">The path to save the document to.</param>
+        /// <param name="overwrite">Permits overwriting of documents.</param>
+        /// <returns name="document">The Document.</returns>
+        /// <search>Revit.Document.Action</search>
+        [NodeCategory("Action")]
+        public static DynDocument? SaveAs(DynDocument document, string filePath, bool overwrite = true)
+        {
+            string? directory = Path.GetDirectoryName(filePath);
+
+            if (directory.Ext_HasChars())
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var options = new DB.SaveAsOptions()
+            {
+                OverwriteExistingFile = overwrite
+            };
+
+            document.Ext_ToDBDocument().SaveAs(filePath, options);
+
+            return document;
+        }
+
+        /// <summary>
+        /// Synchronizes a Document to central (without closing it).
+        /// </summary>
+        /// <param name="document">The document to sync.</param>
+        /// <param name="options">Optional DB.SynchronizeWithCentralOptions to apply.</param>
+        /// <returns name="document">The Document.</returns>
+        /// <search>Revit.Document.SyncWithCentral</search>
+        [NodeCategory("Action")]
+        public static DynDocument? SyncWithCentral(DynDocument document,
+            [DefaultArgument("null")] DB.SynchronizeWithCentralOptions? options = null)
+        {
+            // To Revit DB Document
+            DB.Document rvtDoc = document.Ext_ToDBDocument();
+
+            // Catch non-syncable document
+            if (!rvtDoc.IsWorkshared)
+            {
+                WARNING_TYPE.DOC_NOT_WORKSHARED.Ext_Raise();
+                return document;
+            }
+
+            // Sync options, sync and return document
+            options ??= new DB.SynchronizeWithCentralOptions();
+            var trOptions = new DB.TransactWithCentralOptions();
+            rvtDoc.SynchronizeWithCentral(trOptions, options);
+            return document;
+        }
+
+        /// <summary>
+        /// Constructs SynchronizeWithCentralOptions for syncing a Document.
+        /// </summary>
+        /// <param name="comment">Optional comment to append to the sync.</param>
+        /// <param name="compact">Compact the model on sync.</param>
+        /// <param name="relinquish">Relinquish all elements and worksets.</param>
+        /// <param name="saveBefore">Save locally before.</param>
+        /// <param name="saveAfter">Save locally after.</param>
+        /// <returns name="options">The DB.SynchronizeWithCentralOptions.</returns>
+        /// <search>Revit.Document.SyncOptions</search>
+        [NodeCategory("Create")]
+        public static DB.SynchronizeWithCentralOptions SyncOptions(string comment = "",
+            bool compact = false, bool relinquish = true, bool saveBefore = true, bool saveAfter = true)
+        {   
+            // Construct options
+            var options = new DB.SynchronizeWithCentralOptions()
+            {
+                Comment = comment,
+                Compact = compact,
+                SaveLocalAfter = saveBefore,
+                SaveLocalBefore = saveAfter
+            };
+
+            // Construct relinquish options, apply and return
+            var relinquishOptions = new DB.RelinquishOptions(relinquish);
+            options.SetRelinquishOptions(relinquishOptions);
+            return options;
+        }
+
+        /// <summary>
+        /// Closes a Document.
+        /// </summary>
+        /// <param name="document">The document to close.</param>
+        /// <param name="save">Save changes before closing.</param>
+        /// <returns name="closed">Just returns True.</returns>
+        /// <search>Revit.Document.Close</search>
+        [NodeCategory("Action")]
+        public static bool Close(DynDocument document, bool save = false)
+        {
+            document.Ext_ToDBDocument().Close(save);
+            return true;
+        }
+
+        /// <summary>
         /// Gets the document related to a link, if not the document provided and if not, the current document.
         /// </summary>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
         /// <returns name="document">The Document.</returns>
         /// <search>Revit.Document.GetDocument</search>
-        [NodeCategory("Query")]
+        [NodeCategory("Action")]
         public static DynDocument? GetDocument([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
@@ -182,7 +373,7 @@ namespace Pkl_Revit
                 try
                 {
                     string guidString = doc.WorksharingCentralGUID.ToString();
-                    string revitFolder = Path.Combine(
+                    string revitFolder = System.IO.Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                         "Autodesk",
                         "Revit");

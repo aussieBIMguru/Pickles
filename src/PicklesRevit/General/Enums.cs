@@ -10,8 +10,9 @@ namespace Pickles.Enums
         KEY_VALUE_MISMATCH = 3,
         WRONG_CATEGORY_INPUTS = 4,
         DIRECTORY_DOES_NOT_EXIST = 5,
-        DOC_NOT_WORKSHARED = 6
-    }
+        DOC_NOT_WORKSHARED = 6,
+        DOC_NOT_FAMILY = 7,
+        DOC_HIGHER_VERSION = 8 }
 
     internal enum MATCH_MODE
     {
@@ -61,7 +62,9 @@ namespace Pickles.Enums
                 WARNING_TYPE.KEY_VALUE_MISMATCH => "Inputs are not equal in length.\n\nShortest lacing will be applied.",
                 WARNING_TYPE.WRONG_CATEGORY_INPUTS => "Input(s) are of the wrong Revit category.",
                 WARNING_TYPE.DIRECTORY_DOES_NOT_EXIST => "Directory does not exist.",
-                WARNING_TYPE.DOC_NOT_WORKSHARED => "The current Document is not Workshared.",
+                WARNING_TYPE.DOC_NOT_WORKSHARED => "Document is not Workshared.",
+                WARNING_TYPE.DOC_NOT_FAMILY => "Document is not a Family.",
+                WARNING_TYPE.DOC_HIGHER_VERSION => "Document is saved in a higher version of Revit.",
                 _ => message ?? "Unknown warning type."
             };
         }
