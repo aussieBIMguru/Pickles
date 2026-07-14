@@ -64,7 +64,7 @@
 
             // Set and return the outputs
             return docHelper.Document.Ext_CollectByClass<DB.ViewFamilyType>(elementTypes: true)
-                .FirstOrDefault(v => v.ViewFamily == viewFamily && v.Name == typeName)
+                .FirstOrDefault(v => v.ViewFamily == viewFamily && v.Name == typeName)?
                 .Ext_ToDynElement(true);
         }
 
@@ -88,6 +88,22 @@
             }
 
             return new List<DynElement>();
+        }
+
+        /// <summary>
+        /// Gets the default View Template that is applied to new views of a ViewFamilyType.
+        /// </summary>
+        /// <param name="viewFamilyType">The ViewFamilyType.</param>
+        /// <returns name="views">The View Template, if any.</returns>
+        /// <search>Revit.ViewFamilyType.GetDefaultViewTemplate</search>
+        [NodeCategory("Action")]
+        public static DynElement? GetDefaultViewTemplate(DynElement viewFamilyType)
+        {
+            if (viewFamilyType.InternalElement is DB.ViewFamilyType vft)
+            {
+                return vft.DefaultTemplateId.Ext_GetDynamoElement(vft.Document, true);
+            }
+            return null;
         }
 
         /// <summary>

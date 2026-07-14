@@ -69,5 +69,21 @@
             }
             return null;
         }
+
+        /// <summary>
+        /// Returns if the Family is modelled in place.
+        /// </summary>
+        /// <param name="family">The Family to query.</param>
+        /// <returns name="isInPlace">If the Family is modelled in place.</returns>
+        /// <search>Revit.Family.IsInPlace</search>
+        [NodeCategory("Query")]
+        public static bool IsInPlace(DynElement family)
+        {
+            if (family.InternalElement is DB.Family dbFamily)
+            {
+                return dbFamily.IsInPlace;
+            }
+            return false;
+        }
     }
 }

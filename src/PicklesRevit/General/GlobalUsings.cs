@@ -17,6 +17,7 @@ global using DynView = global::Revit.Elements.Views.View;
 global using DynSheet = global::Revit.Elements.Views.Sheet;
 global using DynGroup = global::Revit.Elements.Group;
 global using DynFamilySymbol = global::Revit.Elements.FamilyType;
+global using DynFamilyInstance = global::Revit.Elements.FamilyInstance;
 global using DynSpecType = global::Revit.Elements.SpecType;
 global using DynGroupType = global::Revit.Elements.GroupType;
 global using DynForgeType = global::Revit.Elements.ForgeType;
@@ -32,6 +33,7 @@ global using DynBb = global::Autodesk.DesignScript.Geometry.BoundingBox;
 global using DynPlane = global::Autodesk.DesignScript.Geometry.Plane;
 global using DynPolyCurve = global::Autodesk.DesignScript.Geometry.PolyCurve;
 global using DynSurface = global::Autodesk.DesignScript.Geometry.Surface;
+global using DynCoordinateSystem = global::Autodesk.DesignScript.Geometry.CoordinateSystem;
 
 // Revit database alias
 global using DB = Autodesk.Revit.DB;

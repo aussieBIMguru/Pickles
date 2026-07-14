@@ -226,5 +226,17 @@ namespace Pkl_Data
 
             return System.Text.RegularExpressions.Regex.IsMatch(text, regex);
         }
+
+        /// <summary>
+        /// Returns if a string has any characters.
+        /// </summary>
+        /// <param name="text">The string to check.</param>
+        /// <returns name="hasCharacters">True if the string is not null or empty.</returns>
+        /// <search>Data.String.HasCharacters</search>
+        [NodeCategory("Query")]
+        public static bool HasCharacters(string text)
+        {
+            return text.Ext_HasChars();
+        }
     }
 }

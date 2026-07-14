@@ -1,4 +1,6 @@
-﻿namespace Pkl_Revit
+﻿using Autodesk.Revit.DB;
+
+namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Elements.
@@ -172,7 +174,7 @@
         public static DynElement? GetType(DynElement element)
         {
             return element.InternalElement?
-                .Ext_GetType()
+                .Ext_GetType()?
                 .Ext_ToDynElement(true);
         }
 
@@ -569,6 +571,72 @@
                                   ?? revitType?.LookupParameter(parameterName);
 
             return parameter?.Ext_GetParameterValueAsObject(revitElement.Document);
+        }
+
+        /// <summary>
+        /// Attempts to get the design option the Element belongs to, if any
+        /// </summary>
+        /// <param name="element">The Element to get the DesignOption of.</param>
+        /// <returns name="designOption">The DesignOption, if any.</returns>
+        /// <search>Revit.Element.GetDesignOption</search>
+        [NodeCategory("Action")]
+        public static DynElement? GetDesignOption(DynElement element)
+        {
+            // Null check
+            if (element is null) { return null; }
+
+            // Get design option parameter, null check it
+            DB.Parameter parameter = element.InternalElement
+                .Ext_GetBuiltInParameter(BuiltInParameter.DESIGN_OPTION_ID);
+            if (parameter is null) { return null; }
+
+            // Return the design option
+            return parameter.AsElementId()
+                .Ext_GetDynamoElement(element.InternalElement.Document, true);
+        }
+
+        /// <summary>
+        /// Attempts to get the Phase an Element is created on.
+        /// </summary>
+        /// <param name="element">The Element to get the Phase for.</param>
+        /// <returns name="phase">The Phase, if any.</returns>
+        /// <search>Revit.Element.GetPhaseCreated</search>
+        [NodeCategory("Action")]
+        public static DynElement? GetPhaseCreated(DynElement element)
+        {
+            // Null check
+            if (element is null) { return null; }
+
+            // Get parameter, null check it
+            DB.Parameter parameter = element.InternalElement
+                .Ext_GetBuiltInParameter(BuiltInParameter.PHASE_CREATED);
+            if (parameter is null) { return null; }
+
+            // Return the value
+            return parameter.AsElementId()
+                .Ext_GetDynamoElement(element.InternalElement.Document, true);
+        }
+
+        /// <summary>
+        /// Attempts to get the Phase an Element is demolished on.
+        /// </summary>
+        /// <param name="element">The Element to get the Phase for.</param>
+        /// <returns name="phase">The Phase, if any.</returns>
+        /// <search>Revit.Element.GetPhaseDemolished</search>
+        [NodeCategory("Action")]
+        public static DynElement? GetPhaseDemolished(DynElement element)
+        {
+            // Null check
+            if (element is null) { return null; }
+
+            // Get parameter, null check it
+            DB.Parameter parameter = element.InternalElement
+                .Ext_GetBuiltInParameter(BuiltInParameter.PHASE_DEMOLISHED);
+            if (parameter is null) { return null; }
+
+            // Return the value
+            return parameter.AsElementId()
+                .Ext_GetDynamoElement(element.InternalElement.Document, true);
         }
     }
 }
