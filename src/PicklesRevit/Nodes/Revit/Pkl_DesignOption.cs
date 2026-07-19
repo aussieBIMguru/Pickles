@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.DB;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to DesignOptions.

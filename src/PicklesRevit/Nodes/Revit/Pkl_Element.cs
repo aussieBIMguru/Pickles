@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.DB;
-
-namespace Pkl_Revit
+﻿namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Elements.
@@ -587,7 +585,7 @@ namespace Pkl_Revit
 
             // Get design option parameter, null check it
             DB.Parameter parameter = element.InternalElement
-                .Ext_GetBuiltInParameter(BuiltInParameter.DESIGN_OPTION_ID);
+                .Ext_GetBuiltInParameter(DB.BuiltInParameter.DESIGN_OPTION_ID);
             if (parameter is null) { return null; }
 
             // Return the design option
@@ -609,7 +607,7 @@ namespace Pkl_Revit
 
             // Get parameter, null check it
             DB.Parameter parameter = element.InternalElement
-                .Ext_GetBuiltInParameter(BuiltInParameter.PHASE_CREATED);
+                .Ext_GetBuiltInParameter(DB.BuiltInParameter.PHASE_CREATED);
             if (parameter is null) { return null; }
 
             // Return the value
@@ -631,7 +629,7 @@ namespace Pkl_Revit
 
             // Get parameter, null check it
             DB.Parameter parameter = element.InternalElement
-                .Ext_GetBuiltInParameter(BuiltInParameter.PHASE_DEMOLISHED);
+                .Ext_GetBuiltInParameter(DB.BuiltInParameter.PHASE_DEMOLISHED);
             if (parameter is null) { return null; }
 
             // Return the value

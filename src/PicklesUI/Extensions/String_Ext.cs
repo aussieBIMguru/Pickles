@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.DB;
-
-namespace PicklesUI.Extensions
+﻿namespace PicklesUI.Extensions
 {
     /// <summary>
     /// 
@@ -22,9 +20,9 @@ namespace PicklesUI.Extensions
                 : pickle;
         }
 
-        internal static ForgeTypeId Ext_ToForgeTypeId(this string id)
+        internal static DB.ForgeTypeId Ext_ToForgeTypeId(this string id)
         {
-            return new ForgeTypeId(id);
+            return new DB.ForgeTypeId(id);
         }
 
         /// <summary>
@@ -32,9 +30,9 @@ namespace PicklesUI.Extensions
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static ForgeTypeId StringToForgeTypeId(string id)
+        public static DB.ForgeTypeId StringToForgeTypeId(string id)
         {
-            return new ForgeTypeId(id);
+            return new DB.ForgeTypeId(id);
         }
     }
 }

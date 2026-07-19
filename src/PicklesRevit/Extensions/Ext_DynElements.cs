@@ -1,5 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Pickles.Extensions
 {
@@ -33,9 +32,9 @@ namespace Pickles.Extensions
         {
             if (convertToProject)
             {
-                return DynPoint.ByCoordinates(point.X.Ext_InternalToProject(SpecTypeId.Length),
-                    point.Y.Ext_InternalToProject(SpecTypeId.Length),
-                    point.Z.Ext_InternalToProject(SpecTypeId.Length));
+                return DynPoint.ByCoordinates(point.X.Ext_InternalToProject(DB.SpecTypeId.Length),
+                    point.Y.Ext_InternalToProject(DB.SpecTypeId.Length),
+                    point.Z.Ext_InternalToProject(DB.SpecTypeId.Length));
             }
             else
             {

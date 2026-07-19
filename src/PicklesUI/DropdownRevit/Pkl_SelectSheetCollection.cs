@@ -1,7 +1,6 @@
 using Dynamo.Graph.Nodes;
 using RevitServices.Persistence;
 using Newtonsoft.Json;
-using Autodesk.Revit.DB;
 
 namespace PicklesUI
 {
@@ -22,7 +21,7 @@ namespace PicklesUI
             {
                 return "_All Sheets";
             }
-            else if (element is SheetCollection)
+            else if (element is DB.SheetCollection)
             {
                 return element.Name;
             }
@@ -37,7 +36,7 @@ namespace PicklesUI
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
             if (doc == null) return Enumerable.Empty<DB.Element>();
 
-            DB.View? projectBrowser = new FilteredElementCollector(doc)
+            DB.View? projectBrowser = new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.View))
                 .Cast<DB.View>()
                 .FirstOrDefault(v => v.ViewType == DB.ViewType.ProjectBrowser);

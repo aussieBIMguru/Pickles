@@ -20,6 +20,22 @@
         }
 
         /// <summary>
+        /// Converts a list of DB ElementIds to Dynamo Elements.
+        /// </summary>
+        /// <param name="elementIds">ElementIds to convert.</param>
+        /// <param name="revitOwned">Does Revit own the Elements.</param>
+        /// <param name="doc">Document to get Elements from.</param>
+        /// <returns>A list of Dynamo Elements.</returns>
+        internal static IList<DynElement?> Ext_ToDynamoElements(this IEnumerable<DB.ElementId> elementIds,
+            bool revitOwned, DB.Document doc)
+        {
+            return elementIds
+                .Select(i => doc.GetElement(i))
+                .Select(e => e.Ext_ToDynElement(revitOwned))
+                .ToList();
+        }
+
+        /// <summary>
         /// Checks for invalid List or contents.
         /// </summary>
         /// <typeparam name="T">The object type the list holds (implied).</typeparam>
