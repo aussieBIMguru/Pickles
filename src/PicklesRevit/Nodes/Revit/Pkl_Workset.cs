@@ -33,31 +33,24 @@
                 .ToWorksets()
                 .ToDictionary(w => w.Name, w => w);
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Create Worksets
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Workset.Create"))
+            foreach (string name in names)
             {
-                transaction.Start();
-
-                // Create the workset if it doesn't exist by name
-                foreach (string name in names)
+                if (worksetDictionary.TryGetValue(name, out DB.Workset foundWorkset))
                 {
-                    if (worksetDictionary.TryGetValue(name, out DB.Workset foundWorkset))
-                    {
-                        worksets.Add(foundWorkset);
-                    }
-                    else
-                    {
-                        var workset = DB.Workset.Create(doc, name);
-                        worksetDictionary[name] = workset;
-                        worksets.Add(workset);
-                    }
+                    worksets.Add(foundWorkset);
                 }
-
-                transaction.Commit();
+                else
+                {
+                    var workset = DB.Workset.Create(doc, name);
+                    worksetDictionary[name] = workset;
+                    worksets.Add(workset);
+                }
             }
+
+            TransactionManager.Instance.TransactionTaskDone();
 
             // Return the worksets
             return worksets;
@@ -97,35 +90,29 @@
                 .Select(w => w.Name)
                 .ToList();
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Rename worksets
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Workset.Rename"))
+            // Rename the workset if it doesn't exist by name
+            for (int i = 0; i < Math.Min(names.Count, worksets.Count); i++)
             {
-                transaction.Start();
-
-                // Rename the workset if it doesn't exist by name
-                for (int i = 0; i < Math.Min(names.Count, worksets.Count); i++)
+                if (worksetNames.Contains(names[i]))
                 {
-                    if (worksetNames.Contains(names[i]))
-                    {
-                        success.Add(false);
-                    }
-                    else
-                    {
-                        DB.Workset workset = worksets[i];
-                        string newName = names[i];
-
-                        worksetNames.Remove(workset.Name);
-                        DB.WorksetTable.RenameWorkset(doc, worksets[i].Id, names[i]);
-                        worksetNames.Add(newName);
-                        success.Add(true);
-                    }
+                    success.Add(false);
                 }
+                else
+                {
+                    DB.Workset workset = worksets[i];
+                    string newName = names[i];
 
-                transaction.Commit();
+                    worksetNames.Remove(workset.Name);
+                    DB.WorksetTable.RenameWorkset(doc, worksets[i].Id, names[i]);
+                    worksetNames.Add(newName);
+                    success.Add(true);
+                }
             }
+
+            TransactionManager.Instance.TransactionTaskDone();
 
             // Return the outcomes
             return success;
@@ -157,32 +144,26 @@
                 .ToWorksets();
             HashSet<string> isolateNames = worksets.Select(w => w.Name).ToHashSet();
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Isolate in View
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Workset.Rename"))
+            // Get Revit view
+            var revitView = view.InternalElement as DB.View;
+
+            // Show or hide all Worksets in view 
+            foreach (DB.Workset workset in allWorksets)
             {
-                // Get Revit view
-                var revitView = view.InternalElement as DB.View;
-
-                transaction.Start();
-
-                // Show or hide all Worksets in view 
-                foreach (DB.Workset workset in allWorksets)
+                if (isolateNames.Contains(workset.Name))
                 {
-                    if (isolateNames.Contains(workset.Name))
-                    {
-                        revitView.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Visible);
-                    }
-                    else
-                    {
-                        revitView.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Hidden);
-                    }
+                    revitView.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Visible);
                 }
-
-                transaction.Commit();
+                else
+                {
+                    revitView.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Hidden);
+                }
             }
+
+            TransactionManager.Instance.TransactionTaskDone();
 
             // Return the outcomes
             return view;

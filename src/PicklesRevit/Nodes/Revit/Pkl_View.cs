@@ -1,5 +1,4 @@
-﻿
-using Revit.GeometryConversion;
+﻿using Revit.GeometryConversion;
 
 namespace Pkl_Revit
 {
@@ -11,53 +10,115 @@ namespace Pkl_Revit
         internal Pkl_View() { }
 
         /// <summary>
+        /// List of ViewFamilies for ViewFamilyTypes that are Plan related.
+        /// </summary>
+        private static readonly HashSet<DB.ViewFamily> VIEWFAMILIES_PLAN = new HashSet<DB.ViewFamily>()
+        {
+            DB.ViewFamily.FloorPlan, DB.ViewFamily.CeilingPlan,
+            DB.ViewFamily.StructuralPlan, DB.ViewFamily.AreaPlan
+        };
+
+        /// <summary>
+        /// Creates a new Plan View with a given name.
+        /// 
+        /// If naming fails, the View will still be created.
+        /// </summary>
+        /// <param name="level">The Level of the plan View to create.</param>
+        /// <param name="name">Names for the new View.</param>
+        /// <param name="viewFamilyType">ViewFamilyType to use.</param>
+        /// <param name="keepNameClashes">Retain Views that could not be named.</param>
+        /// <returns name="view">Created Plan View.</returns>
+        /// <search>Revit.View.CreatePlan</search>
+        [NodeCategory("Create")]
+        public static DynElement? CreatePlan(DynLevel level, string name,
+            DynElement viewFamilyType, bool keepNameClashes = true)
+        {
+            if (level.InternalElement is not DB.Level dbLevel
+                || viewFamilyType.InternalElement is not DB.ViewFamilyType dbVft
+                || !VIEWFAMILIES_PLAN.Contains(dbVft.ViewFamily)
+                || name.Ext_HasNoChars())
+            {
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
+                return null;
+            }
+
+            TransactionManager.Instance.ForceCloseTransaction();
+            DB.Document doc = dbLevel.Document;
+            DB.View? newView = null;
+
+            // NB: Use Revit Transaction for rollback behavior
+            using (var t = new DB.Transaction(doc, "Pickle: View.CreatePlan"))
+            {
+                t.Start();
+
+                // Create plan view
+                newView = DB.ViewPlan.Create(doc, dbVft.Id, dbLevel.Id);
+
+                // Try to rename, catch if fails
+                try
+                {
+                    newView.Name = name;
+                }
+                catch
+                {
+                    if (keepNameClashes)
+                    {
+                        WARNING_TYPE.DEFAULT.Ext_Raise("View could not be renamed.\n\n" +
+                    "Default Revit naming used.");
+                    }
+                    else
+                    {
+                        WARNING_TYPE.DEFAULT.Ext_Raise("View could not be renamed.\n\n" +
+                    "Creation was undone.");
+                        t.RollBack();
+                    }
+                }
+
+                t.Ext_CommitIfOpen();
+            }
+
+            // Return new view
+            return newView.Ext_ToDynElement(true);
+        }
+
+        /// <summary>
         /// Creates dependent Views from a View using a list of names.
         /// 
         /// If naming fails, the Views will still be created.
         /// </summary>
         /// <param name="view">The source View.</param>
         /// <param name="names">Names for the dependent Views.</param>
+        /// <param name="keepNameClashes">Retain Views that could not be named.</param>
         /// <returns name="views">Created dependent Views.</returns>
-        /// <returns name="success">Whether each dependent View was created.</returns>
         /// <search>Revit.View.CreateDependents</search>
         [NodeCategory("Create")]
-        [MultiReturn("views", "success")]
-        public static Dictionary<string, object> CreateDependents(
-            DynView view,
-            List<string> names)
+        public static List<DynElement?> CreateDependents(DynView view,
+            List<string> names, bool keepNameClashes = true)
         {
-            var createdViews = new List<DynElement?>();
-            var success = new List<bool>();
-            DB.View dbView = view.InternalElement as DB.View;
-
-            // Cancel early if view cannot be duplicated
-            if (!dbView.CanViewBeDuplicated(DB.ViewDuplicateOption.AsDependent))
+            if (view.InternalElement is not DB.View dbView
+                || !dbView.CanViewBeDuplicated(DB.ViewDuplicateOption.AsDependent))
             {
-                WARNING_TYPE.DEFAULT.Ext_Raise("View cannot be duplicated as dependent.");
-                
-                return new Dictionary<string, object>
-                {
-                    { "views", Enumerable.Repeat<DynElement>(null, names.Count).ToList() },
-                    { "success", Enumerable.Repeat(false, names.Count).ToList() }
-                };
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
+                return Enumerable.Repeat<DynElement>(null, names.Count).ToList();
             }
 
-            TransactionManager.Instance.ForceCloseTransaction();
             DB.Document doc = dbView.Document;
+            List<DynElement?> createdViews = new();
             int nameFailureCount = 0;
 
-            using (var t = new DB.Transaction(doc, "Pickle: Views.CreateDependents"))
+            TransactionManager.Instance.ForceCloseTransaction();
+
+            // NB: Use Revit Transaction for rollback behavior
+            using (var t = new DB.Transaction(doc, "Pickle: View.CreateDependents"))
             {
                 t.Start();
 
-                foreach (var name in names)
+                foreach (string name in names)
                 {
-                    // Create dependent view
                     DB.View newView = dbView
                         .Duplicate(DB.ViewDuplicateOption.AsDependent)
                         .Ext_GetElement<DB.View>(doc);
 
-                    // Try to rename, catch if fails
                     try
                     {
                         newView.Name = name;
@@ -65,64 +126,170 @@ namespace Pkl_Revit
                     catch
                     {
                         nameFailureCount++;
+
+                        if (!keepNameClashes)
+                        {
+                            doc.Delete(newView.Id);
+                            createdViews.Add(null);
+                            continue;
+                        }
                     }
 
-                    // Add outputs
                     createdViews.Add(newView?.Ext_ToDynElement(true));
-                    success.Add(newView != null);
                 }
 
-                t.Commit();
+                t.Ext_CommitIfOpen();
+            }
+
+            if (nameFailureCount > 0)
+            {
+                if (keepNameClashes)
+                {
+                    WARNING_TYPE.DEFAULT.Ext_Raise(
+                        "Some Views could not be renamed.\n\n" +
+                        "Default Revit naming used.");
+                }
+                else
+                {
+                    WARNING_TYPE.DEFAULT.Ext_Raise(
+                        "Some Views could not be renamed and their creation was undone.");
+                }
+            }
+
+            return createdViews;
+        }
+
+        /// <summary>
+        /// Creates Elevation Markers at provided points.
+        /// </summary>
+        /// <param name="points">Points where Elevation Markers will be created.</param>
+        /// <param name="viewFamilyType">ViewFamilyType to use.</param>
+        /// <param name="scale">View scale for created Elevations.</param>
+        /// <returns name="markers">Created Elevation Markers.</returns>
+        /// <search>Revit.View.CreateElevationMarkers</search>
+        [NodeCategory("Create")]
+        public static List<DynElement?> CreateElevationMarkers(List<DynPoint> points,
+            DynElement viewFamilyType, int scale = 50)
+        {
+            List<DynElement?> markers = new();
+
+            if (points == null || points.Count == 0
+                || viewFamilyType.InternalElement is not DB.ViewFamilyType dbVft
+                || dbVft.ViewFamily != DB.ViewFamily.Elevation)
+            {
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
+                return Enumerable.Repeat<DynElement?>(null, points.Count).ToList();
+            }
+
+            DB.Document doc = dbVft.Document;
+
+            TransactionManager.Instance.EnsureInTransaction(doc);
+
+            foreach (DynPoint point in points)
+            {
+                var marker = DB.ElevationMarker.CreateElevationMarker(
+                            doc, dbVft.Id, point.ToXyz(), scale);
+
+                markers.Add(marker.Ext_ToDynElement(true));
             }
 
             TransactionManager.Instance.TransactionTaskDone();
 
-            // Notify user if rename issues occured
-            if (nameFailureCount > 0)
-            {
-                WARNING_TYPE.DEFAULT.Ext_Raise("Some Views could not be renamed.\n\n" +
-                    "Default Revit naming used.");
-            }
-
-            // Return outputs
-            return new Dictionary<string, object>
-            {
-                { "views", createdViews },
-                { "success", success }
-            };
+            return markers;
         }
 
         /// <summary>
-        /// Sets a View's Phase.
+        /// Creates Elevation Views from an Elevation Marker using provided indices.
+        /// Existing Elevations at those indices will be returned if they already exist.
         /// </summary>
-        /// <param name="view">The View to change the Phase of.</param>
+        /// <param name="elevationMarker">The Elevation Marker to create views from.</param>
+        /// <param name="viewIndices">Indices of elevations to create.</param>
+        /// <param name="view">Plan View used for the elevation context.</param>
+        /// <returns name="views">Created or existing Elevation Views.</returns>
+        /// <search>Revit.View.CreateElevations</search>
+        [NodeCategory("Create")]
+        public static List<DynElement?> CreateElevations(DynElement elevationMarker, List<int> viewIndices, DynView view)
+        {
+            List<DynElement?> elevations = new();
+
+            if (elevationMarker.InternalElement is not DB.ElevationMarker dbMarker
+                || view.InternalElement is not DB.View dbView
+                || viewIndices == null
+                || viewIndices.Count == 0)
+            {
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
+                return Enumerable.Repeat<DynElement?>(null, viewIndices.Count).ToList();
+            }
+
+            DB.Document doc = dbMarker.Document;
+
+            TransactionManager.Instance.EnsureInTransaction(doc);
+
+            foreach (int index in viewIndices)
+            {
+                DB.View? elevation = null;
+
+                DB.ElementId existingId = dbMarker.GetViewId(index);
+
+                // Return existing elevation if one already exists
+                if (existingId != DB.ElementId.InvalidElementId)
+                {
+                    elevation = doc.GetElement(existingId) as DB.View;
+                }
+                // Otherwise attempt to create one
+                else if (dbMarker.IsAvailableIndex(index))
+                {
+                    try
+                    {
+                        elevation = dbMarker.CreateElevation(
+                            doc,
+                            dbView.Id,
+                            index);
+                    }
+                    catch
+                    {
+                        elevation = null;
+                    }
+                }
+
+                elevations.Add(elevation?.Ext_ToDynElement(true));
+            }
+
+            TransactionManager.Instance.TransactionTaskDone();
+
+            return elevations;
+        }
+
+        /// <summary>
+        /// Sets the Phase of provided Views.
+        /// </summary>
+        /// <param name="views">The Views to change the Phase of.</param>
         /// <param name="phase">The Phase to apply.</param>
-        /// <returns name="success">Was the View changed.</returns>
+        /// <returns name="success">Were the Views changed.</returns>
         /// <search>Revit.View.SetPhase</search>
         [NodeCategory("Action")]
-        public static bool SetPhase(DynView view, DynElement phase)
+        public static List<bool> SetPhase(List<DynView> views, DynElement phase)
         {
             // Ensure we were given a Revit phase
-            DB.ElementId setPhaseId = null;
+            DB.ElementId setPhaseId = DB.ElementId.InvalidElementId;
             if (phase.InternalElement is DB.Phase revitPhase) { setPhaseId = revitPhase.Id; }
 
-            if (setPhaseId is null)
+            if (setPhaseId.Ext_IsInValid())
             {
                 WARNING_TYPE.DEFAULT.Ext_Raise("Invalid phase provided.");
-                return false;
+                return Enumerable.Repeat(false, views.Count).ToList();
             }
             
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
-            bool success = false;
+            List<bool> success = new();
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Modify Views
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: View.SetPhase"))
+            foreach (DynView view in views)
             {
-                transaction.Start();
-
+                bool wasSet = false;
+                
                 if (view.InternalElement is DB.View dbView)
                 {
                     // Get phase parameter
@@ -135,7 +302,7 @@ namespace Pkl_Revit
                         // Same phase = no change needed
                         if (parameter.AsElementId() == setPhaseId)
                         {
-                            success = true;
+                            wasSet = true;
                         }
                         // Try to change phase
                         else
@@ -143,14 +310,14 @@ namespace Pkl_Revit
                             try
                             {
                                 parameter.Set(setPhaseId);
-                                success = true;
+                                wasSet = true;
                             }
                             catch {; }
                         }
                     }
                 }
 
-                transaction.Commit();
+                success.Add(wasSet);
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -232,31 +399,23 @@ namespace Pkl_Revit
                 curveLoop.Append(curve.ToRevitType());
             }
 
-            // Close any active Dynamo transactions
-            TransactionManager.Instance.ForceCloseTransaction();
-
+            // Transaction: Set crop boundary
             DB.Document doc = dbView.Document;
+            TransactionManager.Instance.EnsureInTransaction(doc);
+
             bool success = false;
 
-            using (var transaction = new DB.Transaction(doc, "Pickle: Views.SetCropRegion"))
+            // Try to set crop box
+            try
             {
-                transaction.Start();
-
-                // Try to set crop box
-                try
-                {
-                    dbView.CropBoxActive = true;
-                    dbView.CropBoxVisible = visible;
-                    cropManager.SetCropShape(curveLoop);
-
-                    transaction.Commit();
-                    success = true;
-                }
-                catch (Exception ex)
-                {
-                    WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
-                    transaction.RollBack();
-                }
+                dbView.CropBoxActive = true;
+                dbView.CropBoxVisible = visible;
+                cropManager.SetCropShape(curveLoop);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -296,9 +455,9 @@ namespace Pkl_Revit
         /// <param name="view">The View.</param>
         /// <param name="includeView">Include the View in its own ancestry.</param>
         /// <returns name="views">The ancestry of Views.</returns>
-        /// <search>Revit.View.GetAncestry</search>
-        [NodeCategory("Action")]
-        public static IList<DynElement?> GetAncestry(DynView view, bool includeView = false)
+        /// <search>Revit.View.Ancestry</search>
+        [NodeCategory("Query")]
+        public static IList<DynElement?> Ancestry(DynView view, bool includeView = false)
         {
             if (view.InternalElement is DB.View dbView)
             {
@@ -309,14 +468,14 @@ namespace Pkl_Revit
         }
 
         /// <summary>
-        /// Applies a View Template to provided View.
+        /// Applies a View Template to provided Views.
         /// </summary>
-        /// <param name="view">The View to change.</param>
+        /// <param name="views">The Views to change.</param>
         /// <param name="viewTemplate">The View template to apply.</param>
-        /// <returns name="success">Was the template applied (or applied already).</returns>
+        /// <returns name="success">Were the templates applied (or applied already).</returns>
         /// <search>Revit.View.SetViewTemplate</search>
         [NodeCategory("Action")]
-        public static bool SetViewTemplate(DynView view, DynView viewTemplate)
+        public static List<bool> SetViewTemplate(List<DynView> views, DynView viewTemplate)
         {
             // Ensure view template
             DB.ElementId viewTemplateId = null;
@@ -329,26 +488,25 @@ namespace Pkl_Revit
             else
             {
                 WARNING_TYPE.DEFAULT.Ext_Raise("Invalid View Template provided.");
-                return false;
+                return Enumerable.Repeat(false, views.Count).ToList();
             }
 
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
-            bool success = false;
+            List<bool> success = new();
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Modify Views
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: View.SetViewTemplate"))
+            foreach (DynView view in views)
             {
-                transaction.Start();
+                bool wasSet = false;
 
                 if (view.InternalElement is DB.View dbView)
                 {
                     // Already templated
                     if (dbView.ViewTemplateId == viewTemplateId)
                     {
-                        success = true;
+                        wasSet = true;
                     }
                     else
                     {
@@ -356,13 +514,16 @@ namespace Pkl_Revit
                         try
                         {
                             dbView.ViewTemplateId = viewTemplateId;
-                            success = true;
+                            wasSet = true;
                         }
-                        catch {; }
+                        catch
+                        {
+                            wasSet = false;
+                        }
                     }
                 }
 
-                transaction.Commit();
+                success.Add(wasSet);
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -371,45 +532,47 @@ namespace Pkl_Revit
         }
 
         /// <summary>
-        /// Removes the View Template from provided View.
+        /// Removes the View Template from provided Views.
         /// </summary>
-        /// <param name="view">The View to change.</param>
-        /// <returns name="success">Was the template removed (or none already).</returns>
+        /// <param name="views">The Views to change.</param>
+        /// <returns name="success">Were the templates removed (or none already).</returns>
         /// <search>Revit.View.RemoveViewTemplate</search>
         [NodeCategory("Action")]
-        public static bool RemoveViewTemplate(DynView view)
+        public static List<bool> RemoveViewTemplate(List<DynView> views)
         {
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
-            bool success = false;
+            List<bool> success = new();
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Modify Views
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Views.RemoveTemplate"))
+            foreach (DynView view in views)
             {
-                transaction.Start();
+                bool wasSet = false;
 
                 if (view.InternalElement is DB.View dbView)
                 {
                     // Already no template
                     if (dbView.ViewTemplateId.Ext_IsInValid())
                     {
-                        success = true;
+                        wasSet = true;
                     }
                     else
                     {
-                        // Try to set to no template
+                        // Try to remove template
                         try
                         {
                             dbView.ViewTemplateId = DB.ElementId.InvalidElementId;
-                            success = true;
+                            wasSet = true;
                         }
-                        catch {; }
+                        catch
+                        {
+                            wasSet = false;
+                        }
                     }
                 }
 
-                transaction.Commit();
+                success.Add(wasSet);
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -450,9 +613,9 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="view">The View to get the dependent Views for.</param>
         /// <returns name="views">The dependent Views, if any.</returns>
-        /// <search>Revit.View.GetDependentViews</search>
-        [NodeCategory("Action")]
-        public static IEnumerable<DynElement> GetDependentViews(DynView view)
+        /// <search>Revit.View.DependentViews</search>
+        [NodeCategory("Query")]
+        public static IEnumerable<DynElement> DependentViews(DynView view)
         {
             if (view.InternalElement is DB.View dbView)
             {
@@ -467,9 +630,9 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="view">The View.</param>
         /// <returns name="plane">The View sketch plane as a Dynamo Plane.</returns>
-        /// <search>Revit.View.GetPlane</search>
-        [NodeCategory("Action")]
-        public static DynPlane? GetPlane(DynView view)
+        /// <search>Revit.View.Plane</search>
+        [NodeCategory("Query")]
+        public static DynPlane? Plane(DynView view)
         {
             if (view.InternalElement is DB.View dbView)
             {
@@ -495,9 +658,9 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="view">The View to get the View template for.</param>
         /// <returns name="viewTemplate">The applied template, if any.</returns>
-        /// <search>Revit.View.GetViewTemplate</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetViewTemplate(DynView view)
+        /// <search>Revit.View.ViewTemplate</search>
+        [NodeCategory("Query")]
+        public static DynElement? ViewTemplate(DynView view)
         {
             if (view.InternalElement is DB.View dbView)
             {
@@ -530,9 +693,9 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="view">The View to get the Level for.</param>
         /// <returns name="level">The Level, if any.</returns>
-        /// <search>Revit.View.GetLevel</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetLevel(DynView view)
+        /// <search>Revit.View.Level</search>
+        [NodeCategory("Query")]
+        public static DynElement? Level(DynView view)
         {
             if (view.InternalElement is DB.View dbView)
             {
@@ -546,9 +709,9 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="view">The View to get the Phase for.</param>
         /// <returns name="phase">The Phase, if any.</returns>
-        /// <search>Revit.View.GetPhase</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetPhase(DynView view)
+        /// <search>Revit.View.Phase</search>
+        [NodeCategory("Query")]
+        public static DynElement? Phase(DynView view)
         {
             // Get parameter, null check it
             DB.Parameter parameter = view.InternalElement

@@ -67,19 +67,12 @@
             // Delete the set if it exists
             if (viewSheetSet != null)
             {
-                // Close any active transactions
-                TransactionManager.Instance.ForceCloseTransaction();
+                TransactionManager.Instance.EnsureInTransaction(doc);
 
-                // Using a transaction...
-                using (var transaction = new DB.Transaction(doc, "Pickle: ViewSheetSet.Delete"))
-                {
-                    transaction.Start();
+                // Delete the set if it exists
+                if (viewSheetSet != null) doc.Delete(viewSheetSet.Id);
 
-                    // Delete the set if it exists
-                    if (viewSheetSet != null) doc.Delete(viewSheetSet.Id);
-
-                    transaction.Commit();
-                }
+                TransactionManager.Instance.TransactionTaskDone();
             }
 
             // Construct view set
@@ -95,24 +88,17 @@
             printManager.PrintRange = DB.PrintRange.Select;
             var newSheetSet = printManager.ViewSheetSetting;
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Save/create sheet set
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: ViewSheetSet.Create"))
-            {
-                transaction.Start();
+            newSheetSet.CurrentViewSheetSet.Views = viewSet;
+            newSheetSet.SaveAs(name);
 
-                // Create and save the new ViewSheetSet
-                newSheetSet.CurrentViewSheetSet.Views = viewSet;
-                newSheetSet.SaveAs(name);
-
-                transaction.Commit();
-            }
+            TransactionManager.Instance.TransactionTaskDone();
 
             // Return that ViewSheetSet
             return doc.Ext_CollectByClass<DB.ViewSheetSet>()
-                .FirstOrDefault(x => x.Name == name)
+                .FirstOrDefault(x => x.Name == name)?
                 .Ext_ToDynElement(true);
         }
     }

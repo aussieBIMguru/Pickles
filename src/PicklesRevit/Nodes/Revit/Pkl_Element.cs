@@ -29,30 +29,22 @@
                 return success;
             }
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Delete Elements
             DB.Document doc = docHelper.Document;
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Elements.Delete"))
+            // Try to delete each element
+            foreach (DynElement element in elements)
             {
-                transaction.Start();
-
-                // Try to delete each element
-                foreach (DynElement element in elements)
+                try
                 {
-                    try
-                    {
-                        doc.Delete(element.InternalElement.Id);
-                        success.Add(true);
-                    }
-                    catch
-                    {
-                        success.Add(false);
-                    }
+                    doc.Delete(element.InternalElement.Id);
+                    success.Add(true);
                 }
-
-                transaction.Commit();
+                catch
+                {
+                    success.Add(false);
+                }
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -167,9 +159,9 @@
         /// </summary>
         /// <param name="element">The Element.</param>
         /// <returns name="type">The Element's type, if it has one.</returns>
-        /// <search>Revit.Element.GetType</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetType(DynElement element)
+        /// <search>Revit.Element.Type</search>
+        [NodeCategory("Query")]
+        public static DynElement? Type(DynElement element)
         {
             return element.InternalElement?
                 .Ext_GetType()?
@@ -181,9 +173,9 @@
         /// </summary>
         /// <param name="element">The Element.</param>
         /// <returns name="view">The Element's owner View, if it has one.</returns>
-        /// <search>Revit.Element.GetOwnerView</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetOwnerView(DynElement element)
+        /// <search>Revit.Element.OwnerView</search>
+        [NodeCategory("Query")]
+        public static DynElement? OwnerView(DynElement element)
         {
             return element.InternalElement?
                 .OwnerViewId.Ext_GetDynamoElement(element.InternalElement.Document, true);
@@ -194,9 +186,9 @@
         /// </summary>
         /// <param name="element">The Element to query.</param>
         /// <returns name="workset">The Workset of the Element.</returns>
-        /// <search>Revit.Element.GetWorkset</search>
-        [NodeCategory("Action")]
-        public static DB.Workset? GetWorkset(DynElement element)
+        /// <search>Revit.Element.Workset</search>
+        [NodeCategory("Query")]
+        public static DB.Workset? Workset(DynElement element)
         {
             // Get the current document
             DB.Element revitElement = element.InternalElement;
@@ -217,9 +209,9 @@
         /// </summary>
         /// <param name="element">The Element to query.</param>
         /// <returns name="group">The Group of the Element, if any.</returns>
-        /// <search>Revit.Element.GetGroup</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetGroup(DynElement element)
+        /// <search>Revit.Element.Group</search>
+        [NodeCategory("Query")]
+        public static DynElement? Group(DynElement element)
         {
             // Get the current document
             DB.Element revitElement = element.InternalElement;
@@ -258,33 +250,25 @@
                 WARNING_TYPE.DOC_NOT_WORKSHARED.Ext_Raise();
             }
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Set Element Worksets
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Elements.SetWorkset"))
+            // Try to set the Workset
+            int wsId = workset.Id.IntegerValue;
+
+            foreach (DynElement element in elements)
             {
-                transaction.Start();
-
-                int wsId = workset.Id.IntegerValue;
-
-                // Try to set the Workset
-                foreach (DynElement element in elements)
+                try
                 {
-                    try
-                    {
-                        DB.Parameter parameter = element.InternalElement
-                            .get_Parameter(DB.BuiltInParameter.ELEM_PARTITION_PARAM);
-                        parameter.Set(wsId);
-                        success.Add(true);
-                    }
-                    catch
-                    {
-                        success.Add(false);
-                    }
+                    DB.Parameter parameter = element.InternalElement
+                        .get_Parameter(DB.BuiltInParameter.ELEM_PARTITION_PARAM);
+                    parameter.Set(wsId);
+                    success.Add(true);
                 }
-
-                transaction.Commit();
+                catch
+                {
+                    success.Add(false);
+                }
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -334,35 +318,26 @@
                 WARNING_TYPE.KEY_VALUE_MISMATCH.Ext_Raise();
             }
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Rename Elements
             DB.Document doc = docHelper.Document;
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Elements.Rename"))
+            for (int i = 0; i < Math.Min(elements.Count, names.Count); i++)
             {
-                transaction.Start();
+                DB.Element revitElement = elements[i].InternalElement;
+                DB.Parameter parameter = revitElement.LookupParameter(parameterName);
 
-                // Rename each element
-                for (int i = 0; i < Math.Min(elements.Count, names.Count); i++)
+                elementsOut.Add(elements[i]);
+
+                try
                 {
-                    DB.Element revitElement = elements[i].InternalElement;
-                    DB.Parameter parameter = revitElement.LookupParameter(parameterName);
-
-                    elementsOut.Add(elements[i]);
-
-                    try
-                    {
-                        parameter.Set(names[i]);
-                        success.Add(true);
-                    }
-                    catch
-                    {
-                        success.Add(false);
-                    }
+                    parameter.Set(names[i]);
+                    success.Add(true);
                 }
-
-                transaction.Commit();
+                catch
+                {
+                    success.Add(false);
+                }
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -390,24 +365,16 @@
                 return false;
             }
             
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Isolate in View
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Elements.IsolateInView"))
-            {
-                transaction.Start();
+            // Get Element Id list
+            List<DB.ElementId> ids = elements
+                .Select(e => e.InternalElement.Id)
+                .ToList();
 
-                // Get Element Id list
-                List<DB.ElementId> ids = elements
-                    .Select(e => e.InternalElement.Id)
-                    .ToList();
-
-                // Isolate elements
-                revitView.IsolateElementsTemporary(ids);
-
-                transaction.Commit();
-            }
+            // Isolate elements
+            revitView.IsolateElementsTemporary(ids);
 
             TransactionManager.Instance.TransactionTaskDone();
 
@@ -422,7 +389,7 @@
         /// <returns name="success">Did the selection work.</returns>
         /// <search>Revit.Element.Select</search>
         [NodeCategory("Action")]
-        public static bool Select (List<DynElement> elements)
+        public static bool Select(List<DynElement> elements)
         {
             // Get active UI Document
             RUI.UIDocument uiDoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument;
@@ -538,9 +505,9 @@
         /// </summary>
         /// <param name="element">The Element to get the centroid point of.</param>
         /// <returns name="point">The Element's centroid point.</returns>
-        /// <search>Revit.Element.Centroid</search>
-        [NodeCategory("Query")]
-        public static DynPoint Centroid(DynElement element)
+        /// <search>Revit.Element.GetCentroid</search>
+        [NodeCategory("Action")]
+        public static DynPoint GetCentroid(DynElement element)
         {
             DynBb bb = element.BoundingBox;
 
@@ -576,9 +543,9 @@
         /// </summary>
         /// <param name="element">The Element to get the DesignOption of.</param>
         /// <returns name="designOption">The DesignOption, if any.</returns>
-        /// <search>Revit.Element.GetDesignOption</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetDesignOption(DynElement element)
+        /// <search>Revit.Element.DesignOption</search>
+        [NodeCategory("Query")]
+        public static DynElement? DesignOption(DynElement element)
         {
             // Null check
             if (element is null) { return null; }
@@ -598,9 +565,9 @@
         /// </summary>
         /// <param name="element">The Element to get the Phase for.</param>
         /// <returns name="phase">The Phase, if any.</returns>
-        /// <search>Revit.Element.GetPhaseCreated</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetPhaseCreated(DynElement element)
+        /// <search>Revit.Element.PhaseCreated</search>
+        [NodeCategory("Query")]
+        public static DynElement? PhaseCreated(DynElement element)
         {
             // Null check
             if (element is null) { return null; }
@@ -620,9 +587,9 @@
         /// </summary>
         /// <param name="element">The Element to get the Phase for.</param>
         /// <returns name="phase">The Phase, if any.</returns>
-        /// <search>Revit.Element.GetPhaseDemolished</search>
-        [NodeCategory("Action")]
-        public static DynElement? GetPhaseDemolished(DynElement element)
+        /// <search>Revit.Element.PhaseDemolished</search>
+        [NodeCategory("Query")]
+        public static DynElement? PhaseDemolished(DynElement element)
         {
             // Null check
             if (element is null) { return null; }

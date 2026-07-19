@@ -79,38 +79,31 @@ namespace Pkl_Revit
             // Titleblock family type Id
             DB.ElementId ttbTypeId = titleBlockType.InternalElement.Id;
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Create Sheets
+            DB.Document doc = docHelper.Document;
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(docHelper.Document, "Pickle: Sheets.Create"))
+            // For each name/number pairing...
+            for (int i = 0; i < Math.Min(names.Count, numbers.Count); i++)
             {
-                transaction.Start();
-
-                // For each name/number pairing...
-                for (int i = 0; i < Math.Min(names.Count, numbers.Count); i++)
+                // If the number is not used...
+                if (!exSheetNumbers.Contains(numbers[i]))
                 {
-                    // If the number is not used...
-                    if (!exSheetNumbers.Contains(numbers[i]))
-                    {
-                        // Create the sheet, add to number set
-                        DB.ViewSheet sheet = docHelper.Document.Ext_CreateSheet(
-                            numbers[i], names[i], asPlaceholder, ttbTypeId);
-                        exSheetNumbers.Add(numbers[i]);
+                    // Create the sheet, add to number set
+                    DB.ViewSheet sheet = docHelper.Document.Ext_CreateSheet(
+                        numbers[i], names[i], asPlaceholder, ttbTypeId);
+                    exSheetNumbers.Add(numbers[i]);
 
-                        // Add to outputs
-                        outSuccess.Add(true);
-                        outSheets.Add(sheet.Ext_ToDynElement(true));
-                    }
-                    else
-                    {
-                        // Add error to outputs
-                        outSheets.Add(null);
-                        outSuccess.Add(false);
-                    }
+                    // Add to outputs
+                    outSuccess.Add(true);
+                    outSheets.Add(sheet.Ext_ToDynElement(true));
                 }
-
-                transaction.Commit();
+                else
+                {
+                    // Add error to outputs
+                    outSheets.Add(null);
+                    outSuccess.Add(false);
+                }
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -151,26 +144,19 @@ namespace Pkl_Revit
                 return output;
             }
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Add Revision
+            DB.Document doc = docHelper.Document;
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(docHelper.Document, "Pickle: Sheet.AddRevision"))
+            // Revit revision
+            DB.Revision internalRevision = revision.InternalElement as DB.Revision;
+
+            // Add the Revision to each sheet
+            foreach (DynSheet sheet in sheets)
             {
-                transaction.Start();
-
-                // Revit revision
-                DB.Revision internalRevision = revision.InternalElement as DB.Revision;
-
-                // Add the Revision to each sheet
-                foreach (DynSheet sheet in sheets)
-                {
-                    DB.ViewSheet internalSheet = sheet.InternalElement as DB.ViewSheet;
-                    bool success = internalSheet.Ext_AddRevision(internalRevision);
-                    outSuccess.Add(success);
-                }
-
-                transaction.Commit();
+                DB.ViewSheet internalSheet = sheet.InternalElement as DB.ViewSheet;
+                bool success = internalSheet.Ext_AddRevision(internalRevision);
+                outSuccess.Add(success);
             }
 
             TransactionManager.Instance.TransactionTaskDone();
@@ -204,26 +190,19 @@ namespace Pkl_Revit
                 { "success", outSuccess }
             };
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Remove Revision
+            DB.Document doc = docHelper.Document;
+            TransactionManager.Instance.EnsureInTransaction(doc);
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(docHelper.Document, "Pickle: Sheet.AddRevision"))
+            // Revit revision
+            DB.Revision internalRevision = revision.InternalElement as DB.Revision;
+
+            // Remove the Revision for each sheet
+            foreach (DynSheet sheet in sheets)
             {
-                transaction.Start();
-
-                // Revit revision
-                DB.Revision internalRevision = revision.InternalElement as DB.Revision;
-
-                // Remove the Revision for each sheet
-                foreach (DynSheet sheet in sheets)
-                {
-                    DB.ViewSheet interalSheet = sheet.InternalElement as DB.ViewSheet;
-                    bool success = interalSheet.Ext_RemoveRevision(internalRevision);
-                    outSuccess.Add(success);
-                }
-
-                transaction.Commit();
+                DB.ViewSheet interalSheet = sheet.InternalElement as DB.ViewSheet;
+                bool success = interalSheet.Ext_RemoveRevision(internalRevision);
+                outSuccess.Add(success);
             }
 
             TransactionManager.Instance.TransactionTaskDone();

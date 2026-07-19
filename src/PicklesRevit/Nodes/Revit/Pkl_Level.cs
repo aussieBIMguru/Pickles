@@ -38,34 +38,31 @@
             var exLevelNames = doc.Ext_CollectByClass<DB.Level>()
                 .Select(l => l.Name)
                 .ToHashSet();
-            
-            // Using a transaction...
-            using (var t = new DB.Transaction(doc, "Pickles.Level.Create"))
+
+            // Transaction: Create Levels
+            TransactionManager.Instance.EnsureInTransaction(doc);
+
+            // Work with minimum matching iteration
+            for (int i = 0; i < Math.Min(names.Count, elevations.Count); i++)
             {
-                t.Start();
+                string name = names[i];
+                double elevation = elevations[i];
 
-                // Work with minimum matching iteration
-                for (int i = 0; i < Math.Min(names.Count, elevations.Count); i++)
+                // Existing = skip
+                if (exLevelNames.Contains(name))
                 {
-                    string name = names[i];
-                    double elevation = elevations[i];
-
-                    // Existing = skip
-                    if (exLevelNames.Contains(name))
-                    {
-                        newLevels.Add(null);
-                        continue;
-                    }
-
-                    // Create and append
-                    DB.Level level = DB.Level.Create(doc, elevation);
-                    level.Name = name;
-                    exLevelNames.Add(name);
-                    newLevels.Add(level.Ext_ToDynElement(true));
+                    newLevels.Add(null);
+                    continue;
                 }
 
-                t.Commit();
+                // Create and append
+                DB.Level level = DB.Level.Create(doc, elevation);
+                level.Name = name;
+                exLevelNames.Add(name);
+                newLevels.Add(level.Ext_ToDynElement(true));
             }
+
+            TransactionManager.Instance.TransactionTaskDone();
 
             // Return output
             return newLevels;
@@ -128,9 +125,9 @@
         /// </summary>
         /// <param name="level">Level to get Plane from.</param>
         /// <returns name="plane">The Levels' Plane.</returns>
-        /// <search>Revit.Level.GetPlane</search>
+        /// <search>Revit.Level.Plane</search>
         [NodeCategory("Action")]
-        public static DynPlane? GetPlane(DynElement level)
+        public static DynPlane? Plane(DynElement level)
         {
             if (level.InternalElement is DB.Level l)
             {
