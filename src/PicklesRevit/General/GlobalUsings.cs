@@ -15,6 +15,7 @@ global using DynWarning = global::Revit.Application.Warning;
 global using DynRevision = global::Revit.Elements.Revision;
 global using DynLevel = global::Revit.Elements.Level;
 global using DynView = global::Revit.Elements.Views.View;
+global using DynViewport = global::Revit.Elements.Viewport;
 global using DynView3D = global::Revit.Elements.Views.View3D;
 global using DynSheet = global::Revit.Elements.Views.Sheet;
 global using DynGroup = global::Revit.Elements.Group;
@@ -41,6 +42,7 @@ global using DynCoordinateSystem = global::Autodesk.DesignScript.Geometry.Coordi
 global using DB = Autodesk.Revit.DB;
 global using RUI = Autodesk.Revit.UI;
 global using Result = Autodesk.Revit.UI.Result;
+global using DbSpace = Autodesk.Revit.DB.Mechanical.Space;
 
 // Pickle usings
 global using Pickles.Enums;

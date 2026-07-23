@@ -6,5 +6,10 @@
         {
             if (!t.HasEnded()) { t.Commit(); }
         }
+
+        internal static void Ext_RollbackIfOpen(this DB.Transaction t)
+        {
+            if (!t.HasEnded()) { t.RollBack(); }
+        }
     }
 }

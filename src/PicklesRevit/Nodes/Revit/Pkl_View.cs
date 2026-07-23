@@ -3,7 +3,7 @@
 namespace Pkl_Revit
 {
     /// <summary>
-    /// Nodes relating to View.
+    /// Nodes relating to Views.
     /// </summary>
     public class Pkl_View
     {
