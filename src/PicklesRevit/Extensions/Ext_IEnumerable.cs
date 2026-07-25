@@ -53,5 +53,29 @@
                 return list == null || list.Count() == 0;
             }
         }
+
+        /// <summary>
+        /// Appends the last item in a list if it is shorter than a specified length.
+        /// </summary>
+        /// <typeparam name="T">List item type.</typeparam>
+        /// <param name="list">List to extend.</param>
+        /// <param name="size">Target length.</param>
+        /// <returns>The extended list.</returns>
+        internal static IList<T> Ext_LaceLongest<T>(this IList<T> list, int size)
+        {
+            if (list.Count == 0 || list.Count >= size)
+            {
+                return list;
+            }
+
+            T last = list[list.Count - 1];
+
+            for (int i = list.Count; i < size; i++)
+            {
+                list.Add(last);
+            }
+
+            return list;
+        }
     }
 }

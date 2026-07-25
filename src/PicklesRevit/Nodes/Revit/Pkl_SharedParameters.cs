@@ -1,4 +1,6 @@
-﻿namespace Pkl_Revit
+﻿using Autodesk.Revit.DB;
+
+namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Shared Parameter management.
@@ -29,6 +31,14 @@
                 { "success", success }
             };
 
+            var application = DocumentManager.Instance.CurrentUIApplication.Application;
+
+            if (application.SharedParametersFilename.Ext_HasNoChars())
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise("No Shared Parameters file is loaded.");
+                return output;
+            }
+
             // Catch unequal inputs
             if (creationOptions.Count != groupNames.Count)
             {
@@ -36,7 +46,6 @@
             }
 
             // Load the current file
-            var application = DocumentManager.Instance.CurrentUIApplication.Application;
             DB.DefinitionFile definitionFile = application.OpenSharedParameterFile();
 
             // Create a dictionary of the current groups in the file
@@ -203,6 +212,31 @@
             }
 
             return filePath;
+        }
+
+        /// <summary>
+        /// Returns the properties of a Shared Parameter (ExternalDefinition).
+        /// </summary>
+        /// <param name="definition">The ExternalDefinition.</param>
+        /// <returns name="filePath">The path of the loaded File.</returns>
+        /// <search>Revit.SharedParameters.DefinitionProperties</search>
+        [NodeCategory("Query")]
+        [MultiReturn("name", "group", "groupName", "specType", "guid",
+            "tooltip", "hideWhenNoValue", "userModifiable", "visible")]
+        public static Dictionary<string, object> DefinitionProperties(DB.ExternalDefinition definition)
+        {
+            return new Dictionary<string, object>()
+            {
+                { "name",  definition.Name },
+                { "group",  definition.OwnerGroup },
+                { "groupName",  definition.OwnerGroup.Name },
+                { "specType",  definition.GetDataType().Ext_ToDynSpecType() },
+                { "guid",  definition.GUID.ToString() },
+                { "tooltip",  definition.Description },
+                { "hideWhenNoValue",  definition.HideWhenNoValue },
+                { "userModifiable",  definition.UserModifiable },
+                { "visible",  definition.Visible }
+            };
         }
     }
 }

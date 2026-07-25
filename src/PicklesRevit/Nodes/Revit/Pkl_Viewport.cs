@@ -27,9 +27,11 @@ namespace Pkl_Revit
         {
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
 
+            // Longest lacing the points
+            points = points.Ext_LaceLongest(views.Count).ToList();
+
             // Notify user if mismatch in input sizes
-            if (views.Count != sheets.Count
-                || sheets.Count != points.Count)
+            if (views.Count != sheets.Count)
             {
                 WARNING_TYPE.KEY_VALUE_MISMATCH.Ext_Raise();
             }
@@ -48,7 +50,7 @@ namespace Pkl_Revit
             }
             else
             {
-                WARNING_TYPE.DEFAULT.Ext_Raise("ViewportType was not valid,.\n\n" +
+                WARNING_TYPE.DEFAULT.Ext_Raise("ViewportType was not valid.\n\n" +
                     "Default type will be used for created Viewports.");
             }
 
@@ -56,19 +58,50 @@ namespace Pkl_Revit
 
             TransactionManager.Instance.EnsureInTransaction(doc);
 
-            for (int i = 0; i < Math.Min(Math.Min(views.Count, sheets.Count), points.Count); i++)
+            // Isolate viewport view to get actual centre
+            if (excludeElements)
+            {
+                foreach (DynView view in views)
+                {
+                    (view.InternalElement as DB.View)?.IsolateElementTemporary(isolateId);
+                }
+                
+                doc.Regenerate();
+            }
+
+            int errorCount = 0;
+
+            for (int i = 0; i < Math.Min(views.Count, sheets.Count); i++)
             {
                 DynElement viewport = CreateViewport(
                     views[i],
                     sheets[i],
                     points[i],
                     viewportTypeId,
-                    isolateId);
+                    doc);
 
                 viewports.Add(viewport);
+                if (viewport == null) { errorCount++; }
+            }
+
+            // Unisolate view contents
+            if (excludeElements)
+            {
+                doc.Regenerate();
+
+                foreach (DynView view in views)
+                {
+                    (view.InternalElement as DB.View)?.DisableTemporaryViewMode(DB.TemporaryViewMode.TemporaryHideIsolate);
+                }
             }
 
             TransactionManager.Instance.TransactionTaskDone();
+
+            if (errorCount > 0)
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise("Some Viewports could not be created.\n\n" +
+                    "This is either due to invalid inputs, or a View may already be placed.");
+            }
 
             return viewports;
         }
@@ -80,10 +113,10 @@ namespace Pkl_Revit
         /// <param name="sheet">The Dynamo Sheet.</param>
         /// <param name="point">The Dynamo Point.</param>
         /// <param name="typeId">The ElementId of the Viewport type (tries to set).</param>
-        /// <param name="isolateId">Optional ElementId to isolate for proper placement.</param>
+        /// <param name="doc">The Document.</param>
         /// <returns></returns>
         private static DynElement? CreateViewport(DynView view, DynSheet sheet, DynPoint point,
-            DB.ElementId typeId, DB.ElementId? isolateId = null)
+            DB.ElementId typeId, DB.Document doc = null)
         {
             // Invalid inputs check
             if (view.InternalElement is not DB.View dbView
@@ -93,18 +126,17 @@ namespace Pkl_Revit
                 return null;
             }
 
+            doc ??= dbView.Document;
+
             // Catch if it's a Schedule, no isolation routine needed if so
             if (dbView is DB.ViewSchedule dbSchedule)
             {
-                return DB.ScheduleSheetInstance.Create(dbSchedule.Document,
+                return DB.ScheduleSheetInstance.Create(doc,
                     dbSheet.Id, dbSchedule.Id, dbPoint).Ext_ToDynElement(true);
             }
 
-            // Optional hiding of Elements
-            if (isolateId != null)
-            {
-                dbView.IsolateElementTemporary(isolateId);
-            }
+            // Ensure we can place the viewport
+            if (!DB.Viewport.CanAddViewToSheet(doc, dbSheet.Id, dbView.Id)) { return null; }
 
             // Create a Viewport if it's not a Schedule being placed
             DB.Viewport viewport = DB.Viewport.Create(dbView.Document,
@@ -115,11 +147,8 @@ namespace Pkl_Revit
                 viewport.ChangeTypeId(typeId);
             }
 
-            // Optional (un)hiding of Elements
-            if (isolateId != null)
-            {
-                dbView.DisableTemporaryViewMode(DB.TemporaryViewMode.TemporaryHideIsolate);
-            }
+            // Postcorrect
+            viewport.SetBoxCenter(dbPoint);
 
             // Return the Viewport
             return viewport.Ext_ToDynElement(true);
@@ -132,7 +161,7 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="viewports">The Viewports.</param>
         /// <param name="excludeElements">Excludes other Elements by temporarily hiding them during the calculation.</param>
-        /// <returns name="view">The Viewports View.</returns>
+        /// <returns name="point">The Viewports View.</returns>
         /// <search>Revit.Viewport.GetCentrePoint</search>
         [NodeCategory("Action")]
         public static List<DynPoint?> GetCentrePoint(List<DynViewport> viewports, bool excludeElements = true)
@@ -162,7 +191,7 @@ namespace Pkl_Revit
                             viewportView.IsolateElementTemporary(isolateId);
 
                             // Get the true Viewport box centre
-                            DynPoint actualCentre = dbViewport.GetBoxCenter().Ext_ToDynamoPoint();
+                            DynPoint actualCentre = dbViewport.GetBoxCenter().ToPoint(true);
                             centrePoints.Add(actualCentre);
                         }
                         else
@@ -181,7 +210,7 @@ namespace Pkl_Revit
                     if (viewport.InternalElement is DB.Viewport dbViewport)
                     {
                         // Get the default Viewport box centre
-                        DynPoint boxCentre = dbViewport.GetBoxCenter().Ext_ToDynamoPoint();
+                        DynPoint boxCentre = dbViewport.GetBoxCenter().ToPoint(true);
                         centrePoints.Add(boxCentre);
                     }
                     else

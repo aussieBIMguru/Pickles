@@ -28,11 +28,12 @@ namespace Pickles.Extensions
             return null;
         }
 
-        internal static DynPoint Ext_ToDynamoPoint(this DB.XYZ point, bool convertToProject = false)
+        internal static DynPoint Ext_ToDynamoPoint(this DB.XYZ point, bool convertToProject = true)
         {
             if (convertToProject)
             {
-                return DynPoint.ByCoordinates(point.X.Ext_InternalToProject(DB.SpecTypeId.Length),
+                return DynPoint.ByCoordinates(
+                    point.X.Ext_InternalToProject(DB.SpecTypeId.Length),
                     point.Y.Ext_InternalToProject(DB.SpecTypeId.Length),
                     point.Z.Ext_InternalToProject(DB.SpecTypeId.Length));
             }
