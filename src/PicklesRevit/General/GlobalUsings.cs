@@ -1,42 +1,46 @@
 ﻿// This file provides alias' and availability of namespaces in all files
 
 // General Dynamo usings
-global using Dynamo.Graph.Nodes;
 global using Autodesk.DesignScript.Runtime;
-global using RevitServices.Persistence;
+global using Dynamo.Graph.Nodes;
 global using DynamoServices;
-global using RevitServices.Transactions;
 global using Revit.Elements;
+global using RevitServices.Persistence;
+global using RevitServices.Transactions;
 
 // Dynamo element alias'
-global using DynElement = global::Revit.Elements.Element;
-global using DynDocument = global::Revit.Application.Document;
-global using DynWarning = global::Revit.Application.Warning;
-global using DynRevision = global::Revit.Elements.Revision;
-global using DynLevel = global::Revit.Elements.Level;
-global using DynView = global::Revit.Elements.Views.View;
-global using DynViewport = global::Revit.Elements.Viewport;
-global using DynView3D = global::Revit.Elements.Views.View3D;
-global using DynSheet = global::Revit.Elements.Views.Sheet;
-global using DynGroup = global::Revit.Elements.Group;
-global using DynFamilySymbol = global::Revit.Elements.FamilyType;
-global using DynFamilyInstance = global::Revit.Elements.FamilyInstance;
-global using DynSpecType = global::Revit.Elements.SpecType;
-global using DynGroupType = global::Revit.Elements.GroupType;
-global using DynForgeType = global::Revit.Elements.ForgeType;
 global using DynCategory = global::Revit.Elements.Category;
+global using DynCeiling = global::Revit.Elements.Ceiling;
+global using DynCeilingType = global::Revit.Elements.CeilingType;
+global using DynDocument = global::Revit.Application.Document;
+global using DynElement = global::Revit.Elements.Element;
+global using DynFamilyInstance = global::Revit.Elements.FamilyInstance;
+global using DynFamilySymbol = global::Revit.Elements.FamilyType;
+global using DynFloor = global::Revit.Elements.Floor;
+global using DynFloorType = global::Revit.Elements.FloorType;
+global using DynForgeType = global::Revit.Elements.ForgeType;
+global using DynGroup = global::Revit.Elements.Group;
+global using DynGroupType = global::Revit.Elements.GroupType;
+global using DynLevel = global::Revit.Elements.Level;
+global using DynRevision = global::Revit.Elements.Revision;
+global using DynSheet = global::Revit.Elements.Views.Sheet;
+global using DynSpecType = global::Revit.Elements.SpecType;
+global using DynView = global::Revit.Elements.Views.View;
+global using DynView3D = global::Revit.Elements.Views.View3D;
+global using DynViewport = global::Revit.Elements.Viewport;
+global using DynWarning = global::Revit.Application.Warning;
 
 // Dynamo geometry alias'
-global using DynGeometry = global::Autodesk.DesignScript.Geometry.Geometry;
-global using DynPoint = global::Autodesk.DesignScript.Geometry.Point;
-global using DynVector = global::Autodesk.DesignScript.Geometry.Vector;
-global using DynSolid = global::Autodesk.DesignScript.Geometry.Solid;
-global using DynCurve = global::Autodesk.DesignScript.Geometry.Curve;
 global using DynBb = global::Autodesk.DesignScript.Geometry.BoundingBox;
-global using DynPlane = global::Autodesk.DesignScript.Geometry.Plane;
-global using DynPolyCurve = global::Autodesk.DesignScript.Geometry.PolyCurve;
-global using DynSurface = global::Autodesk.DesignScript.Geometry.Surface;
 global using DynCoordinateSystem = global::Autodesk.DesignScript.Geometry.CoordinateSystem;
+global using DynCurve = global::Autodesk.DesignScript.Geometry.Curve;
+global using DynGeometry = global::Autodesk.DesignScript.Geometry.Geometry;
+global using DynPlane = global::Autodesk.DesignScript.Geometry.Plane;
+global using DynPoint = global::Autodesk.DesignScript.Geometry.Point;
+global using DynPolyCurve = global::Autodesk.DesignScript.Geometry.PolyCurve;
+global using DynSolid = global::Autodesk.DesignScript.Geometry.Solid;
+global using DynSurface = global::Autodesk.DesignScript.Geometry.Surface;
+global using DynVector = global::Autodesk.DesignScript.Geometry.Vector;
 
 // Revit database alias
 global using DB = Autodesk.Revit.DB;
