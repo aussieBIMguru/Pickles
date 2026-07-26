@@ -29,7 +29,7 @@
             }
 
             // Get ViewFamily value
-            DB.ViewFamily viewFamily = pklEnum.EnumByName(viewFamilyName, DB.ViewFamily.Invalid);
+            DB.ViewFamily viewFamily = viewFamilyName.Ext_EnumByName(DB.ViewFamily.Invalid);
 
             // Set and return the outputs
             return docHelper.Document.Ext_CollectByClass<DB.ViewFamilyType>(elementTypes: true)
@@ -60,7 +60,7 @@
             }
 
             // Get ViewFamily value
-            DB.ViewFamily viewFamily = pklEnum.EnumByName(viewFamilyName, DB.ViewFamily.Invalid);
+            DB.ViewFamily viewFamily = viewFamilyName.Ext_EnumByName(DB.ViewFamily.Invalid);
 
             // Set and return the outputs
             return docHelper.Document.Ext_CollectByClass<DB.ViewFamilyType>(elementTypes: true)

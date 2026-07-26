@@ -225,12 +225,24 @@ namespace Pkl_Revit
             "tooltip", "hideWhenNoValue", "userModifiable", "visible")]
         public static Dictionary<string, object> DefinitionProperties(DB.ExternalDefinition definition)
         {
+            DynForgeType? specType = null;
+
+            try
+            {
+                // Can fail for FamilyType parameters - have to try
+                specType = definition.GetDataType().Ext_ToDynSpecType();
+            }
+            catch
+            {
+                specType = null;
+            }
+
             return new Dictionary<string, object>()
             {
                 { "name",  definition.Name },
                 { "group",  definition.OwnerGroup },
                 { "groupName",  definition.OwnerGroup.Name },
-                { "specType",  definition.GetDataType().Ext_ToDynSpecType() },
+                { "specType",  specType },
                 { "guid",  definition.GUID.ToString() },
                 { "tooltip",  definition.Description },
                 { "hideWhenNoValue",  definition.HideWhenNoValue },

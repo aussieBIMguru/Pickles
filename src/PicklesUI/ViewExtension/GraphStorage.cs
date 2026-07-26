@@ -13,9 +13,19 @@ namespace PicklesUI
     /// </summary>
     public class GraphData
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public const string StorageKey = nameof(GraphData);
+        
+        /// <summary>
+        /// 
+        /// </summary>
         public Dictionary<string, string> PickleJar { get; set; } = new();
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Dictionary<string, string> GraphNickNames { get; set; } = new();
     }
 

@@ -54,7 +54,7 @@
         /// <returns>A Dynamo Element.</returns>
         internal static DynElement? Ext_GetDynamoElement(this DB.ElementId id, DB.Document doc, bool revitOwned)
         {
-            return id.Ext_GetElement<DB.Element>(doc).Ext_ToDynElement(revitOwned);
+            return id.Ext_GetElement<DB.Element>(doc)?.Ext_ToDynElement(revitOwned);
         }
     }
 }

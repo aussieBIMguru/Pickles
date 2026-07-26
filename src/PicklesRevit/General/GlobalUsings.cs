@@ -23,12 +23,14 @@ global using DynGroup = global::Revit.Elements.Group;
 global using DynGroupType = global::Revit.Elements.GroupType;
 global using DynLevel = global::Revit.Elements.Level;
 global using DynRevision = global::Revit.Elements.Revision;
+global using DynRoom = global::Revit.Elements.Room;
 global using DynSheet = global::Revit.Elements.Views.Sheet;
 global using DynSpecType = global::Revit.Elements.SpecType;
 global using DynView = global::Revit.Elements.Views.View;
 global using DynView3D = global::Revit.Elements.Views.View3D;
 global using DynViewport = global::Revit.Elements.Viewport;
 global using DynWarning = global::Revit.Application.Warning;
+global using DynAdaptiveComponent = global::Revit.Elements.AdaptiveComponent;
 
 // Dynamo geometry alias'
 global using DynBb = global::Autodesk.DesignScript.Geometry.BoundingBox;
@@ -55,4 +57,3 @@ global using Pickles.Helpers;
 global using pklFrm = Pickles.Utilities.Utils_Forms;
 global using pklCal = Pickles.Forms.Callers;
 global using KeyedObject = Pickles.Forms.KeyedValue<object>;
-global using pklEnum = Pickles.Enums.EnumHelpers;

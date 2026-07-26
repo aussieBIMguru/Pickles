@@ -1,4 +1,5 @@
-﻿using Revit.GeometryConversion;
+﻿using Autodesk.Revit.DB.Architecture;
+using Revit.GeometryConversion;
 
 namespace Pkl_Revit
 {
@@ -65,6 +66,12 @@ namespace Pkl_Revit
             // Get the Space at each point
             foreach (DynPoint point in points)
             {
+                if (point == null)
+                {
+                    spaces.Add(null);
+                    continue;
+                }
+
                 DB.XYZ dbPoint = isTransformed
                     ? transform.OfPoint(point.ToXyz())
                     : point.ToXyz();

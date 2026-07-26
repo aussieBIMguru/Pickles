@@ -30,7 +30,7 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="revitLinkInstance">Instance to get the RevitLinkType of.</param>
         /// <returns name="revitLinkType">The RevitLinkType of the instance.</returns>
-        /// <search>Revit.RevitLinkInstance.GetRevitLinkType/search>
+        /// <search>Revit.RevitLinkInstance.GetRevitLinkType</search>
         [NodeCategory("Action")]
         public static DynElement? GetRevitLinkType(DynElement revitLinkInstance)
         {

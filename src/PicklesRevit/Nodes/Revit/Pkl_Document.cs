@@ -300,6 +300,22 @@ namespace Pkl_Revit
         }
 
         /// <summary>
+        /// Returns the current Room BoundaryLocation setting used by a Document.
+        /// </summary>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to query (current if not provided).</param>
+        /// <returns name="boundaryLocation">The BoundaryLocation setting name.</returns>
+        /// <search>Revit.Document.GetBoundaryLocation</search>
+        [NodeCategory("Query")]
+        public static string GetBoundaryLocation([DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
+
+            var settings = DB.AreaVolumeSettings.GetAreaVolumeSettings(docHelper.Document);
+            return settings.GetSpatialElementBoundaryLocation(DB.SpatialElementType.Room).ToString();
+        }
+
+        /// <summary>
         /// Gets the document unit type used for a given specification.
         /// </summary>
         /// <param name="specType">The specification to query.</param>

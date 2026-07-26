@@ -65,18 +65,18 @@ namespace Pkl_Revit
             {
                 AlwaysUseRaster = alwaysUseRaster,
                 Combine = true,
-                ExportQuality = pklEnum.EnumByName(exportQuality, DB.PDFExportQualityType.DPI300),
+                ExportQuality = exportQuality.Ext_EnumByName(DB.PDFExportQualityType.DPI300),
                 HideCropBoundaries = hideCropBoundaries,
                 HideReferencePlane = hideReferencePlanes,
                 HideScopeBoxes = hideScopeBoxes,
                 HideUnreferencedViewTags = hideUnreferencedViewTags,
                 MaskCoincidentLines = maskCoincidentLines,
-                PaperFormat = pklEnum.EnumByName(paperFormat, DB.ExportPaperFormat.Default),
-                PaperOrientation = pklEnum.EnumByName(pageOrientation, DB.PageOrientationType.Auto),
-                RasterQuality = pklEnum.EnumByName(rasterQuality, DB.RasterQualityType.High),
+                PaperFormat = paperFormat.Ext_EnumByName(DB.ExportPaperFormat.Default),
+                PaperOrientation = pageOrientation.Ext_EnumByName(DB.PageOrientationType.Auto),
+                RasterQuality = rasterQuality.Ext_EnumByName(DB.RasterQualityType.High),
                 StopOnError = false,
                 ZoomPercentage = zoomPercentage,
-                ZoomType = pklEnum.EnumByName(zoomType, DB.ZoomType.Zoom)
+                ZoomType = zoomType.Ext_EnumByName(DB.ZoomType.Zoom)
             };
         }
 

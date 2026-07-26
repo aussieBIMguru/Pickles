@@ -229,7 +229,7 @@ namespace Pkl_Data
         /// <param name="pickles">Pickled strings to save.</param>
         /// <param name="keyName">Optional key name to store to.</param>
         /// <returns name="success">Were the pickles stored successfully.</returns>
-        /// <search>Data.Pickling.SavePicklesToGraph/search>
+        /// <search>Data.Pickling.SavePicklesToGraph</search>
         [NodeCategory("Create")]
         public static bool SavePicklesToGraph(List<string>? pickles, string keyName = "default")
         {
@@ -250,7 +250,7 @@ namespace Pkl_Data
         /// </summary>
         /// <param name="keyName">Optional key name to load.</param>
         /// <returns name="success">Were the pickles loaded successfully.</returns>
-        /// <search>Data.Pickling.LoadPicklesFromGraph/search>
+        /// <search>Data.Pickling.LoadPicklesFromGraph</search>
         [NodeCategory("Action")]
         public static List<string> LoadPicklesFromGraph(string keyName = "default")
         {
@@ -275,7 +275,7 @@ namespace Pkl_Data
         /// </summary>
         /// <param name="refresh">Update the node.</param>
         /// <returns name="keyNames">The pickle keys associated with this Dynamo graph.</returns>
-        /// <search>Data.Pickling.GetGraphKeys/search>
+        /// <search>Data.Pickling.GetGraphKeys</search>
         [NodeCategory("Query")]
         public static string[] GetGraphKeys(bool refresh = false)
         {
@@ -287,7 +287,7 @@ namespace Pkl_Data
         /// </summary>
         /// <param name="keyNames">Key names to attempt to remove.</param>
         /// <returns name="success">Were the pickles removed.</returns>
-        /// <search>Data.Pickling.RemoveFromGraphByKeys/search>
+        /// <search>Data.Pickling.RemoveFromGraphByKeys</search>
         [NodeCategory("Action")]
         public static List<bool> RemoveFromGraphByKeys(List<string> keyNames)
         {

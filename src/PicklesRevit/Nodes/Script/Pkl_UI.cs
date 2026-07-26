@@ -124,7 +124,7 @@
         /// <param name="filter">Optional file filter string.</param>
         /// <param name="waitFor">Use this input to delay the form.</param>
         /// <returns name="filePaths">Ths selected file paths.</returns>
-        /// <search>Script.UI.SelectFiles/search>
+        /// <search>Script.UI.SelectFiles</search>
         [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static List<string>? SelectFiles([DefaultArgument("null")] string? title = null,

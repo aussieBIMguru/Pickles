@@ -35,21 +35,6 @@ namespace Pickles.Enums
         URL = 3,
     }
 
-    internal class EnumHelpers
-    {
-        internal static T EnumByName<T>(string name, T fallbackValue) where T : struct, Enum
-        {
-            if (Enum.TryParse(name, out T t))
-            {
-                return t;
-            }
-            else
-            {
-                return fallbackValue;
-            }
-        }
-    }
-
     internal static class Ext_Pickles
     {
         internal static string Ext_ToMessage(this WARNING_TYPE warning, string message = null)

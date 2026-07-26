@@ -183,5 +183,24 @@ namespace Pickles.Extensions
 
             return sb.ToString();
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="fallbackValue"></param>
+        /// <returns></returns>
+        internal static T Ext_EnumByName<T>(this string name, T fallbackValue) where T : struct, Enum
+        {
+            if (Enum.TryParse(name, out T t))
+            {
+                return t;
+            }
+            else
+            {
+                return fallbackValue;
+            }
+        }
     }
 }
