@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Windows.Controls;
 
 namespace Pickles.Extensions
 {
@@ -26,6 +27,16 @@ namespace Pickles.Extensions
                 return revitView;
             }
             return null;
+        }
+
+        internal static DB.FamilyParameter? Ext_ToFamilyParameter(this DynFamilyParameter parameter)
+        {
+            if (parameter is null) { return null; }
+
+            var property = typeof(DynFamilyParameter).GetProperty("InternalFamilyParameter",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            return property.GetValue(parameter) as DB.FamilyParameter;
         }
 
         internal static DynPoint Ext_ToDynamoPoint(this DB.XYZ point, bool convertToProject = true)

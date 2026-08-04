@@ -31,6 +31,7 @@ global using DynView3D = global::Revit.Elements.Views.View3D;
 global using DynViewport = global::Revit.Elements.Viewport;
 global using DynWarning = global::Revit.Application.Warning;
 global using DynAdaptiveComponent = global::Revit.Elements.AdaptiveComponent;
+global using DynFamilyParameter = global::Revit.Elements.FamilyParameter;
 
 // Dynamo geometry alias'
 global using DynBb = global::Autodesk.DesignScript.Geometry.BoundingBox;

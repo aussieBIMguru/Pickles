@@ -128,5 +128,155 @@
             // Return families
             return families;
         }
+
+        /// <summary>
+        /// Gets the current FamilyType in a Family Document if available.
+        /// </summary>
+        /// <param name="familyDocument">The FamilyDocument.</param>
+        /// <returns name="familyType">The current FamilyType.</returns>
+        /// <search>Revit.FamilyDocument.GetCurrentType</search>
+        [NodeCategory("Action")]
+        public static DB.FamilyType? GetCurrentType(DynDocument familyDocument)
+        {
+            // Ensure FamilyDocument
+            if (familyDocument.Ext_ToDBDocument()?.FamilyManager is not DB.FamilyManager fm)
+            {
+                WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
+                return null;
+            }
+
+            return fm.CurrentType;
+        }
+
+        /// <summary>
+        /// Sets the current FamilyType in a Family Document if available.
+        /// </summary>
+        /// <param name="familyDocument">The FamilyDocument.</param>
+        /// <param name="familyType">The type to set.</param>
+        /// <returns name="success">If the operation succeeded.</returns>
+        /// <search>Revit.FamilyDocument.SetCurrentType</search>
+        [NodeCategory("Action")]
+        public static bool SetCurrentType(DynDocument familyDocument, DB.FamilyType familyType)
+        {
+            // Ensure FamilyDocument
+            if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
+                || dbDocument.FamilyManager is not DB.FamilyManager fm)
+            {
+                WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
+                return false;
+            }
+
+            // Try to set the FamilyType
+            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            bool outcome = false;
+
+            try
+            {
+                fm.CurrentType = familyType;
+                outcome = true;
+            }
+            catch (Exception ex)
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
+            }
+
+            TransactionManager.Instance.TransactionTaskDone();
+
+            return outcome;
+        }
+
+        /// <summary>
+        /// Gets specified FamilyType by name from a Family Document if available.
+        /// </summary>
+        /// <param name="familyDocument">The FamilyDocument.</param>
+        /// <param name="typeName">The name to get.</param>
+        /// <returns name="familyType">The FamilyType (null if not found).</returns>
+        /// <search>Revit.FamilyDocument.GetTypeByName</search>
+        [NodeCategory("Action")]
+        public static DB.FamilyType? GetTypeByName(DynDocument familyDocument, string typeName)
+        {
+            // Ensure FamilyDocument
+            if (familyDocument.Ext_ToDBDocument()?.FamilyManager is not DB.FamilyManager fm)
+            {
+                WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
+                return null;
+            }
+
+            // Get family type if found
+            return fm.Types
+                .Cast<DB.FamilyType>()
+                .FirstOrDefault(t => t.Name == typeName);
+        }
+
+        /// <summary>
+        /// Gets specified FamilyType by name from a Family Document if available.
+        /// </summary>
+        /// <param name="familyDocument">The FamilyDocument.</param>
+        /// <param name="parameterName">The name to get.</param>
+        /// <returns name="familyType">The FamilyType (null if not found).</returns>
+        /// <search>Revit.FamilyDocument.GetTypeByName</search>
+        [NodeCategory("Action")]
+        public static DynFamilyParameter? GetParameterByName(DynDocument familyDocument, string parameterName)
+        {
+            // Ensure FamilyDocument
+            if (familyDocument.Ext_ToDBDocument()?.FamilyManager is not DB.FamilyManager fm)
+            {
+                WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
+                return null;
+            }
+
+            // Get parmeter if found
+            return fm.Parameters
+                .Cast<DB.FamilyParameter>()
+                .FirstOrDefault(p => p.Definition.Name == parameterName)
+                .Ext_ToDynFamilyParameter();
+        }
+
+        /// <summary>
+        /// Gets all FamilyTypes from a Family Document.
+        /// </summary>
+        /// <param name="familyDocument">The FamilyDocument.</param>
+        /// <returns name="familyTypes">The FamilyTypes.</returns>
+        /// <search>Revit.FamilyDocument.Types</search>
+        [NodeCategory("Query")]
+        public static List<DB.FamilyType> Types(DynDocument familyDocument)
+        {
+            // Ensure FamilyDocument
+            if (familyDocument.Ext_ToDBDocument()?.FamilyManager is not DB.FamilyManager fm)
+            {
+                WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
+                return new();
+            }
+
+            // Get family types
+            return fm.Types
+                .Cast<DB.FamilyType>()
+                .Where(t => t is not null && t.Name.Ext_HasChars())
+                .ToList();
+        }
+
+        /// <summary>
+        /// Gets all FamilyParameters from a Family Document.
+        /// </summary>
+        /// <param name="familyDocument">The FamilyDocument.</param>
+        /// <returns name="familyParameters">The FamilyParameters.</returns>
+        /// <search>Revit.FamilyDocument.Parameters</search>
+        [NodeCategory("Query")]
+        public static List<DynFamilyParameter> Parameters(DynDocument familyDocument)
+        {
+            // Ensure FamilyDocument
+            if (familyDocument.Ext_ToDBDocument()?.FamilyManager is not DB.FamilyManager fm)
+            {
+                WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
+                return new();
+            }
+
+            // Get parameters
+            return fm.Parameters
+                .Cast<DB.FamilyParameter>()
+                .Select(p => p.Ext_ToDynFamilyParameter())
+                .Where(p => p is not null)
+                .ToList();
+        }
     }
 }
