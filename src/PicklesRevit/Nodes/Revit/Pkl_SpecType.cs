@@ -8,44 +8,23 @@
         internal Pkl_SpecType() { }
 
         /// <summary>
-        /// Gets SpecTypes by provided names, or an invalid type if not found.
+        /// Gets SpecTypes by provided name, or an invalid type if not found.
         /// </summary>
-        /// <param name="names">The names to get.</param>
-        /// <returns name="specTypes">The SpecTypes that were found.</returns>
-        /// <search>Revit.SpecType.ByNames</search>
+        /// <param name="name">The name to get.</param>
+        /// <returns name="specType">The SpecType that was found.</returns>
+        /// <search>Revit.SpecType.ByName</search>
         [NodeCategory("Action")]
-        public static List<DynSpecType?> ByNames(List<string> names)
+        public static DynSpecType? ByNames(string name)
         {
-            // Output list
-            List<DynSpecType?> specTypes = new();
-
-            // Null guard inputs
-            if (names == null)
+            foreach (var specType in DB.SpecUtils.GetAllSpecs())
             {
-                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
-                return specTypes;
-            }
-
-            // Spec type dictionary
-            var specTypeDictionary = DB.SpecUtils.GetAllSpecs()
-                .GroupBy(s => DB.LabelUtils.GetLabelForSpec(s))
-                .ToDictionary(s => s.Key, s => s.First());
-
-            // Get the Spec types
-            foreach (var name in names)
-            {
-                if (specTypeDictionary.TryGetValue(name, out var specType))
+                if (name == DB.LabelUtils.GetLabelForSpec(specType))
                 {
-                    specTypes.Add(specType.Ext_ToDynSpecType());
-                }
-                else
-                {
-                    specTypes.Add(new DB.ForgeTypeId().Ext_ToDynSpecType());
+                    return specType.Ext_ToDynSpecType();
                 }
             }
 
-            // Return output
-            return specTypes;
+            return null;
         }
 
         /// <summary>

@@ -8,44 +8,25 @@
         internal Pkl_GroupType() { }
 
         /// <summary>
-        /// Gets GroupTypes by provided names, or an invalid type if not found.
+        /// Gets GroupType by provided name, or an invalid type if not found.
         /// </summary>
-        /// <param name="names">The names to get.</param>
-        /// <returns name="groupTypes">The GroupTypes that were found.</returns>
-        /// <search>Revit.GroupType.ByNames</search>
+        /// <param name="name">The name to get.</param>
+        /// <returns name="groupType">The GroupType that was found.</returns>
+        /// <search>Revit.GroupType.ByName</search>
         [NodeCategory("Action")]
-        public static List<DynGroupType?> ByNames(List<string> names)
+        public static DynGroupType? ByName(string name)
         {
-            // Output list
             List<DynGroupType?> groupTypes = new();
 
-            // Null guard inputs
-            if (names == null)
+            foreach (var groupType in DB.ParameterUtils.GetAllBuiltInGroups())
             {
-                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
-                return groupTypes;
-            }
-
-            // Group type dictionary
-            var groupTypeDictionary = DB.ParameterUtils.GetAllBuiltInGroups()
-                .GroupBy(g => DB.LabelUtils.GetLabelForGroup(g))
-                .ToDictionary(g => g.Key, g => g.First());
-
-            // Get the group types
-            foreach (var name in names)
-            {
-                if (groupTypeDictionary.TryGetValue(name, out var groupType))
+                if (name == DB.LabelUtils.GetLabelForGroup(groupType))
                 {
-                    groupTypes.Add(groupType.Ext_ToDynGroupType());
-                }
-                else
-                {
-                    groupTypes.Add(new DB.ForgeTypeId().Ext_ToDynGroupType());
+                    return groupType.Ext_ToDynGroupType();
                 }
             }
 
-            // Return output
-            return groupTypes;
+            return null;
         }
 
         /// <summary>

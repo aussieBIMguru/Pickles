@@ -8,60 +8,6 @@
         internal Pkl_FamilyParameter() { }
 
         /// <summary>
-        /// Gets the value of a FamilyType's FamilyParameter.
-        /// </summary>
-        /// <param name="familyType">The FamilyType.</param>
-        /// <param name="parameter">The FamilyParameter.</param>
-        /// <param name="familyDocument">The related Document.</param>
-        /// <returns name="name">The name of the FamilyType.</returns>
-        /// <search>Revit.FamilyType.GetParameterValue</search>
-        [NodeCategory("Action")]
-        public static object? GetParameterValue(DB.FamilyType familyType,
-            DynFamilyParameter parameter, DynDocument familyDocument)
-        {
-            // Ensure valid inputs
-            if (familyType == null
-                || parameter.Ext_ToFamilyParameter() is not DB.FamilyParameter familyParameter
-                || familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
-                || dbDocument.FamilyManager == null)
-            {
-                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
-                return null;
-            }
-
-            // Return the corresponding value type
-            switch (familyParameter.StorageType)
-            {
-                case DB.StorageType.String:
-                    return familyType.AsString(familyParameter) ?? "";
-
-                case DB.StorageType.Integer:
-                    int? intValue = familyType.AsInteger(familyParameter);
-
-                    if (familyParameter.Definition.GetDataType() == DB.SpecTypeId.Boolean.YesNo)
-                    {
-                        return intValue == 1;
-                    }
-
-                    return intValue;
-
-                case DB.StorageType.Double:
-                    if (familyType.AsDouble(familyParameter) is double dblValue)
-                    {
-                        return dblValue.Ext_InternalToProject(familyParameter.GetUnitTypeId());
-                    }
-                    return null;
-
-                case DB.StorageType.ElementId:
-                    return familyType.AsElementId(familyParameter)
-                        .Ext_GetDynamoElement(dbDocument, true);
-
-                default:
-                    return null;
-            }
-        }
-
-        /// <summary>
         /// Gets the Formula of a FamilyParameter, and if has one.
         /// </summary>
         /// <param name="familyParameter">The FamilyParameter.</param>
@@ -70,11 +16,11 @@
         /// <search>Revit.FamilyParameter.Formula</search>
         [NodeCategory("Query")]
         [MultiReturn(new[] { "formula", "hasFormula" })]
-        public static Dictionary<string, object> Formula(DynFamilyParameter familyParameter)
+        public static Dictionary<string, object?> Formula(DynFamilyParameter familyParameter)
         {
-            DB.FamilyParameter parameter = familyParameter.Ext_ToFamilyParameter();
+            DB.FamilyParameter? parameter = familyParameter.Ext_ToFamilyParameter();
 
-            return new Dictionary<string, object>()
+            return new Dictionary<string, object?>()
             {
                 { "formula", parameter?.Formula ?? "" },
                 { "hasFormula", parameter?.IsDeterminedByFormula }
@@ -90,16 +36,16 @@
         /// <search>Revit.FamilyParameter.Name</search>
         [NodeCategory("Query")]
         [MultiReturn(new[] { "unitType", "unitName" })]
-        public static Dictionary<string, object> UnitType(DynFamilyParameter familyParameter)
+        public static Dictionary<string, object?> UnitType(DynFamilyParameter familyParameter)
         {
-            DB.FamilyParameter parameter = familyParameter.Ext_ToFamilyParameter();
-            DB.ForgeTypeId unitTypeId = parameter?.GetUnitTypeId();
+            DB.FamilyParameter? parameter = familyParameter.Ext_ToFamilyParameter();
+            DB.ForgeTypeId? unitTypeId = parameter?.GetUnitTypeId();
             bool isUnitType = DB.UnitUtils.IsUnit(unitTypeId);
 
-            return new Dictionary<string, object>()
+            return new Dictionary<string, object?>()
             {
                 { "unitType", isUnitType
-                    ? unitTypeId.Ext_ToDynForgeType()
+                    ? unitTypeId?.Ext_ToDynForgeType()
                     : null },
                 { "unitName",
                     isUnitType
