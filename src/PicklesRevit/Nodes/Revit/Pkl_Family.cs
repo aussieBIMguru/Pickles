@@ -8,50 +8,24 @@
         internal Pkl_Family() { }
 
         /// <summary>
-        /// Edits families from a Document as Family Documents.
+        /// Edits a family, opening it as a FamilyDocument.
         /// </summary>
-        /// <param name="families">The Families to edit.</param>
-        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <returns name="documents">The Documents.</returns>
-        /// <search>Revit.Family.EditAsDocuments</search>
+        /// <param name="family">The Family to edit.</param>
+        /// <returns name="familyDocument">The Document.</returns>
+        /// <search>Revit.Family.EditAsDocument</search>
         [NodeCategory("Action")]
-        public static List<DynDocument> EditAsDocuments(List<DynElement> families,
-            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        public static DynDocument? EditAsDocument(DynElement family)
         {
-            // Get the related document
-            var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
-
-            // Early return/warning if no document
-            if (!docHelper.IsValid)
+            if (family.InternalElement is DB.Family dbFamily)
             {
-                docHelper.RaiseInvalidWarning();
-                return new List<DynDocument>();
+                DB.Document familyDoc = dbFamily.Document.EditFamily(dbFamily);
+                return familyDoc.Ext_ToDynDocument();
             }
-
-            int notFamilyCount = 0;
-            List<DynDocument?> documents = new();
-            DB.Document doc = docHelper.Document;
-
-            foreach (DynElement dynElement in families)
+            else
             {
-                if (dynElement?.InternalElement is DB.Family family)
-                {
-                    DB.Document familyDoc = doc.EditFamily(family);
-                    documents.Add(familyDoc.Ext_ToDynDocument());
-                }
-                else
-                {
-                    documents.Add(null);
-                    notFamilyCount++;
-                }
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
+                return null;
             }
-
-            if (notFamilyCount > 0)
-            {
-                WARNING_TYPE.DEFAULT.Ext_Raise("Some families could not be edited.");
-            }
-
-            return documents;
         }
 
         /// <summary>
