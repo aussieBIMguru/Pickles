@@ -55,6 +55,4 @@ global using DbSpace = Autodesk.Revit.DB.Mechanical.Space;
 global using Pickles.Enums;
 global using Pickles.Extensions;
 global using Pickles.Helpers;
-global using pklFrm = Pickles.Utilities.Utils_Forms;
-global using pklCal = Pickles.Forms.Callers;
 global using KeyedObject = Pickles.Forms.KeyedValue<object>;

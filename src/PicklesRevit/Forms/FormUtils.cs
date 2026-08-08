@@ -1,12 +1,11 @@
-﻿using Pickles.Forms;
-using System.Text;
+﻿using System.Text;
 using System.Windows.Input;
 using System.Text.RegularExpressions;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
-namespace Pickles.Utilities
+namespace Pickles.Forms
 {
-    internal static class Utils_Forms
+    internal static class FormUtils
     {
         /// <summary>
         /// Sets the selection behavior of a listbox in Wpf.
@@ -17,7 +16,7 @@ namespace Pickles.Utilities
         /// <param name="uncheckAllButton">Optional button for uncheck all.</param>
         /// <returns>The name of the item template to use.</returns>
         internal static string SetListBoxMode(bool multiSelect, System.Windows.Controls.ListBox listBox,
-            System.Windows.Controls.Button checkAllButton = null, System.Windows.Controls.Button uncheckAllButton = null)
+            System.Windows.Controls.Button? checkAllButton = null, System.Windows.Controls.Button? uncheckAllButton = null)
         {
             // Set state of check all buttons (single select = off)
             checkAllButton?.IsEnabled = multiSelect;
@@ -89,7 +88,7 @@ namespace Pickles.Utilities
             if (keys is null || values is null
                 || keys.Count != values.Count || keys.Count == 0)
             {
-                pklCal.Error("Invalid key/value pairing provided for list form.");
+                FormCallers.Error("Invalid key/value pairing provided for list form.");
                 return null;
             }
 
@@ -116,9 +115,9 @@ namespace Pickles.Utilities
         /// <param name="bypassString">Alternative filter to check.</param>
         /// <returns>If the text passes.</returns>
         public static bool FilterByText<T>(object obj, System.Windows.Controls.TextBox filterBox,
-            MATCH_MODE matchMode, string bypassString = null)
+            MATCH_MODE matchMode, string? bypassString = null)
         {
-            string filterText = null;
+            string? filterText = null;
 
             // Catch if item is not valid
             if (obj is not KeyedValue<T> item)

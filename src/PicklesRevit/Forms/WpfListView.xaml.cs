@@ -79,7 +79,7 @@ namespace Pickles.Forms
             this.ListBox.ItemsSource = this._objects;
 
             // Configure the behavior for multi or single select
-            var templateName = pklFrm.SetListBoxMode(this._multiSelect,
+            var templateName = FormUtils.SetListBoxMode(this._multiSelect,
                 this.ListBox, this.CheckAllButton, this.UncheckAllButton);
 
             // Apply the related item template from shared styles
@@ -150,7 +150,7 @@ namespace Pickles.Forms
             if (this._bulkUpdating) { return; }
 
             // Run a shift click check
-            pklFrm.ShiftClickProcess<object>(sender, this._multiSelect, this.ListBox);
+            FormUtils.ShiftClickProcess<object>(sender, this._multiSelect, this.ListBox);
 
             // Debounce export button update
             this._okButtonUpdateTimer?.Stop();
@@ -171,7 +171,7 @@ namespace Pickles.Forms
         /// <returns>A Boolean.</returns>
         private bool FilterByText(object obj)
         {
-            return pklFrm.FilterByText<object>(obj, this.FilterTextBox, this._mode);
+            return FormUtils.FilterByText<object>(obj, this.FilterTextBox, this._mode);
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace Pickles.Forms
         /// <param name="e"></param>
         private void TextFilterModeButton_Click(object sender, RoutedEventArgs e)
         {
-            this._mode = pklFrm.NextTextFilterMode(this.TextFilterModeButton, this._mode);
+            this._mode = FormUtils.NextTextFilterMode(this.TextFilterModeButton, this._mode);
             this._view?.Refresh();
         }
 
@@ -204,7 +204,7 @@ namespace Pickles.Forms
         private void CopyVisible_Click(object sender, RoutedEventArgs e)
         {
             var items = this._view.Cast<KeyedObject>().ToList();
-            var copyString = pklFrm.ListViewToString(items, multiSelect: this._multiSelect);
+            var copyString = FormUtils.ListViewToString(items, multiSelect: this._multiSelect);
             ClipboardHelper.SetText(copyString, true);
         }
 

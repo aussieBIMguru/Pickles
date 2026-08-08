@@ -20,14 +20,14 @@ namespace Pickles.Helpers
                 {
                     if (showMessages)
                     {
-                        pklCal.Completed("Text retrieved from clipboard.");
+                        Forms.FormCallers.Completed("Text retrieved from clipboard.");
                     }
                     return Clipboard.GetText();
                 }
 
                 if (showMessages)
                 {
-                    pklCal.Error("Text could not be retrieved from clipboard.\n\n" +
+                    Forms.FormCallers.Error("Text could not be retrieved from clipboard.\n\n" +
                         "Clipboard contains no text data.");
                 }
                 return string.Empty;
@@ -36,7 +36,7 @@ namespace Pickles.Helpers
             {
                 if (showMessages)
                 {
-                    pklCal.Error("Text could not be retrieved from clipboard.", exception: ex);
+                    Forms.FormCallers.Error("Text could not be retrieved from clipboard.", exception: ex);
                 }
                 return string.Empty;
             }
@@ -54,7 +54,7 @@ namespace Pickles.Helpers
             {
                 if (showMessages)
                 {
-                    pklCal.Error("Text could not be sent to clipboard.\n\n" +
+                    Forms.FormCallers.Error("Text could not be sent to clipboard.\n\n" +
                         "Input string was empty.");
                 }
                 return false;
@@ -66,7 +66,7 @@ namespace Pickles.Helpers
 
                 if (showMessages)
                 {
-                    pklCal.Completed("Text sent to clipboard.");
+                    Forms.FormCallers.Completed("Text sent to clipboard.");
                 }
                 return true;
             }
@@ -74,7 +74,7 @@ namespace Pickles.Helpers
             {
                 if (showMessages)
                 {
-                    pklCal.Error("Text could not be sent to clipboard.", exception: ex);
+                    Forms.FormCallers.Error("Text could not be sent to clipboard.", exception: ex);
                 }
                 return false;
             }

@@ -1,6 +1,6 @@
 ﻿namespace Pickles.Forms
 {
-    internal static class Callers
+    internal static class FormCallers
     {
         /// <summary>
         /// Processes a generic alert to the user with an image.
@@ -252,7 +252,7 @@
             title = "PICKLES: " + title;
 
             // Keyed object process
-            var keyedObjects = pklFrm.CombineAsKeyedObjects(keys, values, showMessages: true);
+            var keyedObjects = FormUtils.CombineAsKeyedObjects(keys, values, showMessages: true);
             if (keyedObjects is null) { return formResult; }
 
             // Run the Wpf form
@@ -304,7 +304,7 @@
             title = "PICKLES: " + title;
 
             // Keyed object process
-            var keyedObjects = pklFrm.CombineAsKeyedObjects(keys, values, showMessages: true);
+            var keyedObjects = FormUtils.CombineAsKeyedObjects(keys, values, showMessages: true);
             if (keyedObjects is null) { return formResult; }
 
             // Run the Wpf form

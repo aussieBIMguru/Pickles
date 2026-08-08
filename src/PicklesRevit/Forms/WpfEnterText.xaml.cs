@@ -58,7 +58,7 @@ namespace Pickles.Forms
         private void InputTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             if (!this._numberEntry) { return; }
-            else { pklFrm.HandleNonNumericTextInput(sender, e, allowDecimal: this._decimalEntry); }
+            else { FormUtils.HandleNonNumericTextInput(sender, e, allowDecimal: this._decimalEntry); }
             ValidateEntry();
         }
 
@@ -69,7 +69,7 @@ namespace Pickles.Forms
         /// <param name="e"></param>
         private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            pklFrm.HandleKeyDownControlKeys(sender, e);
+            FormUtils.HandleKeyDownControlKeys(sender, e);
             ValidateEntry();
         }
 
