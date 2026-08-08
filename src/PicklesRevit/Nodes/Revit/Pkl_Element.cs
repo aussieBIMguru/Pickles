@@ -31,7 +31,7 @@
 
             // Transaction: Delete Elements
             DB.Document doc = docHelper.Document;
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Try to delete each element
             foreach (DynElement element in elements)
@@ -47,7 +47,7 @@
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return output
             return success;
@@ -251,7 +251,7 @@
             }
 
             // Transaction: Set Element Worksets
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Try to set the Workset
             int wsId = workset.Id.IntegerValue;
@@ -271,7 +271,7 @@
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return output
             return success;
@@ -320,7 +320,7 @@
 
             // Transaction: Rename Elements
             DB.Document doc = docHelper.Document;
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             for (int i = 0; i < Math.Min(elements.Count, names.Count); i++)
             {
@@ -340,7 +340,7 @@
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return output
             return output;
@@ -366,7 +366,7 @@
             }
             
             // Transaction: Isolate in View
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Get Element Id list
             List<DB.ElementId> ids = elements
@@ -376,7 +376,7 @@
             // Isolate elements
             revitView.IsolateElementsTemporary(ids);
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return output
             return true;

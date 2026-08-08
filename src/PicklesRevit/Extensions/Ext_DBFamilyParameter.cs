@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Autodesk.Revit.DB;
+using System.Reflection;
 
 namespace Pickles.Extensions
 {
@@ -29,6 +30,16 @@ namespace Pickles.Extensions
                     null);
 
             return constructor?.Invoke(new object[] { parameter }) as DynFamilyParameter;
+        }
+
+        /// <summary>
+        /// Returns if a Parameter is of the YesNo type.
+        /// </summary>
+        /// <param name="parameter">The parameter.</param>
+        /// <returns>If the parameter is a YesNo type.</returns>
+        internal static bool Ext_IsYesNo(this DB.FamilyParameter parameter)
+        {
+            return parameter.Definition.GetDataType() == DB.SpecTypeId.Boolean.YesNo;
         }
     }
 }

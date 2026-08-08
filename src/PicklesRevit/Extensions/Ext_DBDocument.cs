@@ -8,6 +8,50 @@ namespace Pickles.Extensions
     internal static class Ext_DBDocument
     {
         /// <summary>
+        /// Closes any open Transactions in Dynamo, then starts a new one.
+        /// </summary>
+        /// <param name="doc">The Document to start the Transaction in.</param>
+        internal static void Ext_CloseAndEnsureTransaction(this DB.Document doc)
+        {
+            TransactionManager.Instance.ForceCloseTransaction();
+            TransactionManager.Instance.EnsureInTransaction(doc);
+        }
+
+        /// <summary>
+        /// Starts a new Transaction then closes it, refreshing state.
+        /// Used in very few cases, currently only for opening Views.
+        /// </summary>
+        /// <param name="doc">The Document to start the Transaction in.</param>
+        internal static void Ext_EnsureAndCloseTransaction(this DB.Document doc)
+        {
+            TransactionManager.Instance.EnsureInTransaction(doc);
+            TransactionManager.Instance.ForceCloseTransaction();
+        }
+
+        /// <summary>
+        /// Starts a new Transaction.
+        /// This is just to abstract away and track where I use Dynamo Transactions.
+        /// </summary>
+        /// <param name="doc">The Document to start the Transaction in.</param>
+        internal static void Ext_EnsureTransaction(this DB.Document doc)
+        {
+            TransactionManager.Instance.EnsureInTransaction(doc);
+        }
+
+        /// <summary>
+        /// Finishes the open Transaction.
+        /// This is just to abstract away and track where I use Dynamo Transactions.
+        /// Note you do not need to actually use a Document in this, but I prefer
+        /// to abstractly conceptualize which Document I am finishing in, as this is
+        /// more similar to the RevitAPI.
+        /// </summary>
+        /// <param name="doc">The Document to finish the Transaction in.</param>
+        internal static void Ext_TransactionDone(this DB.Document doc)
+        {
+            TransactionManager.Instance.TransactionTaskDone();
+        }
+
+        /// <summary>
         /// Creates a collector with optional view and choice of elements of element types.
         /// </summary>
         /// <param name="doc">The DB Document.</param>

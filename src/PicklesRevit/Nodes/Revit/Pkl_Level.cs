@@ -40,7 +40,7 @@
                 .ToHashSet();
 
             // Transaction: Create Levels
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Work with minimum matching iteration
             for (int i = 0; i < Math.Min(names.Count, elevations.Count); i++)
@@ -62,7 +62,7 @@
                 newLevels.Add(level.Ext_ToDynElement(true));
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return output
             return newLevels;

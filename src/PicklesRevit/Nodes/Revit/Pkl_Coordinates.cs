@@ -134,9 +134,9 @@ namespace Pkl_Revit
             return new Dictionary<string, object>
             {
                 { "point", basePoint.Position.ToPoint() },
-                { "easting", basePoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_EASTWEST_PARAM).AsDouble().Ext_InternalToProject(unitId) },
-                { "northing", basePoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_NORTHSOUTH_PARAM).AsDouble().Ext_InternalToProject(unitId) },
-                { "elevation", basePoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_ELEVATION_PARAM).AsDouble().Ext_InternalToProject(unitId) },
+                { "easting", basePoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_EASTWEST_PARAM).AsDouble().Ext_ToProjectUnits(unitId) },
+                { "northing", basePoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_NORTHSOUTH_PARAM).AsDouble().Ext_ToProjectUnits(unitId) },
+                { "elevation", basePoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_ELEVATION_PARAM).AsDouble().Ext_ToProjectUnits(unitId) },
                 { "angle", basePoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_ANGLETON_PARAM).AsDouble().Ext_ToDegrees() }
             };
         }
@@ -167,9 +167,9 @@ namespace Pkl_Revit
             return new Dictionary<string, object>
             {
                 { "point", surveyPoint.Position.ToPoint() },
-                { "easting", surveyPoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_EASTWEST_PARAM).AsDouble().Ext_InternalToProject(unitId) },
-                { "northing", surveyPoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_NORTHSOUTH_PARAM).AsDouble().Ext_InternalToProject(unitId) },
-                { "elevation", surveyPoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_ELEVATION_PARAM).AsDouble().Ext_InternalToProject(unitId) },
+                { "easting", surveyPoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_EASTWEST_PARAM).AsDouble().Ext_ToProjectUnits(unitId) },
+                { "northing", surveyPoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_NORTHSOUTH_PARAM).AsDouble().Ext_ToProjectUnits(unitId) },
+                { "elevation", surveyPoint.Ext_GetBuiltInParameter(DB.BuiltInParameter.BASEPOINT_ELEVATION_PARAM).AsDouble().Ext_ToProjectUnits(unitId) },
             };
         }
     }

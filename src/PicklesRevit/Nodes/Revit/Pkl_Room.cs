@@ -1,4 +1,5 @@
-﻿using Revit.GeometryConversion;
+﻿using Autodesk.Revit.DB;
+using Revit.GeometryConversion;
 
 namespace Pkl_Revit
 {
@@ -54,7 +55,7 @@ namespace Pkl_Revit
                 .ToDictionary(g => g.Key, g => g.First());
 
             // Transaction: Create rooms
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             for (int i = 0; i < Math.Min(numbers.Count, names.Count); i++)
             {
@@ -77,7 +78,7 @@ namespace Pkl_Revit
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return output;
         }

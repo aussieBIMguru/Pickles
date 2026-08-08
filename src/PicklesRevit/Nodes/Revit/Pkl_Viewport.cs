@@ -56,7 +56,7 @@ namespace Pkl_Revit
 
             List<DynElement?> viewports = new();
 
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Isolate viewport view to get actual centre
             if (excludeElements)
@@ -95,7 +95,7 @@ namespace Pkl_Revit
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             if (errorCount > 0)
             {

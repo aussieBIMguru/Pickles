@@ -37,7 +37,7 @@
                         }
                         catch {; }
 
-                        return parameter.AsDouble().Ext_InternalToProject(ftid);
+                        return parameter.AsDouble().Ext_ToProjectUnits(ftid);
                     }
 
                 case DB.StorageType.ElementId:

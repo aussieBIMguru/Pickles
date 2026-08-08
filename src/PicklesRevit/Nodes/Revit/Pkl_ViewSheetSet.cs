@@ -67,12 +67,12 @@
             // Delete the set if it exists
             if (viewSheetSet != null)
             {
-                TransactionManager.Instance.EnsureInTransaction(doc);
+                doc.Ext_EnsureTransaction();
 
                 // Delete the set if it exists
                 if (viewSheetSet != null) doc.Delete(viewSheetSet.Id);
 
-                TransactionManager.Instance.TransactionTaskDone();
+                doc.Ext_TransactionDone();
             }
 
             // Construct view set
@@ -89,12 +89,12 @@
             var newSheetSet = printManager.ViewSheetSetting;
 
             // Transaction: Save/create sheet set
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             newSheetSet.CurrentViewSheetSet.Views = viewSet;
             newSheetSet.SaveAs(name);
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return that ViewSheetSet
             return doc.Ext_CollectByClass<DB.ViewSheetSet>()

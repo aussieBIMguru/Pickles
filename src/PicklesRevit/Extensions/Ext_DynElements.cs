@@ -44,9 +44,9 @@ namespace Pickles.Extensions
             if (convertToProject)
             {
                 return DynPoint.ByCoordinates(
-                    point.X.Ext_InternalToProject(DB.SpecTypeId.Length),
-                    point.Y.Ext_InternalToProject(DB.SpecTypeId.Length),
-                    point.Z.Ext_InternalToProject(DB.SpecTypeId.Length));
+                    point.X.Ext_ToProjectUnits(DB.SpecTypeId.Length),
+                    point.Y.Ext_ToProjectUnits(DB.SpecTypeId.Length),
+                    point.Z.Ext_ToProjectUnits(DB.SpecTypeId.Length));
             }
             else
             {

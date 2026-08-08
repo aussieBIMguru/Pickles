@@ -183,7 +183,7 @@ namespace Pkl_Revit
 
             DB.Document doc = dbVft.Document;
 
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             foreach (DynPoint point in points)
             {
@@ -193,7 +193,7 @@ namespace Pkl_Revit
                 markers.Add(marker.Ext_ToDynElement(true));
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return markers;
         }
@@ -223,7 +223,7 @@ namespace Pkl_Revit
 
             DB.Document doc = dbMarker.Document;
 
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             foreach (int index in viewIndices)
             {
@@ -255,7 +255,7 @@ namespace Pkl_Revit
                 elevations.Add(elevation?.Ext_ToDynElement(true));
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return elevations;
         }
@@ -284,7 +284,7 @@ namespace Pkl_Revit
             List<bool> success = new();
 
             // Transaction: Modify Views
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             foreach (DynView view in views)
             {
@@ -320,7 +320,7 @@ namespace Pkl_Revit
                 success.Add(wasSet);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return success;
         }
@@ -401,7 +401,7 @@ namespace Pkl_Revit
 
             // Transaction: Set crop boundary
             DB.Document doc = dbView.Document;
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             bool success = false;
 
@@ -418,7 +418,7 @@ namespace Pkl_Revit
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return success;
         }
@@ -495,7 +495,7 @@ namespace Pkl_Revit
             List<bool> success = new();
 
             // Transaction: Modify Views
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             foreach (DynView view in views)
             {
@@ -526,7 +526,7 @@ namespace Pkl_Revit
                 success.Add(wasSet);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return success;
         }
@@ -544,7 +544,7 @@ namespace Pkl_Revit
             List<bool> success = new();
 
             // Transaction: Modify Views
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             foreach (DynView view in views)
             {
@@ -575,7 +575,7 @@ namespace Pkl_Revit
                 success.Add(wasSet);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return success;
         }
@@ -594,8 +594,7 @@ namespace Pkl_Revit
                 RUI.UIDocument uiDoc = DocumentManager.Instance.CurrentUIDocument;
 
                 // Make sure transaction is clear
-                TransactionManager.Instance.EnsureInTransaction(dbView.Document);
-                TransactionManager.Instance.ForceCloseTransaction();
+                dbView.Document.Ext_EnsureAndCloseTransaction();
 
                 try
                 {

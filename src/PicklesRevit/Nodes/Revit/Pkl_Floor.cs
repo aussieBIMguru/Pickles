@@ -39,7 +39,7 @@ namespace Pkl_Revit
 
             List<DynElement?> floors = new();
 
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             for (int i = 0; i < Math.Min(polyCurveLists.Count, levels.Count); i++)
             {
@@ -57,7 +57,7 @@ namespace Pkl_Revit
 
                     if (offsets[i] != 0)
                     {
-                        double offsetInternal = offsets[i].Ext_InternalToProject(DB.SpecTypeId.Length);
+                        double offsetInternal = offsets[i].Ext_ToProjectUnits(DB.SpecTypeId.Length);
                         DB.Parameter parameter = floor.get_Parameter(DB.BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
                         parameter.Set(offsetInternal);
                     }
@@ -70,7 +70,7 @@ namespace Pkl_Revit
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return floors;
         }
@@ -119,11 +119,11 @@ namespace Pkl_Revit
                 
                 if (editor.IsEnabled)
                 {
-                    TransactionManager.Instance.EnsureInTransaction(dbFloor.Document);
+                    dbFloor.Document.Ext_EnsureTransaction();
 
                     editor.ResetSlabShape();
 
-                    TransactionManager.Instance.TransactionTaskDone();
+                    dbFloor.Document.Ext_TransactionDone();
                 }
 
                 return true;

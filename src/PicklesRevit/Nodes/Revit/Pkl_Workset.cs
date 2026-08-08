@@ -34,7 +34,7 @@
                 .ToDictionary(w => w.Name, w => w);
 
             // Transaction: Create Worksets
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             foreach (string name in names)
             {
@@ -50,7 +50,7 @@
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return the worksets
             return worksets;
@@ -91,7 +91,7 @@
                 .ToList();
 
             // Transaction: Rename worksets
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Rename the workset if it doesn't exist by name
             for (int i = 0; i < Math.Min(names.Count, worksets.Count); i++)
@@ -112,7 +112,7 @@
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return the outcomes
             return success;
@@ -145,7 +145,7 @@
             HashSet<string> isolateNames = worksets.Select(w => w.Name).ToHashSet();
 
             // Transaction: Isolate in View
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Get Revit view
             var revitView = view.InternalElement as DB.View;
@@ -155,15 +155,15 @@
             {
                 if (isolateNames.Contains(workset.Name))
                 {
-                    revitView.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Visible);
+                    revitView?.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Visible);
                 }
                 else
                 {
-                    revitView.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Hidden);
+                    revitView?.SetWorksetVisibility(workset.Id, DB.WorksetVisibility.Hidden);
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return the outcomes
             return view;

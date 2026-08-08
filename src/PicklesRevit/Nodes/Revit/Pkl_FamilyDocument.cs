@@ -1,4 +1,7 @@
-﻿namespace Pkl_Revit
+﻿using Autodesk.Revit.DB;
+using System.Windows.Controls;
+
+namespace Pkl_Revit
 {
     /// <summary>
     /// Nodes relating to Revit Family Documents.
@@ -11,14 +14,14 @@
         /// Adds a Shared Parameter to the given Family Document.
         /// </summary>
         /// <param name="familyDocument">The FamilyDocument.</param>
-        /// <param name="definition">The Shared Parameter definition.</param>
+        /// <param name="exDefinition">The Shared Parameter definition.</param>
         /// <param name="groupType">The GroupType to put the Parameter under.</param>
         /// <param name="instance">If the new parameter is instance based.</param>
         /// <returns name="familyParameter">The FamilyParameter (null if not added).</returns>
         /// <search>Revit.FamilyDocument.AddSharedParameter</search>
         [NodeCategory("Create")]
         public static DynFamilyParameter? AddSharedParameter(DynDocument familyDocument,
-            DB.ExternalDefinition definition, DynGroupType groupType, bool instance)
+            DB.ExternalDefinition exDefinition, DynGroupType groupType, bool instance)
         {
             // Ensure FamilyDocument
             if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
@@ -29,13 +32,13 @@
             }
 
             // Try to add the Parameter
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             DynFamilyParameter? parameter = null;
 
             try
             {
                 parameter = fm.AddParameter(
-                    definition,
+                    exDefinition,
                     groupType.Ext_ToGroupTypeId(),
                     instance)
                     .Ext_ToDynFamilyParameter();
@@ -46,7 +49,7 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return parameter;
         }
 
@@ -54,17 +57,17 @@
         /// Gets the value of a FamilyType's FamilyParameter in a FamilyDocument.
         /// </summary>
         /// <param name="familyDocument">The related Document.</param>
-        /// <param name="parameter">The FamilyParameter.</param>
+        /// <param name="familyParameter">The FamilyParameter.</param>
         /// <param name="familyType">The FamilyType.</param>
         /// <returns name="value">The value of the FamilyParameter.</returns>
         /// <search>Revit.FamilyDocument.GetParameterValue</search>
         [NodeCategory("Action")]
         public static object? GetParameterValue(DynDocument familyDocument,
-            DynFamilyParameter parameter, DB.FamilyType familyType)
+            DynFamilyParameter familyParameter, DB.FamilyType familyType)
         {
             // Ensure valid inputs
             if (familyType == null
-                || parameter.Ext_ToFamilyParameter() is not DB.FamilyParameter familyParameter
+                || familyParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter parameter
                 || familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
                 || dbDocument.FamilyManager == null)
             {
@@ -73,15 +76,15 @@
             }
 
             // Return the corresponding value type
-            switch (familyParameter.StorageType)
+            switch (parameter.StorageType)
             {
                 case DB.StorageType.String:
-                    return familyType.AsString(familyParameter) ?? "";
+                    return familyType.AsString(parameter) ?? "";
 
                 case DB.StorageType.Integer:
-                    int? intValue = familyType.AsInteger(familyParameter);
+                    int? intValue = familyType.AsInteger(parameter);
 
-                    if (familyParameter.Definition.GetDataType() == DB.SpecTypeId.Boolean.YesNo)
+                    if (parameter.Ext_IsYesNo())
                     {
                         return intValue == 1;
                     }
@@ -89,14 +92,14 @@
                     return intValue;
 
                 case DB.StorageType.Double:
-                    if (familyType.AsDouble(familyParameter) is double dblValue)
+                    if (familyType.AsDouble(parameter) is double dblValue)
                     {
-                        return dblValue.Ext_InternalToProject(familyParameter.GetUnitTypeId());
+                        return dblValue.Ext_ToProjectUnits(parameter.GetUnitTypeId());
                     }
                     return null;
 
                 case DB.StorageType.ElementId:
-                    return familyType.AsElementId(familyParameter)
+                    return familyType.AsElementId(parameter)
                         .Ext_GetDynamoElement(dbDocument, true);
 
                 default:
@@ -110,19 +113,19 @@
         /// Inputs must be of the required Paraemeter StorageType.
         /// </summary>
         /// <param name="familyDocument">The related Document.</param>
-        /// <param name="parameter">The FamilyParameter.</param>
+        /// <param name="familyParameter">The FamilyParameter.</param>
         /// <param name="value">The value to set.</param>
         /// <param name="familyType">The FamilyType.</param>
         /// <returns name="success">If the value was set successfully.</returns>
         /// <search>Revit.FamilyDocument.SetParameterValue</search>
         [NodeCategory("Action")]
         public static object? SetParameterValue(DynDocument familyDocument,
-            DynFamilyParameter parameter, object value, DB.FamilyType familyType)
+            DynFamilyParameter familyParameter, object value, DB.FamilyType familyType)
         {
             // Ensure valid inputs
             if (familyType == null
                 || value == null
-                || parameter.Ext_ToFamilyParameter() is not DB.FamilyParameter familyParameter
+                || familyParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter setParameter
                 || familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
                 || dbDocument.FamilyManager is not DB.FamilyManager fm)
             {
@@ -131,73 +134,61 @@
             }
 
             // Catch cases where the value cannot be changed
-            if (familyParameter.IsDeterminedByFormula
-                || familyParameter.IsReporting
-                || familyParameter.IsReadOnly)
+            if (setParameter.IsDeterminedByFormula
+                || setParameter.IsReporting
+                || setParameter.IsReadOnly)
             {
                 WARNING_TYPE.DEFAULT.Ext_Raise("The Parameter's value is not able to be changed.");
                 return false;
             }
 
             // Try to set the value
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             bool success = false;
 
             // Set by the related storage type, value must be of that type
             try
             {
-                fm.CurrentType = familyType;
+                fm.Ext_SetCurrentType(familyType);
                 
-                switch (familyParameter.StorageType)
+                switch (setParameter.StorageType)
                 {
                     case DB.StorageType.String:
 
                         if (value is string strValue)
                         {
-                            fm.Set(familyParameter, strValue);
+                            fm.Set(setParameter, strValue);
                             success = true;
                         }
                         break;
 
                     case DB.StorageType.Integer:
 
-                        if (familyParameter.Definition.GetDataType() == DB.SpecTypeId.Boolean.YesNo)
+                        if (setParameter.Ext_IsYesNo() && value is bool boolValue)
                         {
-                            // Assumption is user provides booleans for Yes/No values
-                            // We let the integer case get checked anyway after
-                            if (value is bool boolValue)
-                            {
-                                fm.Set(familyParameter, boolValue ? 1 : 0);
-                                success = true;
-                                break;
-                            }
+                            fm.Set(setParameter, boolValue ? 1 : 0);
+                            success = true;
+                            break;
                         }
 
-                        if (value is int intValue)
-                        {
-                            fm.Set(familyParameter, intValue);
-                            success = true;
-                        }
+                        fm.Set(setParameter, Convert.ToInt32(value));
+                        success = true;
                         break;
 
                     case DB.StorageType.Double:
 
-                        if (value is double dblValue)
-                        {
-                            // If the FamilyParameter has no Unit, it will not change
-                            // Assumption is user provides values in their project units
-                            double dblValueInternal =
-                                dblValue.Ext_InternalToProject(familyParameter.GetUnitTypeId());
-                            fm.Set(familyParameter, dblValueInternal);
-                            success = true;
-                        }
+                        double doubleValue = Convert.ToDouble(value)
+                            .Ext_ToInternalUnits(setParameter.GetUnitTypeId());
+
+                        fm.Set(setParameter, doubleValue);
+                        success = true;
                         break;
 
                     case DB.StorageType.ElementId:
 
                         if (value is DynElement element)
                         {
-                            fm.Set(familyParameter, element.InternalElement.Id);
+                            fm.Set(setParameter, element.InternalElement.Id);
                             success = true;
                             break;
                         }
@@ -205,7 +196,7 @@
                         // This is a very unlikely case to occur, but we will support it
                         if (value is DB.ElementId elementId)
                         {
-                            fm.Set(familyParameter, elementId);
+                            fm.Set(setParameter, elementId);
                         }
                         break;
 
@@ -218,7 +209,62 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
+            return success;
+        }
+
+        /// <summary>
+        /// Sets a Family Parameter's formula from the given Family Document.
+        /// 
+        /// A null Formula will remove the assigned formula, if one is assigned.
+        /// </summary>
+        /// <param name="familyDocument">The FamilyDocument.</param>
+        /// <param name="familyParameter">The FamilyParameter to set the Formula for.</param>
+        /// <param name="formula">The Formula to set.</param>
+        /// <returns name="success">If the Parameter was removed.</returns>
+        /// <search>Revit.FamilyDocument.RemoveParameter</search>
+        [NodeCategory("Action")]
+        public static bool SetParameterFormula(DynDocument familyDocument,
+            DynFamilyParameter familyParameter, string formula)
+        {
+            // Ensure FamilyDocument
+            if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
+                || dbDocument.FamilyManager is not DB.FamilyManager fm
+                || familyParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter param)
+            {
+                WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
+                return false;
+            }
+
+            // Ensure formula is possible
+            if (!param.CanAssignFormula)
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise("Parameter does not support this formula.");
+                return false;
+            }
+
+            // Check if it exists already, early return if not
+            if (fm.Ext_GetParameterByName(param.Definition.Name) == null)
+            {
+                WARNING_TYPE.FAMDOC_PARAM_NOTEXISTS.Ext_Raise();
+                return false;
+            }
+
+            // Try to set the formula
+            dbDocument.Ext_EnsureTransaction();
+            bool success = false;
+
+            try
+            {
+                fm.SetFormula(param, formula);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
+            }
+
+            dbDocument.Ext_TransactionDone();
             return success;
         }
 
@@ -230,11 +276,13 @@
         /// <param name="specType">The SpecType of the parameter.</param>
         /// <param name="groupType">The GroupType to put the Parameter under.</param>
         /// <param name="instance">If the new parameter is instance based.</param>
+        /// <param name="getIfExisting">If the Parameter already exists by name, return it.</param>
         /// <returns name="familyParameter">The FamilyParameter (null if not added).</returns>
         /// <search>Revit.FamilyDocument.AddFamilyParameter</search>
         [NodeCategory("Create")]
         public static DynFamilyParameter? AddFamilyParameter(DynDocument familyDocument,
-            string parameterName, DynSpecType specType, DynGroupType groupType, bool instance)
+            string parameterName, DynSpecType specType, DynGroupType groupType, bool instance,
+            bool getIfExisting = true)
         {
             // Ensure FamilyDocument
             if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
@@ -244,8 +292,22 @@
                 return null;
             }
 
+            // Check if it exists already, early return if so
+            if (fm.Ext_GetParameterByName(parameterName) is DB.FamilyParameter exParameter)
+            {
+                if (getIfExisting)
+                {
+                    return exParameter.Ext_ToDynFamilyParameter();
+                }
+                else
+                {
+                    WARNING_TYPE.FAMDOC_PARAM_EXISTS.Ext_Raise();
+                    return null;
+                }
+            }
+
             // Try to add the Parameter
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             DynFamilyParameter? parameter = null;
 
             try
@@ -263,7 +325,7 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return parameter;
         }
 
@@ -271,26 +333,42 @@
         /// Replaces a FamilyParameter with a new Shared Parameter.
         /// </summary>
         /// <param name="familyDocument">The FamilyDocument.</param>
-        /// <param name="definition">The Shared Parameter definition.</param>
-        /// <param name="replaceParameter">The FamilyParameter to replace.</param>
+        /// <param name="exDefinition">The Shared Parameter definition.</param>
+        /// <param name="familyParameter">The FamilyParameter to replace.</param>
+        /// <param name="getIfExisting">If the Parameter already exists by name, return it.</param>
         /// <returns name="familyParameter">The FamilyParameter (null if not replaced).</returns>
         /// <search>Revit.FamilyDocument.ReplaceParameterWithShared</search>
         [NodeCategory("Action")]
         public static DynFamilyParameter? ReplaceParameterWithShared(DynDocument familyDocument,
-            DB.ExternalDefinition definition, DynFamilyParameter replaceParameter)
+            DB.ExternalDefinition exDefinition, DynFamilyParameter familyParameter,
+            bool getIfExisting = true)
         {
             // Ensure FamilyDocument
             if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
                 || dbDocument.FamilyManager is not DB.FamilyManager fm
-                || replaceParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter repPar
-                || definition == null)
+                || familyParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter repPar
+                || exDefinition == null)
             {
                 WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
                 return null;
             }
 
+            // Check if it exists already, early return if so
+            if (fm.Ext_GetParameterByName(exDefinition.Name) is DB.FamilyParameter exParameter)
+            {
+                if (getIfExisting)
+                {
+                    return exParameter.Ext_ToDynFamilyParameter();
+                }
+                else
+                {
+                    WARNING_TYPE.FAMDOC_PARAM_EXISTS.Ext_Raise();
+                    return null;
+                }
+            }
+
             // Try to replace the Parameter
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             DynFamilyParameter? parameter = null;
 
             try
@@ -308,7 +386,7 @@
                 // Replace family with shared
                 parameter = fm.ReplaceParameter(
                          repPar,
-                         definition,
+                         exDefinition,
                          repPar.Definition.GetGroupTypeId(),
                          repPar.IsInstance)
                     .Ext_ToDynFamilyParameter();
@@ -318,7 +396,7 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return parameter;
         }
 
@@ -327,25 +405,41 @@
         /// </summary>
         /// <param name="familyDocument">The FamilyDocument.</param>
         /// <param name="newParameterName">The new Family Parameter name.</param>
-        /// <param name="replaceParameter">The FamilyParameter to replace.</param>
+        /// <param name="familyParameter">The FamilyParameter to replace.</param>
+        /// <param name="getIfExisting">If the Parameter already exists by name, return it.</param>
         /// <returns name="familyParameter">The FamilyParameter (null if not replaced).</returns>
         /// <search>Revit.FamilyDocument.ReplaceParameterWithFamily</search>
         [NodeCategory("Action")]
         public static DynFamilyParameter? ReplaceParameterWithFamily(DynDocument familyDocument,
-            string newParameterName, DynFamilyParameter replaceParameter)
+            string newParameterName, DynFamilyParameter familyParameter,
+            bool getIfExisting = true)
         {
             // Ensure FamilyDocument
             if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
                 || dbDocument.FamilyManager is not DB.FamilyManager fm
                 || newParameterName.Ext_HasNoChars()
-                || replaceParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter repPar)
+                || familyParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter repPar)
             {
                 WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
                 return null;
             }
 
+            // Check if it exists already, early return if so
+            if (fm.Ext_GetParameterByName(newParameterName) is DB.FamilyParameter exParameter)
+            {
+                if (getIfExisting)
+                {
+                    return exParameter.Ext_ToDynFamilyParameter();
+                }
+                else
+                {
+                    WARNING_TYPE.FAMDOC_PARAM_EXISTS.Ext_Raise();
+                    return null;
+                }
+            }
+
             // Try to replace the Parameter
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             DynFamilyParameter? parameter = null;
 
             try
@@ -363,7 +457,7 @@
                 else
                 {
                     fm.RenameParameter(repPar, newParameterName);
-                    parameter = replaceParameter;
+                    parameter = familyParameter;
                 }
             }
             catch (Exception ex)
@@ -371,7 +465,7 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return parameter;
         }
 
@@ -388,19 +482,27 @@
         {
             // Ensure FamilyDocument
             if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
-                || dbDocument.FamilyManager is not DB.FamilyManager fm)
+                || dbDocument.FamilyManager is not DB.FamilyManager fm
+                || familyParameter.Ext_ToFamilyParameter() is not DB.FamilyParameter param)
             {
                 WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
                 return false;
             }
 
+            // Check if it exists already, early return if not
+            if (fm.Ext_GetParameterByName(param.Definition.Name) == null)
+            {
+                WARNING_TYPE.FAMDOC_PARAM_NOTEXISTS.Ext_Raise();
+                return false;
+            }
+
             // Try to remove the Parameter
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             bool success = false;
 
             try
             {
-                fm.RemoveParameter(familyParameter.Ext_ToFamilyParameter());
+                fm.RemoveParameter(param);
                 success = true;
             }
             catch (Exception ex)
@@ -408,7 +510,7 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return success;
         }
 
@@ -430,8 +532,15 @@
                 return false;
             }
 
+            // Check if it exists already, early return if not
+            if (fm.Ext_GetParameterByName(parameterName) == null)
+            {
+                WARNING_TYPE.FAMDOC_PARAM_NOTEXISTS.Ext_Raise();
+                return false;
+            }
+
             // Try to remove the Parameter
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             bool success = false;
 
             foreach (var parameter in fm.Parameters.Cast<DB.FamilyParameter>())
@@ -451,7 +560,7 @@
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return success;
         }
 
@@ -460,7 +569,7 @@
         /// </summary>
         /// <param name="familyDocument">The FamilyDocument.</param>
         /// <param name="parameterName">The name to get.</param>
-        /// <returns name="familyType">The FamilyType (null if not found).</returns>
+        /// <returns name="familyParameter">The FamilyType (null if not found).</returns>
         /// <search>Revit.FamilyDocument.GetTypeByName</search>
         [NodeCategory("Action")]
         public static DynFamilyParameter? GetParameterByName(DynDocument familyDocument, string parameterName)
@@ -472,11 +581,17 @@
                 return null;
             }
 
-            // Get parmeter if found
-            return fm.Parameters
-                .Cast<DB.FamilyParameter>()
-                .FirstOrDefault(p => p.Definition.Name == parameterName)
+            // Return if it exists
+            DynFamilyParameter? familyParameter = fm.Ext_GetParameterByName(parameterName)
                 ?.Ext_ToDynFamilyParameter();
+
+            if (familyParameter is null)
+            {
+                WARNING_TYPE.FAMDOC_PARAM_NOTEXISTS.Ext_Raise();
+                return null;
+            }
+
+            return familyParameter;
         }
 
         /// <summary>
@@ -492,7 +607,7 @@
             if (familyDocument.Ext_ToDBDocument()?.FamilyManager is not DB.FamilyManager fm)
             {
                 WARNING_TYPE.DOC_NOT_FAMILY.Ext_Raise();
-                return new();
+                return [];
             }
 
             // Get parameters
@@ -509,11 +624,12 @@
         /// <param name="familyDocument">The FamilyDocument.</param>
         /// <param name="newTypeName">The new name to apply.</param>
         /// <param name="basedOn">The FamilyType to base it on (optional).</param>
+        /// <param name="getIfExisting">If the Parameter already exists by name, return it.</param>
         /// <returns name="familyType">The FamilyType (null if not created).</returns>
         /// <search>Revit.FamilyDocument.CreateNewType</search>
         [NodeCategory("Create")]
         public static DB.FamilyType? CreateNewType(DynDocument familyDocument, string newTypeName,
-            DB.FamilyType? basedOn = null)
+            [DefaultArgument("null")] DB.FamilyType? basedOn = null, bool getIfExisting = true)
         {
             // Ensure FamilyDocument
             if (familyDocument.Ext_ToDBDocument() is not DB.Document dbDocument
@@ -523,8 +639,22 @@
                 return null;
             }
 
+            // Check if it exists already, early return if so
+            if (fm.Ext_GetTypeByName(newTypeName) is DB.FamilyType exType)
+            {
+                if (getIfExisting)
+                {
+                    return exType;
+                }
+                else
+                {
+                    WARNING_TYPE.FAMDOC_TYPE_EXISTS.Ext_Raise();
+                    return null;
+                }
+            }
+
             // Try to remove the FamilyType
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             DB.FamilyType? familyType = null;
 
             try
@@ -541,7 +671,7 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return familyType;
         }
 
@@ -565,8 +695,15 @@
                 return false;
             }
 
+            // Check if it exists already, early return if so
+            if (fm.Ext_GetTypeByName(newTypeName) is DB.FamilyType exType)
+            {
+                WARNING_TYPE.FAMDOC_TYPE_EXISTS.Ext_Raise();
+                return false;
+            }
+
             // Try to remove the FamilyType
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             bool success = false;
 
             try
@@ -580,7 +717,7 @@
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return success;
         }
 
@@ -602,22 +739,31 @@
                 return false;
             }
 
+            // Check if it does not exist, early return if so
+            if (fm.Ext_GetTypeByName(familyType.Name) is not DB.FamilyType removeType)
+            {
+                WARNING_TYPE.FAMDOC_TYPE_NOTEXISTS.Ext_Raise();
+                return false;
+            }
+
             // Try to remove the FamilyType
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             bool success = false;
 
             try
             {
-                fm.CurrentType = familyType;
-                fm.DeleteCurrentType();
-                success = true;
+                if (fm.Ext_SetCurrentType(removeType))
+                {
+                    fm.DeleteCurrentType();
+                    success = true;
+                }
             }
             catch (Exception ex)
             {
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
             return success;
         }
 
@@ -639,29 +785,31 @@
                 return false;
             }
 
-            // Try to remove the FamilyType
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
-            bool success = false;
-
-            foreach (var familyType in fm.Types.Cast<DB.FamilyType>())
+            // Check if it does not exist, early return if so
+            if (fm.Ext_GetTypeByName(typeName) is not DB.FamilyType removeType)
             {
-                if (familyType.Name == typeName)
-                {
-                    try
-                    {
-                        fm.CurrentType = familyType;
-                        fm.DeleteCurrentType();
-                        success = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
-                        break;
-                    }
-                }
+                WARNING_TYPE.FAMDOC_TYPE_NOTEXISTS.Ext_Raise();
+                return false;
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            // Try to remove the FamilyType
+            dbDocument.Ext_EnsureTransaction();
+            bool success = false;
+
+            try
+            {
+                if (fm.Ext_SetCurrentType(removeType))
+                {
+                    fm.DeleteCurrentType();
+                    success = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
+            }
+
+            dbDocument.Ext_TransactionDone();
             return success;
         }
 
@@ -703,20 +851,19 @@
             }
 
             // Try to set the FamilyType
-            TransactionManager.Instance.EnsureInTransaction(dbDocument);
+            dbDocument.Ext_EnsureTransaction();
             bool outcome = false;
 
             try
             {
-                fm.CurrentType = familyType;
-                outcome = true;
+                outcome = fm.Ext_SetCurrentType(familyType);
             }
             catch (Exception ex)
             {
                 WARNING_TYPE.DEFAULT.Ext_Raise(ex.Message);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            dbDocument.Ext_TransactionDone();
 
             return outcome;
         }
@@ -738,10 +885,16 @@
                 return null;
             }
 
-            // Get family type if found
-            return fm.Types
-                .Cast<DB.FamilyType>()
-                .FirstOrDefault(t => t.Name == typeName);
+            // Return if it exists
+            DB.FamilyType? familyType = fm.Ext_GetTypeByName(typeName);
+
+            if (familyType is null)
+            {
+                WARNING_TYPE.FAMDOC_TYPE_NOTEXISTS.Ext_Raise();
+                return null;
+            }
+
+            return familyType;
         }
 
         /// <summary>
@@ -782,37 +935,43 @@
             bool overwriteValues = false, bool overwriteNested = false)
         {
             // Get target document to load family into
-            DB.Document targetRevitDoc = targetDocument == null
-                ? DocumentManager.Instance.CurrentDBDocument
-                : targetDocument.Ext_ToDBDocument();
+            DB.Document targetRevitDoc = targetDocument?.Ext_ToDBDocument() ?? DocumentManager.Instance.CurrentDBDocument;
 
-            // Using a transaction...
+            // Load families - target doc must be nonmodifiable
+            TransactionManager.Instance.ForceCloseTransaction();
+
             int notFamilyCount = 0;
             List<DynElement?> families = new();
             var options = new FamilyLoadOptions(overwriteValues, overwriteNested);
 
-            // For each document...
-            foreach (DynDocument familyDocument in familyDocuments)
+            try
             {
-                // Get and verify family document
-                DB.Document familyDbDoc = familyDocument.Ext_ToDBDocument();
-                DynElement? family = null;
-
-                // Load document if it's a family
-                if (!familyDbDoc.IsFamilyDocument)
+                // For each document...
+                foreach (DynDocument familyDocument in familyDocuments)
                 {
-                    notFamilyCount++;
-                }
-                else
-                {
-                    family = familyDocument.Ext_ToDBDocument()
-                            .LoadFamily(targetRevitDoc, options)
-                            .Ext_ToDynElement(true);
-                }
+                    // Get and verify family document
+                    DB.Document familyDbDoc = familyDocument.Ext_ToDBDocument();
+                    DynElement? family = null;
 
-                families.Add(family);
+                    // Load document if it's a family
+                    if (!familyDbDoc.IsFamilyDocument)
+                    {
+                        notFamilyCount++;
+                    }
+                    else
+                    {
+                        family = familyDocument.Ext_ToDBDocument()
+                                .LoadFamily(targetRevitDoc, options)
+                                .Ext_ToDynElement(true);
+                    }
+
+                    families.Add(family);
+                }
             }
-
+            finally
+            {
+                targetRevitDoc.Ext_TransactionDone();
+            }
 
             // Report errors if any to user
             if (notFamilyCount > 0)
@@ -843,37 +1002,45 @@
                 ? DocumentManager.Instance.CurrentDBDocument
                 : targetDocument.Ext_ToDBDocument();
 
-            // Using a transaction...
+            // Load families
+            targetRevitDoc.Ext_EnsureTransaction();
+
             int notFamilyCount = 0;
             int higherVersionCount = 0;
             List<DynElement?> families = new();
             var options = new FamilyLoadOptions(overwriteValues, overwriteNested);
 
-            // For each file path...
-            foreach (string filePath in filePaths)
+            try
             {
-                DynElement? family = null;
-
-                // Validate Document suitability
-                DB.BasicFileInfo info = DB.BasicFileInfo.Extract(filePath);
-                bool isFamily = string.Equals(System.IO.Path.GetExtension(filePath), ".rfa", StringComparison.OrdinalIgnoreCase);
-
-                if (info.IsSavedInLaterVersion)
+                // For each family file path...
+                foreach (string filePath in filePaths)
                 {
-                    higherVersionCount++;
-                }
-                else if (!isFamily)
-                {
-                    notFamilyCount++;
-                }
-                else if (targetRevitDoc.LoadFamily(filePath, options, out DB.Family loadFamily))
-                {
-                    family = loadFamily.Ext_ToDynElement(true);
-                }
+                    DynElement? family = null;
 
-                families.Add(family);
+                    // Validate Document suitability
+                    DB.BasicFileInfo info = DB.BasicFileInfo.Extract(filePath);
+                    bool isFamily = string.Equals(System.IO.Path.GetExtension(filePath), ".rfa", StringComparison.OrdinalIgnoreCase);
+
+                    if (info.IsSavedInLaterVersion)
+                    {
+                        higherVersionCount++;
+                    }
+                    else if (!isFamily)
+                    {
+                        notFamilyCount++;
+                    }
+                    else if (targetRevitDoc.LoadFamily(filePath, options, out DB.Family loadFamily))
+                    {
+                        family = loadFamily.Ext_ToDynElement(true);
+                    }
+
+                    families.Add(family);
+                }
             }
-
+            finally
+            {
+                targetRevitDoc.Ext_TransactionDone();
+            }
 
             // Report errors if any to user
             if (notFamilyCount > 0)

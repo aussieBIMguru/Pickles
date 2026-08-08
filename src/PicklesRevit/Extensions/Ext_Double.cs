@@ -28,11 +28,27 @@
         /// <param name="value"></param>
         /// <param name="ftid"></param>
         /// <returns></returns>
-        internal static double Ext_InternalToProject(this double value, DB.ForgeTypeId ftid)
+        internal static double Ext_ToProjectUnits(this double value, DB.ForgeTypeId ftid)
         {
             if (ftid != null && DB.UnitUtils.IsUnit(ftid))
             {
                 return DB.UnitUtils.ConvertFromInternalUnits(value, ftid);
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="ftid"></param>
+        /// <returns></returns>
+        internal static double Ext_ToInternalUnits(this double value, DB.ForgeTypeId ftid)
+        {
+            if (ftid != null && DB.UnitUtils.IsUnit(ftid))
+            {
+                return DB.UnitUtils.ConvertToInternalUnits(value, ftid);
             }
 
             return value;

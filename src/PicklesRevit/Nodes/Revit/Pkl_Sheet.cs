@@ -81,7 +81,7 @@ namespace Pkl_Revit
 
             // Transaction: Create Sheets
             DB.Document doc = docHelper.Document;
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // For each name/number pairing...
             for (int i = 0; i < Math.Min(names.Count, numbers.Count); i++)
@@ -106,7 +106,7 @@ namespace Pkl_Revit
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return outputs
             return output;
@@ -146,7 +146,7 @@ namespace Pkl_Revit
 
             // Transaction: Add Revision
             DB.Document doc = docHelper.Document;
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Revit revision
             DB.Revision internalRevision = revision.InternalElement as DB.Revision;
@@ -159,7 +159,7 @@ namespace Pkl_Revit
                 outSuccess.Add(success);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return outputs
             return output;
@@ -192,7 +192,7 @@ namespace Pkl_Revit
 
             // Transaction: Remove Revision
             DB.Document doc = docHelper.Document;
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             // Revit revision
             DB.Revision internalRevision = revision.InternalElement as DB.Revision;
@@ -205,7 +205,7 @@ namespace Pkl_Revit
                 outSuccess.Add(success);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return outputs
             return output;

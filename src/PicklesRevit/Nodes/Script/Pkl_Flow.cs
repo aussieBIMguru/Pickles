@@ -99,7 +99,7 @@
         [NodeCategory("Action")]
         [return: ArbitraryDimensionArrayImport]
         public static object WaitFor([ArbitraryDimensionArrayImport] object data,
-            object waitFor)
+            [ArbitraryDimensionArrayImport] object waitFor)
         {
             return data;
         }

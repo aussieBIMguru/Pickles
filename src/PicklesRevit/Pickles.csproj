@@ -10,6 +10,7 @@
 		<UseWindowsForms>true</UseWindowsForms>
 		<Nullable>enable</Nullable>
 		<PlatformTarget>x64</PlatformTarget>
+		<Platform>windows</Platform>
 		<Prefer32Bit>false</Prefer32Bit>
 		<RevitInstallPath>C:\Program Files\Autodesk\Revit 2027</RevitInstallPath>
 		<DynamoRevitPath>$(RevitInstallPath)\AddIns\DynamoForRevit\Revit</DynamoRevitPath>

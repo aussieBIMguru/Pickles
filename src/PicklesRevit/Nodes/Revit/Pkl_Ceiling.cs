@@ -39,7 +39,7 @@ namespace Pkl_Revit
 
             List<DynElement?> ceilings = new();
 
-            TransactionManager.Instance.EnsureInTransaction(doc);
+            doc.Ext_EnsureTransaction();
 
             for (int i = 0; i < Math.Min(polyCurveLists.Count, levels.Count); i++)
             {
@@ -57,7 +57,7 @@ namespace Pkl_Revit
 
                     if (offsets[i] != 0)
                     {
-                        double offsetInternal = offsets[i].Ext_InternalToProject(DB.SpecTypeId.Length);
+                        double offsetInternal = offsets[i].Ext_ToProjectUnits(DB.SpecTypeId.Length);
                         DB.Parameter parameter = ceiling.get_Parameter(DB.BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
                         parameter.Set(offsetInternal);
                     }
@@ -70,7 +70,7 @@ namespace Pkl_Revit
                 }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             return ceilings;
         }
