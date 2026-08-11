@@ -16,7 +16,7 @@ namespace PicklesUI
         private static IEnumerable<DB.FamilySymbol> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
-            if (doc == null) return Enumerable.Empty<DB.FamilySymbol>();
+            if (doc == null) return [];
 
             int titleBlocksId = (int)DB.BuiltInCategory.OST_TitleBlocks;
 

@@ -314,8 +314,8 @@ namespace Pkl_Revit
             {
                 parameter = fm.AddParameter(
                     parameterName,
-                    specType.Ext_ToSpecTypeId(),
                     groupType.Ext_ToGroupTypeId(),
+                    specType.Ext_ToSpecTypeId(),
                     instance)
                     .Ext_ToDynFamilyParameter();
             }
@@ -565,12 +565,12 @@ namespace Pkl_Revit
         }
 
         /// <summary>
-        /// Gets specified FamilyType by name from a Family Document if available.
+        /// Gets specified FamilyParameter by name from a Family Document if available.
         /// </summary>
         /// <param name="familyDocument">The FamilyDocument.</param>
         /// <param name="parameterName">The name to get.</param>
-        /// <returns name="familyParameter">The FamilyType (null if not found).</returns>
-        /// <search>Revit.FamilyDocument.GetTypeByName</search>
+        /// <returns name="familyParameter">The FamilyParameter (null if not found).</returns>
+        /// <search>Revit.FamilyDocument.GetParameterByName</search>
         [NodeCategory("Action")]
         public static DynFamilyParameter? GetParameterByName(DynDocument familyDocument, string parameterName)
         {

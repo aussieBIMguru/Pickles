@@ -1224,7 +1224,7 @@
         /// <returns name="views">A list of Views.</returns>
         /// <search>Revit.Collect.Views</search>
         [NodeCategory("Action")]
-        public static IList<DynElement> Views([DefaultArgument("null")] object? docOrLinkInstance = null)
+        public static IEnumerable<DynElement?> Views([DefaultArgument("null")] object? docOrLinkInstance = null)
         {
             // Get the related document
             var docHelper = new DocumentHelper(docOrLinkInstance, fallBack: true);
@@ -1233,36 +1233,12 @@
             if (!docHelper.IsValid)
             {
                 docHelper.RaiseInvalidWarning();
-                return new List<DynElement>();
+                return [];
             }
 
-            // Ignore types
-            var ignoreTypes = new HashSet<DB.ViewType>()
-            {
-                // Browser/Internal
-                DB.ViewType.Internal,
-                DB.ViewType.ProjectBrowser,
-                DB.ViewType.SystemBrowser,
-                DB.ViewType.Undefined,
-                
-                // Documentation
-                DB.ViewType.Legend,
-                DB.ViewType.DrawingSheet,
-                DB.ViewType.Schedule,
-                DB.ViewType.ColumnSchedule,
-                DB.ViewType.PanelSchedule,
-                
-                // Reports
-                DB.ViewType.Report,
-                DB.ViewType.CostReport,
-                DB.ViewType.LoadsReport,
-                DB.ViewType.PressureLossReport,
-                DB.ViewType.SystemsAnalysisReport,
-            };
-
-            // Return the elements
-            return docHelper.Document.Ext_CollectByClass<DB.View>()
-                .Where(v => !v.IsTemplate && !ignoreTypes.Contains(v.ViewType))
+            // Return the Views
+            return docHelper.Document.Ext_CollectViews()
+                .Where(v => !v.IsTemplate)
                 .Ext_ToDynamoElements(true);
         }
 

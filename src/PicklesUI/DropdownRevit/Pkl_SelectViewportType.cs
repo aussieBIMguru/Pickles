@@ -16,7 +16,7 @@ namespace PicklesUI
         private static IEnumerable<DB.Element> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
-            if (doc == null) return Enumerable.Empty<DB.ViewSheet>();
+            if (doc == null) return [];
 
             // Construct the collector rule
             DB.FilterRule? collectorRule = DB.ParameterFilterRuleFactory.CreateEqualsRule(

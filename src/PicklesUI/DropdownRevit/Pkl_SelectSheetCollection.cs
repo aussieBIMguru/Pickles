@@ -34,7 +34,7 @@ namespace PicklesUI
         private static IEnumerable<DB.Element> GetItems(NodeModel node)
         {
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
-            if (doc == null) return Enumerable.Empty<DB.Element>();
+            if (doc == null) return [];
 
             DB.View? projectBrowser = new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.View))

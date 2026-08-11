@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Revit.GeometryConversion;
+using System.Reflection;
 using System.Windows.Controls;
 
 namespace Pickles.Extensions
@@ -99,6 +100,18 @@ namespace Pickles.Extensions
                 return null;
 
             return (DB.BuiltInCategory)category.Id;
+        }
+
+        internal static DB.CurveLoop Ext_ToCurveLoop(this DynPolyCurve polyCurve)
+        {
+            var loop = new DB.CurveLoop();
+
+            foreach (DynCurve curve in polyCurve.Curves())
+            {
+                loop.Append(curve.ToRevitType());
+            }
+
+            return loop;
         }
     }
 }

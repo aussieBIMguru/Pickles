@@ -158,6 +158,48 @@ namespace Pickles.Extensions
         }
 
         /// <summary>
+        /// Views to ignore in collection.
+        /// </summary>
+        internal static HashSet<DB.ViewType> DEFAULTTYPES_NOTVIEWS = new()
+        {
+            // Browser/Internal
+            DB.ViewType.Internal,
+            DB.ViewType.ProjectBrowser,
+            DB.ViewType.SystemBrowser,
+            DB.ViewType.Undefined,
+            
+            // Documentation
+            DB.ViewType.Legend,
+            DB.ViewType.DrawingSheet,
+            DB.ViewType.Schedule,
+            DB.ViewType.ColumnSchedule,
+            DB.ViewType.PanelSchedule,
+            
+            // Reports
+            DB.ViewType.Report,
+            DB.ViewType.CostReport,
+            DB.ViewType.LoadsReport,
+            DB.ViewType.PressureLossReport,
+            DB.ViewType.SystemsAnalysisReport,
+        };
+
+        /// <summary>
+        /// Collects DB Views, with optional filtering of view types and templates.
+        /// </summary>
+        /// <param name="doc">The DB Document.</param>
+        /// <param name="ignoredTypes">Include View types normally excluded from view operations.</param>
+        /// <returns>An IList of DB Views.</returns>
+        internal static IEnumerable<DB.View> Ext_CollectViews(
+            this DB.Document doc,
+            HashSet<DB.ViewType>? ignoredTypes = null)
+        {
+            ignoredTypes ??= DEFAULTTYPES_NOTVIEWS;
+
+            return doc.Ext_CollectByClass<DB.View>()
+                .Where(v => !ignoredTypes.Contains(v.ViewType));
+        }
+
+        /// <summary>
         /// Collects DB ViewSheets, with an optional Sheet Collection Id.
         /// </summary>
         /// <param name="doc">The DB Document.</param>
