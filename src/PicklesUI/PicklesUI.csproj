@@ -93,6 +93,10 @@
 			<HintPath>$(DynamoRevitPath)\nodes\DSRevitNodesUI.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
+		<Reference Include="DynamoCoreWpf">
+			<HintPath>$(DynamoRevitPath)\DynamoCoreWpf.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -103,10 +107,11 @@
 		<PropertyGroup>
 			<DynamoBin>$(FolderPackages)bin\</DynamoBin>
 		</PropertyGroup>
-		
+
 		<ItemGroup>
 			<AssemblyFiles Include="$(TargetDir)$(AssemblyName).dll" />
 			<AssemblyFiles Include="$(TargetDir)$(AssemblyName).xml" />
+			<AssemblyFiles Include="$(TargetDir)*ViewExtensionDefinition.xml" />
 		</ItemGroup>
 		
 		<MakeDir Directories="$(DynamoBin)" />

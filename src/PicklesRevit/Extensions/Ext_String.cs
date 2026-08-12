@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Globalization;
 
 namespace Pickles.Extensions
 {
@@ -11,7 +9,7 @@ namespace Pickles.Extensions
         /// </summary>
         /// <param name="str">The string.</param>
         /// <returns>A boolean.</returns>
-        public static bool Ext_HasChars(this string str)
+        internal static bool Ext_HasChars(this string str)
         {
             return str?.Length > 0;
         }
@@ -21,7 +19,7 @@ namespace Pickles.Extensions
         /// </summary>
         /// <param name="str">The string.</param>
         /// <returns>A boolean.</returns>
-        public static bool Ext_HasNoChars(this string str)
+        internal static bool Ext_HasNoChars(this string str)
         {
             return !str.Ext_HasChars();
         }
@@ -33,7 +31,7 @@ namespace Pickles.Extensions
         /// <param name="ifNull">Value to replace if null (optional).</param>
         /// <param name="replaceEmpty">Catch empty string case also.</param>
         /// <returns>A string.</returns>
-        public static string Ext_DeNull(this string str, string ifNull = "", bool replaceEmpty = false)
+        internal static string Ext_DeNull(this string str, string ifNull = "", bool replaceEmpty = false)
         {
             if (replaceEmpty)
             {
@@ -53,7 +51,7 @@ namespace Pickles.Extensions
         /// <param name="splitChar">Character to split the phrase into.</param>
         /// <param name="mode">The mode by which to match against.</param>
         /// <returns>A boolean.</returns>
-        public static bool Ext_MatchAsWords(this string searchString, string matchPhrase, char splitChar = ' ', MATCH_MODE mode = MATCH_MODE.SUBSTRING_INSENSITIVE)
+        internal static bool Ext_MatchAsWords(this string searchString, string matchPhrase, char splitChar = ' ', MATCH_MODE mode = MATCH_MODE.SUBSTRING_INSENSITIVE)
         {
             // Normalise nulls
             searchString ??= string.Empty;
@@ -96,6 +94,112 @@ namespace Pickles.Extensions
             else
             {
                 return matches > 0;
+            }
+        }
+
+        /// <summary>
+        /// Convert a string to a nullable integer.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <returns>A nullable integer.</returns>
+        internal static int? Ext_ToIntOrNull(this string text)
+        {
+            if (text.Ext_HasChars() &&
+                int.TryParse(text, NumberStyles.Any,
+                CultureInfo.InvariantCulture, out int x))
+            {
+                return x;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Convert a string to an integer.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <param name="failValue">The value to return on failure to convert.</param>
+        /// <returns>An integer.</returns>
+        internal static int Ext_ToIntWithFallback(this string text, int failValue = 0)
+        {
+            return text.Ext_ToIntOrNull() ?? failValue;
+        }
+
+        /// <summary>
+        /// Convert a string to a nullable double.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <returns>A nullable double.</returns>
+        internal static double? Ext_ToDoubleOrNull(this string text)
+        {
+            if (text.Ext_HasChars() &&
+                double.TryParse(text, NumberStyles.Any,
+                CultureInfo.InvariantCulture, out double x))
+            {
+                return x;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Convert a string to a double.
+        /// </summary>
+        /// <param name="text">The value to convert.</param>
+        /// <param name="failValue">The value to return on failure to convert.</param>
+        /// <returns>A double.</returns>
+        internal static double Ext_ToDoubleOrFallback(this string text, double failValue = 0.0)
+        {
+            return text.Ext_ToDoubleOrNull() ?? failValue;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="badChars"></param>
+        /// <param name="replace"></param>
+        /// <returns></returns>
+        internal static string Ext_ReplaceBarChars(this string text, char[] badChars, string replace)
+        {
+            if (text.Ext_HasNoChars())
+            {
+                return text;
+            }
+            
+            var sb = new System.Text.StringBuilder();
+
+            foreach (char c in text)
+            {
+                if (badChars.Contains(c))
+                {
+                    sb.Append(replace);
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="fallbackValue"></param>
+        /// <returns></returns>
+        internal static T Ext_EnumByName<T>(this string name, T fallbackValue) where T : struct, Enum
+        {
+            if (Enum.TryParse(name, out T t))
+            {
+                return t;
+            }
+            else
+            {
+                return fallbackValue;
             }
         }
     }

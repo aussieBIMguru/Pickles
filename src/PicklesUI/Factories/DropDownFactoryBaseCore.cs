@@ -5,33 +5,27 @@ using ProtoCore.AST.AssociativeAST;
 namespace PicklesUI
 {
     /// <summary>
-    /// 
+    /// Base class for factory-driven Dynamo dropdown nodes.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of item displayed in the dropdown.</typeparam>
     public abstract class DropDownFactoryBaseCore<T> : DSDropDownBase
     {
         private readonly string _emptyMessage;
-        private readonly Func<IEnumerable<T>> _itemsProvider;
+        private readonly Func<NodeModel, IEnumerable<T>> _itemsProvider;
         private readonly Func<T, string> _labelBuilder;
         private readonly IOutputStrategy<T> _outputStrategy;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of the dropdown node.
         /// </summary>
-        /// <param name="outputName"></param>
-        /// <param name="emptyMessage"></param>
-        /// <param name="itemsProvider"></param>
-        /// <param name="labelBuilder"></param>
-        /// <param name="outputStrategy"></param>
         protected DropDownFactoryBaseCore(
             string outputName,
             string emptyMessage,
-            Func<IEnumerable<T>> itemsProvider,
+            Func<NodeModel, IEnumerable<T>> itemsProvider,
             Func<T, string> labelBuilder,
             IOutputStrategy<T> outputStrategy)
             : base(outputName)
         {
-
             _emptyMessage = emptyMessage;
             _itemsProvider = itemsProvider;
             _labelBuilder = labelBuilder;
@@ -42,19 +36,12 @@ namespace PicklesUI
         }
 
         /// <summary>
-        /// 
+        /// Initializes a new instance during deserialization.
         /// </summary>
-        /// <param name="outputName"></param>
-        /// <param name="emptyMessage"></param>
-        /// <param name="itemsProvider"></param>
-        /// <param name="labelBuilder"></param>
-        /// <param name="outputStrategy"></param>
-        /// <param name="inPorts"></param>
-        /// <param name="outPorts"></param>
         protected DropDownFactoryBaseCore(
             string outputName,
             string emptyMessage,
-            Func<IEnumerable<T>> itemsProvider,
+            Func<NodeModel, IEnumerable<T>> itemsProvider,
             Func<T, string> labelBuilder,
             IOutputStrategy<T> outputStrategy,
             IEnumerable<PortModel> inPorts,
@@ -71,9 +58,8 @@ namespace PicklesUI
         }
 
         /// <summary>
-        /// 
+        /// Populates the dropdown once the node has been initialized.
         /// </summary>
-        /// <param name="obj"></param>
         private void OnFirstModified(NodeModel obj)
         {
             Modified -= OnFirstModified;
@@ -81,10 +67,8 @@ namespace PicklesUI
         }
 
         /// <summary>
-        /// 
+        /// Populates the dropdown contents.
         /// </summary>
-        /// <param name="currentSelection"></param>
-        /// <returns></returns>
         protected override SelectionState PopulateItemsCore(string currentSelection)
         {
             Items.Clear();
@@ -93,18 +77,21 @@ namespace PicklesUI
             {
                 Items.Add(new DynamoDropDownItem(_emptyMessage ?? "Not available.", null));
                 SelectedIndex = 0;
+
                 return SelectionState.Done;
             }
 
             IEnumerable<T> elements;
+
             try
             {
-                elements = _itemsProvider().ToList();
+                elements = _itemsProvider(this).ToList();
             }
-            catch (Exception ex)
+            catch
             {
                 Items.Add(new DynamoDropDownItem(_emptyMessage, null));
                 SelectedIndex = 0;
+
                 return SelectionState.Done;
             }
 
@@ -112,6 +99,7 @@ namespace PicklesUI
             {
                 Items.Add(new DynamoDropDownItem(_emptyMessage, null));
                 SelectedIndex = 0;
+
                 return SelectionState.Done;
             }
 
@@ -124,10 +112,8 @@ namespace PicklesUI
         }
 
         /// <summary>
-        /// 
+        /// Builds the AST output for the selected item.
         /// </summary>
-        /// <param name="inputAstNodes"></param>
-        /// <returns></returns>
         public override IEnumerable<AssociativeNode> BuildOutputAst(
             List<AssociativeNode> inputAstNodes)
         {

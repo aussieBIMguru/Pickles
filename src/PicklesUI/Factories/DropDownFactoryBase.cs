@@ -13,7 +13,7 @@ namespace PicklesUI
     public abstract class DropDownFactoryBase<T> : RevitDropDownBase
     {
         private readonly string _emptyMessage;
-        private readonly Func<IEnumerable<T>> _itemsProvider;
+        private readonly Func<NodeModel, IEnumerable<T>> _itemsProvider;
         private readonly Func<T, string> _labelBuilder;
         private readonly IOutputStrategy<T> _outputStrategy;
 
@@ -28,7 +28,7 @@ namespace PicklesUI
         protected DropDownFactoryBase(
             string outputName,
             string emptyMessage,
-            Func<IEnumerable<T>> itemsProvider,
+            Func<NodeModel, IEnumerable<T>> itemsProvider,
             Func<T, string> labelBuilder,
             IOutputStrategy<T> outputStrategy)
             : base(outputName)
@@ -53,7 +53,7 @@ namespace PicklesUI
         protected DropDownFactoryBase(
             string outputName,
             string emptyMessage,
-            Func<IEnumerable<T>> itemsProvider,
+            Func<NodeModel, IEnumerable<T>> itemsProvider,
             Func<T, string> labelBuilder,
             IOutputStrategy<T> outputStrategy,
             IEnumerable<PortModel> inPorts,
@@ -82,14 +82,16 @@ namespace PicklesUI
             Items.Clear();
 
             IEnumerable<T> elements;
+
             try
             {
-                elements = _itemsProvider().ToList();
+                elements = _itemsProvider(this).ToList();
             }
             catch
             {
                 Items.Add(new DynamoDropDownItem(_emptyMessage, null));
                 SelectedIndex = 0;
+
                 return SelectionState.Done;
             }
 
@@ -97,6 +99,7 @@ namespace PicklesUI
             {
                 Items.Add(new DynamoDropDownItem(_emptyMessage, null));
                 SelectedIndex = 0;
+
                 return SelectionState.Done;
             }
 

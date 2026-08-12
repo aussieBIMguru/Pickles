@@ -8,3 +8,7 @@ global using PicklesUI.Extensions;
 
 // Factories
 global using PicklesUI.Factories;
+
+// Dynamo alias'
+global using DynSpecType = Revit.Elements.SpecType;
+global using DynGroupType = Revit.Elements.GroupType;

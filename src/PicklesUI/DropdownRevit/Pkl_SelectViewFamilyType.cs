@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectViewFamilyType")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_ViewFamilyType")]
     [NodeDescription("Select a view family type from the current document.")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectViewFamilyType : DropDownFactoryBase<DB.ViewFamilyType>
@@ -13,10 +13,10 @@ namespace PicklesUI
         private const string NoItems = "No view family types available in project.";
         private const string OutputName = "viewFamilyType";
 
-        private static IEnumerable<DB.ViewFamilyType> GetItems()
+        private static IEnumerable<DB.ViewFamilyType> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
-            if (doc == null) return Enumerable.Empty<DB.ViewFamilyType>();
+            if (doc == null) return [];
 
             return new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.ViewFamilyType))

@@ -1,8 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using Pickles.Extensions;
-using Revit.Elements;
-
-namespace Pickles.Extensions
+﻿namespace Pickles.Extensions
 {
     /// <summary>
     /// Extension methods for DB Elements.
@@ -15,7 +11,7 @@ namespace Pickles.Extensions
         /// <param name="element">The Element to convert.</param>
         /// <param name="revitOwned">If the Element is Revit owned.</param>
         /// <returns>A Dynamo Element.</returns>
-        internal static DynElement? Ext_ToDynElement(this DB.Element element, bool revitOwned)
+        internal static DynElement? Ext_ToDynElement<T>(this T element, bool revitOwned) where T : DB.Element
         {
             return element == null ? null : element.ToDSType(revitOwned);
         }
@@ -78,6 +74,17 @@ namespace Pickles.Extensions
                 DB.StorageType.ElementId => (T)(object)parameter.AsElementId(),
                 _ => default
             };
+        }
+
+        /// <summary>
+        /// Attempts to get the type of an Element.
+        /// </summary>
+        /// <param name="element">The extended Element.</param>
+        /// <returns>The Element's type, if any.</returns>
+        public static DB.Element? Ext_GetType(this DB.Element element)
+        {
+            if (element is null) { return null; }
+            return element.GetTypeId().Ext_GetElement<DB.Element>(element.Document);
         }
     }
 }

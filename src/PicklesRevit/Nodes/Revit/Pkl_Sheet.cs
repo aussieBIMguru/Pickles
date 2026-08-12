@@ -1,9 +1,4 @@
-﻿// Autodesk
-using Autodesk.DesignScript.Runtime;
-using Autodesk.Revit.DB;
-using DynamoServices;
-using RevitServices.Transactions;
-using System.Text;
+﻿using System.Text;
 
 namespace Pkl_Revit
 {
@@ -21,14 +16,16 @@ namespace Pkl_Revit
         /// <param name="numbers">A list of numbers (strings).</param>
         /// <param name="names">A list of names (strings).</param>
         /// <param name="asPlaceholder">Create sheets as placeholders.</param>
-        /// <returns>A list of sheets and outcomes.</returns>
-        /// <search>sheet, viewsheet, create</search>
+        /// <returns name="sheets">Created sheets.</returns>
+        /// <returns name="success">If the sheet was created successfully.</returns>
+        /// <search>Revit.Sheet.Create</search>
+        [NodeCategory("Create")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> Create(DynFamilySymbol titleBlockType,
             List<string> numbers, List<string> names, bool asPlaceholder = false)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(null);
+            // Get the related document
+            var docHelper = new DocumentHelper(null);
 
             // Final outputs
             var outSheets = new List<DynElement>();
@@ -42,19 +39,18 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
             // Null validation routine, ensure equal name/number count
             if (titleBlockType == null
                 || numbers.Ext_ListIsValid(ensureNoNulls: true)
-                || names.Ext_ListIsValid(ensureNoNulls: true)
-                || numbers.Count != names.Count)
+                || names.Ext_ListIsValid(ensureNoNulls: true))
             {
-                pklGen.LogWarning(PKL_WARNING.INVALID_INPUTS);
+                WARNING_TYPE.INVALID_INPUTS.Ext_Raise();
                 return output;
             }
 
@@ -62,12 +58,18 @@ namespace Pkl_Revit
             if (titleBlockType.InternalElement is DB.FamilySymbol symbol
                 && symbol.Family.FamilyCategory.Id.Value != (int)DB.BuiltInCategory.OST_TitleBlocks)
             {
-                LogWarningMessageEvents.OnLogWarningMessage("Titleblock family type was not provided.");
+                WARNING_TYPE.WRONG_CATEGORY_INPUTS.Ext_Raise();
                 return output;
             }
 
+            // Unequal length warning (proceed with shortest)
+            if (numbers.Count != names.Count)
+            {
+                WARNING_TYPE.KEY_VALUE_MISMATCH.Ext_Raise();
+            }
+
             // Get existing sheet numbers in the document
-            HashSet<string> exSheetNumbers = new DB.FilteredElementCollector(doc)
+            HashSet<string> exSheetNumbers = new DB.FilteredElementCollector(docHelper.Document)
                 .OfClass(typeof(DB.ViewSheet))
                 .Cast<DB.ViewSheet>()
                 .Select(s => s.SheetNumber)
@@ -77,44 +79,34 @@ namespace Pkl_Revit
             // Titleblock family type Id
             DB.ElementId ttbTypeId = titleBlockType.InternalElement.Id;
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Create Sheets
+            DB.Document doc = docHelper.Document;
+            doc.Ext_EnsureTransaction();
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Sheets.Create"))
+            // For each name/number pairing...
+            for (int i = 0; i < Math.Min(names.Count, numbers.Count); i++)
             {
-                transaction.Start();
-
-                // For each name/number pairing...
-                for (int i = 0; i < numbers.Count; i++)
+                // If the number is not used...
+                if (!exSheetNumbers.Contains(numbers[i]))
                 {
-                    // If the number is not used...
-                    if (!exSheetNumbers.Contains(numbers[i]))
-                    {
-                        // Create the sheet, add to number set
-                        DB.ViewSheet sheet = pklGen.CreateSheet(doc,
-                                numbers[i],
-                                names[i],
-                                asPlaceholder,
-                                ttbTypeId);
-                        exSheetNumbers.Add(numbers[i]);
+                    // Create the sheet, add to number set
+                    DB.ViewSheet sheet = docHelper.Document.Ext_CreateSheet(
+                        numbers[i], names[i], asPlaceholder, ttbTypeId);
+                    exSheetNumbers.Add(numbers[i]);
 
-                        // Add to outputs
-                        outSuccess.Add(true);
-                        outSheets.Add(sheet.Ext_ToDynElement(true));
-                    }
-                    else
-                    {
-                        // Add error to outputs
-                        outSheets.Add(null);
-                        outSuccess.Add(false);
-                    }
+                    // Add to outputs
+                    outSuccess.Add(true);
+                    outSheets.Add(sheet.Ext_ToDynElement(true));
                 }
-
-                transaction.Commit();
+                else
+                {
+                    // Add error to outputs
+                    outSheets.Add(null);
+                    outSuccess.Add(false);
+                }
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return outputs
             return output;
@@ -125,12 +117,15 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheets">Sheets to add the Revision to.</param>
         /// <param name="revision">The Revision to add.</param>
-        /// <search>sheet, revision, add</search>
+        /// <returns name="sheets">The sheets.</returns>
+        /// <returns name="success">If the revision was applied.</returns>
+        /// <search>Revit.Sheet.AddRevision</search>
+        [NodeCategory("Action")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> AddRevision(List<DynSheet> sheets, DynRevision revision)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(null);
+            // Get the related document
+            var docHelper = new DocumentHelper(null);
 
             // Final outputs
             var outSuccess = new List<bool>();
@@ -143,35 +138,28 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Add Revision
+            DB.Document doc = docHelper.Document;
+            doc.Ext_EnsureTransaction();
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Sheet.AddRevision"))
+            // Revit revision
+            DB.Revision internalRevision = revision.InternalElement as DB.Revision;
+
+            // Add the Revision to each sheet
+            foreach (DynSheet sheet in sheets)
             {
-                transaction.Start();
-
-                // Revit revision
-                DB.Revision internalRevision = revision.InternalElement as DB.Revision;
-
-                // Add the Revision to each sheet
-                foreach (DynSheet sheet in sheets)
-                {
-                    DB.ViewSheet internalSheet = sheet.InternalElement as DB.ViewSheet;
-                    bool success = internalSheet.Ext_AddRevision(internalRevision);
-                    outSuccess.Add(success);
-                }
-
-                transaction.Commit();
+                DB.ViewSheet internalSheet = sheet.InternalElement as DB.ViewSheet;
+                bool success = internalSheet.Ext_AddRevision(internalRevision);
+                outSuccess.Add(success);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return outputs
             return output;
@@ -182,12 +170,15 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheets">Sheets to remove the Revision from.</param>
         /// <param name="revision">The Revision to remove.</param>
-        /// <search>sheet, revision, add</search>
+        /// <returns name="text">The sheets.</returns>
+        /// <returns name="success">If the revision was removed.</returns>
+        /// <search>Revit.Sheet.RemoveRevision</search>
+        [NodeCategory("Action")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> RemoveRevision(List<DynSheet> sheets, DynRevision revision)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(null);
+            // Get the related document
+            var docHelper = new DocumentHelper(null);
 
             // Final outputs
             var outSuccess = new List<bool>();
@@ -199,29 +190,22 @@ namespace Pkl_Revit
                 { "success", outSuccess }
             };
 
-            // Close any active transactions
-            TransactionManager.Instance.ForceCloseTransaction();
+            // Transaction: Remove Revision
+            DB.Document doc = docHelper.Document;
+            doc.Ext_EnsureTransaction();
 
-            // Using a transaction...
-            using (var transaction = new DB.Transaction(doc, "Pickle: Sheet.AddRevision"))
+            // Revit revision
+            DB.Revision internalRevision = revision.InternalElement as DB.Revision;
+
+            // Remove the Revision for each sheet
+            foreach (DynSheet sheet in sheets)
             {
-                transaction.Start();
-
-                // Revit revision
-                DB.Revision internalRevision = revision.InternalElement as DB.Revision;
-
-                // Remove the Revision for each sheet
-                foreach (DynSheet sheet in sheets)
-                {
-                    DB.ViewSheet interalSheet = sheet.InternalElement as DB.ViewSheet;
-                    bool success = interalSheet.Ext_RemoveRevision(internalRevision);
-                    outSuccess.Add(success);
-                }
-
-                transaction.Commit();
+                DB.ViewSheet interalSheet = sheet.InternalElement as DB.ViewSheet;
+                bool success = interalSheet.Ext_RemoveRevision(internalRevision);
+                outSuccess.Add(success);
             }
 
-            TransactionManager.Instance.TransactionTaskDone();
+            doc.Ext_TransactionDone();
 
             // Return outputs
             return output;
@@ -233,13 +217,16 @@ namespace Pkl_Revit
         /// <param name="numbers">Numbers to find sheets for.</param>
         /// <param name="sheetCollection">Numbers to find sheets for.</param>
         /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
-        /// <search>sheet, find, number</search>
+        /// <returns name="sheets">The sheets that were found.</returns>
+        /// <returns name="success">If a sheet was found.</returns>
+        /// <search>Revit.Sheet.GetByNumber</search>
+        [NodeCategory("Action")]
         [MultiReturn("sheets", "success")]
         public static Dictionary<string, object> GetByNumber(List<string> numbers, [DefaultArgument("null")] DynElement sheetCollection = null,
             [DefaultArgument("null")] object? docOrLinkInstance = null)
         {
-            // Current document
-            DB.Document doc = pklGen.GetDocumentRoutine(docOrLinkInstance);
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance, true);
 
             // Final outputs
             var outSheets = new List<DynElement?>();
@@ -253,9 +240,9 @@ namespace Pkl_Revit
             };
 
             // Early return/warning if no document
-            if (doc == null)
+            if (!docHelper.IsValid)
             {
-                pklGen.LogWarning(PKL_WARNING.NO_DOC_OR_LINK);
+                docHelper.RaiseInvalidWarning();
                 return output;
             }
 
@@ -264,7 +251,7 @@ namespace Pkl_Revit
             DB.ElementId sheetCollectionId = internalSheetCollection.Ext_ToSheetCollectionId();
 
             // Sheet dictionary by number
-            var sheetDict = doc.Ext_CollectSheetsByNumber(sheetCollectionId);
+            var sheetDict = docHelper.Document.Ext_CollectSheetsByNumber(sheetCollectionId);
 
             // For each number, get its sheet if it exists in the document
             foreach (string number in numbers)
@@ -299,8 +286,10 @@ namespace Pkl_Revit
         /// <param name="sheets">Sheets to generate titles for.</param>
         /// <param name="ruleParts">Sheet/Project parmeter references or separators.</param>
         /// <returns name="titles">The formatted document titles.</returns>
-        /// <search>sheet, title, format</search>
-        public static List<string> FormattedTitle(List<DynSheet> sheets, [DefaultArgument("null")] List<string> ruleParts = null)
+        /// <search>Revit.Sheet.FormattedTitle</search>
+        [NodeCategory("Action")]
+        public static List<string> FormattedTitle(List<DynSheet> sheets,
+            [DefaultArgument("null")] List<string> ruleParts = null)
         {
             // Final outputs
             var titles = new List<string>();
@@ -377,7 +366,8 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheet">Sheets to check.</param>
         /// <returns name="isPlaceholder">If the sheet is a placeholder.</returns>
-        /// <search>sheet, placeholder</search>
+        /// <search>Revit.Sheet.IsPlaceholder</search>
+        [NodeCategory("Query")]
         public static bool? IsPlaceholder(DynSheet sheet)
         {
             // Final outputs
@@ -395,13 +385,14 @@ namespace Pkl_Revit
         /// </summary>
         /// <param name="sheet">Sheets to get revisions of.</param>
         /// <returns name="revisions">Revisions on the Sheet.</returns>
-        /// <search>sheet, revision</search>
-        public static List<DynElement> Revisions(DynSheet sheet)
+        /// <search>Revit.Sheet.GetRevisions</search>
+        [NodeCategory("Query")]
+        public static List<DynElement> GetRevisions(DynSheet sheet)
         {
             // Final outputs
             var revisions = new List<DynElement>();
 
-            if (sheet.InternalElement is ViewSheet internalSheet)
+            if (sheet.InternalElement is DB.ViewSheet internalSheet)
             {
                 revisions = internalSheet.GetAllRevisionIds()
                     .Select(i => i.Ext_GetElement<DB.Revision>(internalSheet.Document))
@@ -412,6 +403,52 @@ namespace Pkl_Revit
 
             // Return outputs
             return revisions;
+        }
+
+        /// <summary>
+        /// Returns the last titleblock on the sheet, if any.
+        /// </summary>
+        /// <param name="sheets">Sheets to get the titleblocks of.</param>
+        /// <param name="docOrLinkInstance">Document or RevitLinkInstance to collect from (current if not provided).</param>
+        /// <returns name="titleblocks">Last titleblocks on the Sheets, if any.</returns>
+        /// <search>Revit.Sheet.GetTitleblock</search>
+        [NodeCategory("Action")]
+        public static List<DynElement> GetTitleblock(List<DynSheet> sheets,
+            [DefaultArgument("null")] object? docOrLinkInstance = null)
+        {
+            // Title block list
+            List<DynElement> titleblocks = new();
+
+            // Get the related document
+            var docHelper = new DocumentHelper(docOrLinkInstance);
+
+            // Early return/warning if no document
+            if (!docHelper.IsValid)
+            {
+                docHelper.RaiseInvalidWarning();
+                return titleblocks;
+            }
+
+            // Collect all titleblocks, to dictionary by Owner view Id
+            IList<DB.Element> allTtbs = docHelper.Document.Ext_CollectByCategory(DB.BuiltInCategory.OST_TitleBlocks);
+            Dictionary<DB.ElementId, DB.Element> ttbDictionary = new();
+            foreach (var ttb in allTtbs) { ttbDictionary[ttb.OwnerViewId] = ttb; }
+
+            // Get titleblock for each sheet
+            foreach (DynSheet sheet in sheets)
+            {
+                if (ttbDictionary.TryGetValue(sheet.InternalElement.Id, out DB.Element foundTtb))
+                {
+                    titleblocks.Add(foundTtb.Ext_ToDynElement(true));
+                }
+                else
+                {
+                    titleblocks.Add(null);
+                }
+            }
+
+            // Return outputs
+            return titleblocks;
         }
     }
 }

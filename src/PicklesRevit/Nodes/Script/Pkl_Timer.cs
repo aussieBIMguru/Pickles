@@ -1,6 +1,4 @@
-﻿using Autodesk.DesignScript.Runtime;
-
-namespace Pkl_Script
+﻿namespace Pkl_Script
 {
     /// <summary>
     /// Nodes relating to control flow.
@@ -13,8 +11,10 @@ namespace Pkl_Script
         /// Gets the current time, passing optional data through.
         /// </summary>
         /// <param name="data">Optional data to pass through (begins the timer).</param>
-        /// <returns>The inputted data.</returns>
-        /// <search>timer, start, datetime</search>
+        /// <returns name="data">Passed through data.</returns>
+        /// <returns name="time">The time that the timer was created.</returns>
+        /// <search>Script.Timer.Start</search>
+        [NodeCategory("Create")]
         [MultiReturn("data", "time")]
         [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> Start([ArbitraryDimensionArrayImport] object data = null)
@@ -32,8 +32,10 @@ namespace Pkl_Script
         /// <param name="data">Data to pass through (begins the timer).</param>
         /// <param name="seconds">Time to delay the data for.</param>
         /// <param name="limit">Maximum seconds of delay to allow.</param>
-        /// <returns>The data, and if the timer timed out.</returns>
-        /// <search>timer, delay, seconds</search>
+        /// <returns name="data">Passed through data.</returns>
+        /// <returns name="timedOut">If the limit was tripped on the delay.</returns>
+        /// <search>Script.Timer.Delay</search>
+        [NodeCategory("Action")]
         [MultiReturn("data", "timedOut")]
         [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> Delay([ArbitraryDimensionArrayImport] object data,
@@ -58,8 +60,11 @@ namespace Pkl_Script
         /// </summary>
         /// <param name="data">Data to trigger the timer check.</param>
         /// <param name="time">A DateTime object from another timer node.</param>
-        /// <returns>The inputted data.</returns>
-        /// <search>timer, start, datetime</search>
+        /// <returns name="data">Passed through data.</returns>
+        /// <returns name="time">The time that the timer was checked at.</returns>
+        /// <returns name="seconds">The timer difference in seconds.</returns>
+        /// <search>Script.Timer.Check</search>
+        [NodeCategory("Query")]
         [MultiReturn("data", "time", "seconds")]
         [return: ArbitraryDimensionArrayImport]
         public static Dictionary<string, object> Check([ArbitraryDimensionArrayImport] object data,

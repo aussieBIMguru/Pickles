@@ -1,12 +1,11 @@
 using Dynamo.Graph.Nodes;
 using RevitServices.Persistence;
 using Newtonsoft.Json;
-using Autodesk.Revit.DB;
 
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectSheetCollection")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_Sheet")]
     [NodeDescription("Select a SheetCollection from the current document (all sheets returns the ProjectBrowser object).")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectSheetCollection : DropDownFactoryBase<DB.Element>
@@ -22,7 +21,7 @@ namespace PicklesUI
             {
                 return "_All Sheets";
             }
-            else if (element is SheetCollection)
+            else if (element is DB.SheetCollection)
             {
                 return element.Name;
             }
@@ -32,12 +31,12 @@ namespace PicklesUI
             }
         }
 
-        private static IEnumerable<DB.Element> GetItems()
+        private static IEnumerable<DB.Element> GetItems(NodeModel node)
         {
             DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
-            if (doc == null) return Enumerable.Empty<DB.Element>();
+            if (doc == null) return [];
 
-            DB.View? projectBrowser = new FilteredElementCollector(doc)
+            DB.View? projectBrowser = new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.View))
                 .Cast<DB.View>()
                 .FirstOrDefault(v => v.ViewType == DB.ViewType.ProjectBrowser);

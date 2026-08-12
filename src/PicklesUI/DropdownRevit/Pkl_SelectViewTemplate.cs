@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectViewTemplate")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_View")]
     [NodeDescription("Select a view template from the current document.")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectViewTemplate : DropDownFactoryBase<DB.View>
@@ -13,15 +13,16 @@ namespace PicklesUI
         private const string NoItems = "No view templates available in project.";
         private const string OutputName = "viewTemplate";
 
-        private static IEnumerable<DB.View> GetItems()
+        private static IEnumerable<DB.View> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
-            if (doc == null) return Enumerable.Empty<DB.View>();
+            if (doc == null) return [];
 
             return new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.View))
                 .Cast<DB.View>()
-                .Where(v => v.IsTemplate);
+                .Where(v => v.IsTemplate)
+                .OrderBy(v => v.Name);
         }
 
         public Pkl_SelectViewTemplate() : base(

@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace PicklesUI
 {
     [NodeName("Pkl_SelectSheet")]
-    [NodeCategory("Pickles.Pkl_Revit.Pkl_Selection")]
+    [NodeCategory("Pickles.Pkl_Revit.Pkl_Sheet")]
     [NodeDescription("Select a Sheet from the current document.")]
     [IsDesignScriptCompatible]
     public class Pkl_SelectSheet : DropDownFactoryBase<DB.ViewSheet>
@@ -13,10 +13,10 @@ namespace PicklesUI
         private const string NoItems = "No Sheets available in project.";
         private const string OutputName = "sheet";
 
-        private static IEnumerable<DB.ViewSheet> GetItems()
+        private static IEnumerable<DB.ViewSheet> GetItems(NodeModel node)
         {
             var doc = DocumentManager.Instance.CurrentDBDocument;
-            if (doc == null) return Enumerable.Empty<DB.ViewSheet>();
+            if (doc == null) return [];
 
             return new DB.FilteredElementCollector(doc)
                 .OfClass(typeof(DB.ViewSheet))

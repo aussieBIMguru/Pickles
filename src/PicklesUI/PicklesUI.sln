@@ -1,8 +1,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.3.32922.545
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11822.322 stable
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{741A5824-1E57-44E4-88D7-BD904A8F48DC}") = "PicklesUI", "PicklesUI.csproj", "{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PicklesUI", "PicklesUI.csproj", "{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pickles", "..\PicklesRevit\Pickles.csproj", "{683918FE-2E06-A612-4F31-153C3D4B035C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.Build.0 = Debug R27|Any CPU
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.ActiveCfg = Release R27|Any CPU
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.Build.0 = Release R27|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Debug R27|Any CPU.ActiveCfg = Debug R27|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Debug R27|Any CPU.Build.0 = Debug R27|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Release R27|Any CPU.ActiveCfg = Release R27|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Release R27|Any CPU.Build.0 = Release R27|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
