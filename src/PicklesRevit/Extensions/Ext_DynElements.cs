@@ -1,6 +1,5 @@
 ﻿using Revit.GeometryConversion;
 using System.Reflection;
-using System.Windows.Controls;
 
 namespace Pickles.Extensions
 {
@@ -37,7 +36,21 @@ namespace Pickles.Extensions
             var property = typeof(DynFamilyParameter).GetProperty("InternalFamilyParameter",
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
-            return property.GetValue(parameter) as DB.FamilyParameter;
+            return property?.GetValue(parameter) as DB.FamilyParameter;
+        }
+
+        internal static DB.ScheduleField? Ext_ToSchedulableField(this DynScheduleField field)
+        {
+            if (field is null)
+            {
+                return null;
+            }
+
+            var property = typeof(DynScheduleField).GetProperty(
+                "InternalScheduleField",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            return property?.GetValue(field) as DB.ScheduleField;
         }
 
         internal static DynPoint Ext_ToDynamoPoint(this DB.XYZ point, bool convertToProject = true)
@@ -74,7 +87,7 @@ namespace Pickles.Extensions
             var property = typeof(DynDocument).GetProperty("InternalDocument",
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
-            return property.GetValue(doc) as DB.Document;
+            return property?.GetValue(doc) as DB.Document;
         }
 
         /// <summary>
@@ -91,7 +104,7 @@ namespace Pickles.Extensions
             var property = typeof(DynWarning).GetProperty("InternalWarning",
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
-            return property.GetValue(warning) as DB.FailureMessage;
+            return property?.GetValue(warning) as DB.FailureMessage;
         }
 
         internal static DB.BuiltInCategory? Ext_ToBuiltInCategory(this DynCategory category)

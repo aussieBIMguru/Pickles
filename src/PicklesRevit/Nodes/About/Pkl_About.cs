@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.DB;
+﻿using PklFrm = Pickles.Forms;
 
 namespace Pkl_About
 {
@@ -14,13 +14,13 @@ namespace Pkl_About
         /// </summary>
         /// <param name="runMe">Set to true to run.</param>
         /// <returns name="gitOpened">If the github was opened.</returns>
-        /// <search>About.About.Pickle</search>
+        /// <search>About.About.Pickles</search>
         [NodeCategory("Query")]
-        public static bool Pickle(bool runMe = false)
+        public static bool Pickles(bool runMe = false)
         {
             if (runMe)
             {
-                var formResult = Pickles.Forms.FormCallers.Message("About Pickle",
+                var formResult = PklFrm.FormCallers.Message("About Pickle",
                     "Thanks for using Pickle!\n\n" +
                     "Pickle is a Dynamo package for Revit that contains a wide variety " +
                     "of nodes, as well as a system for Pickling data to graphs and the canvas.\n\n" +
@@ -47,7 +47,7 @@ namespace Pkl_About
         {
             if (runMe)
             {
-                var formResult = Pickles.Forms.FormCallers.Message("About Aussie BIM Guru",
+                var formResult = PklFrm.FormCallers.Message("About Aussie BIM Guru",
                     "Aussie BIM Guru is the author's YouTube channel, focused on " +
                     "educating others in coding and better use of Revit, Rhino and " +
                     "various other AEC applications.\n\n" +
@@ -72,7 +72,7 @@ namespace Pkl_About
         {
             if (runMe)
             {
-                var formResult = Pickles.Forms.FormCallers.Message("About BIM Guru Education",
+                var formResult = PklFrm.FormCallers.Message("About BIM Guru Education",
                     "BIM Guru Education is the author's course/content platform, where " +
                     "he provides and sells both paid and free Revit content/templates and " +
                     "course on AEC programming.\n\n" +

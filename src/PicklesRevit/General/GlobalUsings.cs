@@ -28,10 +28,12 @@ global using DynSheet = global::Revit.Elements.Views.Sheet;
 global using DynSpecType = global::Revit.Elements.SpecType;
 global using DynView = global::Revit.Elements.Views.View;
 global using DynView3D = global::Revit.Elements.Views.View3D;
+global using DynViewSchedule = global::Revit.Elements.Views.ScheduleView;
 global using DynViewport = global::Revit.Elements.Viewport;
 global using DynWarning = global::Revit.Application.Warning;
 global using DynAdaptiveComponent = global::Revit.Elements.AdaptiveComponent;
 global using DynFamilyParameter = global::Revit.Elements.FamilyParameter;
+global using DynScheduleField = global::Revit.Schedules.ScheduleField;
 
 // Dynamo geometry alias'
 global using DynBb = global::Autodesk.DesignScript.Geometry.BoundingBox;
