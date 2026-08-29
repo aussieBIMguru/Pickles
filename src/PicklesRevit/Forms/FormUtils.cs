@@ -19,8 +19,8 @@ namespace Pickles.Forms
             System.Windows.Controls.Button? checkAllButton = null, System.Windows.Controls.Button? uncheckAllButton = null)
         {
             // Set state of check all buttons (single select = off)
-            checkAllButton?.IsEnabled = multiSelect;
-            uncheckAllButton?.IsEnabled = multiSelect;
+            if (checkAllButton != null) { checkAllButton.IsEnabled = multiSelect; }
+            if (uncheckAllButton != null) { uncheckAllButton.IsEnabled = multiSelect; }
 
             // Return resource and set the behavior of the listbox
             if (multiSelect)

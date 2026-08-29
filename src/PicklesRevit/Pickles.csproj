@@ -12,16 +12,51 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<Platform>windows</Platform>
 		<Prefer32Bit>false</Prefer32Bit>
-		<RevitInstallPath>C:\Program Files\Autodesk\Revit 2027</RevitInstallPath>
-		<DynamoRevitPath>$(RevitInstallPath)\AddIns\DynamoForRevit\Revit</DynamoRevitPath>
 		<Configurations>
-			Debug R27;
-			Release R27
+			Debug R25;Debug R26;Debug R27;
+			Release R25;Release R26;Release R27
 		</Configurations>
 		<PackageName>Pickles</PackageName>
-		<PackageVersion>0.0.1</PackageVersion>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug R25'">
+		<DynamoVersion>3.0</DynamoVersion>
+		<DynamoOutput>3.0</DynamoOutput>
+		<RevitVersion>2025</RevitVersion>
+		<DefineConstants>$(DefineConstants);REVIT25</DefineConstants>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Release R25'">
+		<DynamoVersion>3.0</DynamoVersion>
+		<DynamoOutput>3.0</DynamoOutput>
+		<RevitVersion>2025</RevitVersion>
+		<DefineConstants>$(DefineConstants);REVIT25</DefineConstants>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug R26'">
+		<DynamoVersion>3.6</DynamoVersion>
+		<DynRevitVersion>3.6</DynRevitVersion>
+		<DynamoOutput>3.6</DynamoOutput>
+		<RevitVersion>2026</RevitVersion>
+		<DefineConstants>$(DefineConstants);REVIT26</DefineConstants>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Release R26'">
+		<DynamoVersion>3.6</DynamoVersion>
+		<DynRevitVersion>3.6</DynRevitVersion>
+		<DynamoOutput>3.6</DynamoOutput>
+		<RevitVersion>2026</RevitVersion>
+		<DefineConstants>$(DefineConstants);REVIT26</DefineConstants>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug R27'">
 		<DynamoVersion>4.0</DynamoVersion>
 		<DynRevitVersion>27.0</DynRevitVersion>
@@ -44,6 +79,10 @@
 
 	<PropertyGroup>
 		<DynVersion>$(DynamoVersion)</DynVersion>
+		<RevitInstallPath>C:\Program Files\Autodesk\Revit $(RevitVersion)</RevitInstallPath>
+		<DynamoRevitPath>$(RevitInstallPath)\AddIns\DynamoForRevit\Revit</DynamoRevitPath>
+		<PackageVersion>26.9.$(RevitVersion)</PackageVersion>
+		<AssemblyVersion>$(PackageVersion)</AssemblyVersion>
 		<DynRevitVersion Condition="'$(DynRevitVersion)' == ''">$(DynamoVersion)</DynRevitVersion>
 		<BuildOutput>$(DynamoOutput)</BuildOutput>
 		<PublishSingleFile>true</PublishSingleFile>
@@ -53,8 +92,7 @@
 		<FolderPackages>$(AppData)\Dynamo\Dynamo Revit\$(BuildOutput)\packages\$(RootNamespace)\</FolderPackages>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Version>$(RevitVersion).$(PackageVersion)</Version>
-		<FileVersion>$(RevitVersion).$(PackageVersion)</FileVersion>
-		<AssemblyVersion>$(RevitVersion).$(PackageVersion)</AssemblyVersion>
+		<FileVersion>$(PackageVersion)</FileVersion>
 		<Description>$(PackageName) for Dynamo|Revit $(RevitVersion)</Description>
 		<Title>$(PackageName) for Dynamo|Revit $(RevitVersion)</Title>
 		<Product>$(PackageName) for Dynamo|Revit $(RevitVersion)</Product>
@@ -120,7 +158,7 @@
 				{
 				"name": "$(PackageName)",
 				"version": "$(RevitVersion).$(PackageVersion)",
-				"description": "$(PackageName) for Dynamo Revit $(RevitVersion)",
+				"description": "As the spiritual successor to Crumple for Dynamo, Pickles captures all of its nodes and more. It provides over 300 general Revit utility nodes, as well as a new UI library and data pickling system. Please install package versions that end with the target Revit versions number only.",
 				"group": "",
 				"engine": "Dynamo",
 				"engine_version": "$(DynVersion).0",
@@ -128,6 +166,7 @@
 				"contents": "nodes",
 				"license": "MIT",
 				"dependencies": [],
+				"host_dependencies":["Revit"],
 				"keywords": [ "dynamo", "revit" ],
 				"site_url": ""
 				}

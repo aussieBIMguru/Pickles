@@ -38,7 +38,7 @@ namespace PicklesUI
                 DB.ViewType.Report,
                 DB.ViewType.CostReport,
                 DB.ViewType.LoadsReport,
-                DB.ViewType.PressureLossReport,
+                // DB.ViewType.PressureLossReport,
                 DB.ViewType.SystemsAnalysisReport,
             };
 
