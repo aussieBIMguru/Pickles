@@ -75,4 +75,4 @@ https://github.com/aussieBIMguru/Pickles
 
 ---
 
-Made by **Gavin Crump / Aussie BIM Guru** 🥒
+Made by **Gavin Nicholls (ex Crump) / Aussie BIM Guru** 🥒
