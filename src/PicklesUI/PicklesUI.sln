@@ -8,10 +8,30 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pickles", "..\PicklesRevit\
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug R25|Any CPU = Debug R25|Any CPU
+		Release R25|Any CPU = Release R25|Any CPU
+		Debug R26|Any CPU = Debug R26|Any CPU
+		Release R26|Any CPU = Release R26|Any CPU
 		Debug R27|Any CPU = Debug R27|Any CPU
 		Release R27|Any CPU = Release R27|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R25|Any CPU.ActiveCfg = Debug R25|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R25|Any CPU.Build.0 = Debug R25|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R25|Any CPU.ActiveCfg = Release R25|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R25|Any CPU.Build.0 = Release R25|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Debug R25|Any CPU.ActiveCfg = Debug R25|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Debug R25|Any CPU.Build.0 = Debug R25|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Release R25|Any CPU.ActiveCfg = Release R25|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Release R25|Any CPU.Build.0 = Release R25|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R26|Any CPU.ActiveCfg = Debug R26|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R26|Any CPU.Build.0 = Debug R26|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R26|Any CPU.ActiveCfg = Release R26|Any CPU
+		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R26|Any CPU.Build.0 = Release R26|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Debug R26|Any CPU.ActiveCfg = Debug R26|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Debug R26|Any CPU.Build.0 = Debug R26|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Release R26|Any CPU.ActiveCfg = Release R26|Any CPU
+		{683918FE-2E06-A612-4F31-153C3D4B035C}.Release R26|Any CPU.Build.0 = Release R26|Any CPU
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.ActiveCfg = Debug R27|Any CPU
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Debug R27|Any CPU.Build.0 = Debug R27|Any CPU
 		{C426E15B-524F-4CC5-AECB-D6E9DCB747B1}.Release R27|Any CPU.ActiveCfg = Release R27|Any CPU
