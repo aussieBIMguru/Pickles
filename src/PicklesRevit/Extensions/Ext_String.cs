@@ -202,5 +202,60 @@ namespace Pickles.Extensions
                 return fallbackValue;
             }
         }
+
+        /// <summary>
+        /// Calculates the Levenshtein Distance between this string and another string.
+        /// </summary>
+        public static int? Ext_LevenshteinDistance(this string source, string target)
+        {
+            // Null check
+            if (source == null || target == null) { return null; }
+
+            int sourceLength = source.Length;
+            int targetLength = target.Length;
+
+            // Case: Empty strings
+            if (sourceLength == 0) return targetLength;
+            if (targetLength == 0) return sourceLength;
+
+            // Optimization: ensure target is shorter or equal to save memory
+            if (sourceLength < targetLength)
+            {
+                return target.Ext_LevenshteinDistance(source);
+            }
+
+            // Maintain only the current and previous rows of the matrix
+            int[] previousRow = new int[targetLength + 1];
+            int[] currentRow = new int[targetLength + 1];
+
+            // Initialize the first row
+            for (int j = 0; j <= targetLength; j++)
+            {
+                previousRow[j] = j;
+            }
+
+            // Calculate distances
+            for (int i = 0; i < sourceLength; i++)
+            {
+                currentRow[0] = i + 1;
+
+                for (int j = 0; j < targetLength; j++)
+                {
+                    // If characters match, the cost is 0; otherwise, it's 1
+                    int cost = (source[i] == target[j]) ? 0 : 1;
+
+                    // Find the minimum of: deletion, insertion, substitution
+                    currentRow[j + 1] = Math.Min(
+                        Math.Min(currentRow[j] + 1, previousRow[j + 1] + 1),
+                        previousRow[j] + cost
+                    );
+                }
+
+                // Move to the next row (copy current to previous)
+                Array.Copy(currentRow, previousRow, currentRow.Length);
+            }
+
+            return previousRow[targetLength];
+        }
     }
 }
