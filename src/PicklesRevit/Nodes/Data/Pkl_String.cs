@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Dynamo.Search;
+using System.Globalization;
 
 namespace Pkl_Data
 {
@@ -207,6 +208,27 @@ namespace Pkl_Data
                 { "legalized", legalString },
                 { "changed", text != legalString }
             };
+        }
+
+        /// <summary>
+        /// Measures the Levenshtein Distance between two strings, representing
+        /// the number of changes required to that string to become another.
+        /// </summary>
+        /// <param name="text">The string to check.</param>
+        /// <param name="compareTo">The string to check against.</param>
+        /// <param name="caseInvariant">Ignore upper/lower casing.</param>
+        /// <returns name="distance">The distance between them.</returns>
+        /// <search>Data.String.LevenshteinDistance</search>
+        [NodeCategory("Query")]
+        public static int? LevenshteinDistance(string text, string compareTo, bool caseInvariant = true)
+        {
+            if (caseInvariant)
+            {
+                text = text.ToLower();
+                compareTo = compareTo.ToLower();
+            }
+
+            return text.Ext_LevenshteinDistance(compareTo);
         }
 
         /// <summary>
